@@ -1,0 +1,39 @@
+import { Route, Routes } from 'react-router'
+import './App.css'
+
+// pages
+import HeaderLayout from './components/header'
+import IndexPage from './pages/index-page'
+import NotFoundPage from './pages/not-found-page'
+import UserListPage from './pages/user-list-page'
+import UserDetailPage from './pages/user-detail-page'
+import RestaurantListPage from './pages/restaurant-list-page'
+import RestaurantDetailPage from './pages/restaurant-detail-page'
+import MapPage from './pages/map-page'
+import SignInPage from './pages/sign-in-page'
+import SignUpPage from './pages/sign-up-page'
+
+
+
+function App() {
+
+  return (
+    <div className="app-container">
+      <Routes>
+        <Route element={<HeaderLayout />}>
+          <Route path="/" element={<IndexPage />} />
+          <Route path="/users" element={<UserListPage />} />
+          <Route path="/users/:id" element={<UserDetailPage />} />
+          <Route path="/restaurants" element={<RestaurantListPage />} />
+          <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
+          <Route path="/map" element={<MapPage />} />
+          <Route path="/sign-in" element={<SignInPage />} />
+          <Route path="/sign-up" element={<SignUpPage />} />
+        </Route>
+        <Route path="*" element={<NotFoundPage />} />
+      </Routes>
+    </div>
+  )
+}
+
+export default App
