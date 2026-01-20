@@ -4,12 +4,14 @@ import './App.css'
 // pages
 import HeaderLayout from './components/header'
 import IndexPage from './pages/index-page'
+import DesignSystemPage from './pages/design-system'
 import NotFoundPage from './pages/not-found-page'
 import UserListPage from './pages/user-list-page'
 import UserDetailPage from './pages/user-detail-page'
 import RestaurantListPage from './pages/restaurant-list-page'
 import RestaurantDetailPage from './pages/restaurant-detail-page'
 import MapPage from './pages/map-page'
+import FeedPage from './pages/feed-page'
 import SignInPage from './pages/sign-in-page'
 import SignUpPage from './pages/sign-up-page'
 
@@ -22,11 +24,13 @@ function App() {
       <Routes>
         <Route element={<HeaderLayout />}>
           <Route path="/" element={<IndexPage />} />
+          <Route path="/design-system" element={<DesignSystemPage />} />
           <Route path="/users" element={<UserListPage />} />
           <Route path="/users/:id" element={<UserDetailPage />} />
           <Route path="/restaurants" element={<RestaurantListPage />} />
           <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
           <Route path="/map" element={<MapPage />} />
+          <Route path="/feed" element={<FeedPage />} />
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
         </Route>
