@@ -38,7 +38,7 @@ const HeaderLayout = () => {
   return (
     <div>
       <header className="header">
-        <div className="container nav-content">
+        <div className="container navbar-content">
           <Link to={"/"} className="navbar-brand">Find hiddenMaster</Link>
           <ul className="navbar-menu">
             {headerData.map((item) => <li className="navbar-item" key={item.id}><Link to={item.path}>{item.title}</Link></li>)}

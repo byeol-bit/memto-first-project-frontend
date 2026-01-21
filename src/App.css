@@ -2,4 +2,5 @@
   max-width: var(--max-width-container);
   min-width: 600px;
   margin: 0 auto;
+  background-color: var(--background-color);
 }
