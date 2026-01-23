@@ -9,6 +9,7 @@ import NotFoundPage from './pages/not-found-page'
 import UserListPage from './pages/user-list-page'
 import UserDetailPage from './pages/user-detail-page'
 import RestaurantListPage from './pages/restaurant-list-page'
+import RestaurantRegisterPage from '../src/pages/restaurant-register-page'
 import RestaurantDetailPage from './pages/restaurant-detail-page'
 import MapPage from './pages/map-page'
 import FeedPage from './pages/feed-page'
@@ -28,6 +29,7 @@ function App() {
           <Route path="/users" element={<UserListPage />} />
           <Route path="/users/:id" element={<UserDetailPage />} />
           <Route path="/restaurants" element={<RestaurantListPage />} />
+          <Route path="/restaurants/new" element={<RestaurantRegisterPage />} />
           <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
           <Route path="/map" element={<MapPage />} />
           <Route path="/feed" element={<FeedPage />} />
