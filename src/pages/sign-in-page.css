@@ -1,0 +1,151 @@
+/* src/pages/sign-in-page.css */
+
+/* 1. 전체 페이지 컨테이너 */
+.login-page-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  /* 원래 디자인 시스템의 연한 배경색 사용 */
+  background-color: var(--background-light);
+}
+
+/* 2. 상단 로고 스타일 */
+.logo {
+  color: var(--primary-color);
+  font-size: 40px;
+  font-weight: 900;
+  margin-bottom: 40px;
+  letter-spacing: -1px;
+}
+
+/* 3. 로그인 박스 스타일 */
+.loginBox {
+  width: 100%;
+  max-width: 460px;
+  background-color: var(--background-color); /* 흰색 */
+  padding: 40px 30px;
+  /* 원래 디자인 시스템의 테두리 색상 사용 */
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius-lg); /* 12px */
+  box-shadow: var(--shadow-md);
+  box-sizing: border-box;
+}
+
+/* --- ✨ 플로팅 라벨(Floating Label) 효과 ✨ --- */
+
+/* 입력창 그룹 */
+.input-group {
+  position: relative;
+  width: 100%;
+}
+
+/* 실제 입력창 스타일 */
+.floating-input {
+  width: 100%;
+  height: 56px;
+  padding: 28px 15px 10px;
+  border: 1px solid var(--border-color); /* 기본 테두리색 */
+  border-radius: 0;
+  font-size: 16px;
+  color: var(--text-primary); /* 기본 텍스트색 */
+  outline: none;
+  transition: all var(--transition-fast);
+  box-sizing: border-box;
+  background-color: transparent; /* 배경 투명하게 */
+}
+
+/* 첫 번째 입력창 상단 둥글게 */
+.input-group:first-of-type .floating-input {
+  border-top-left-radius: var(--border-radius-md);
+  border-top-right-radius: var(--border-radius-md);
+}
+
+/* 마지막 입력창 하단 둥글게 */
+.input-group:last-of-type .floating-input {
+  border-bottom-left-radius: var(--border-radius-md);
+  border-bottom-right-radius: var(--border-radius-md);
+}
+
+/* 입력창 클릭 시(포커스) 테두리 색상 */
+.floating-input:focus {
+  border-color: var(--primary-color); /* 메인 컬러(살구색) */
+  z-index: 1;
+}
+
+/* 라벨 스타일 (초기 상태) */
+.floating-label {
+  position: absolute;
+  top: 18px;
+  left: 15px;
+  font-size: 16px;
+  color: var(--text-secondary); /* 보조 텍스트색(회색) */
+  pointer-events: none;
+  transition: all var(--transition-fast);
+}
+
+/* 🌟 마법의 순간: 입력창에 포커스가 가거나 내용이 있을 때 */
+.floating-input:focus ~ .floating-label,
+.floating-input:not(:placeholder-shown) ~ .floating-label {
+  top: 8px;
+  left: 15px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--primary-color); /* 라벨도 메인 컬러로 변신 */
+}
+
+/* --------------------------------------------------- */
+
+/* 4. 로그인 버튼 스타일 */
+.login-btn {
+  width: 100%;
+  padding: 15px 0;
+  margin-top: 30px;
+  /* 메인 컬러 사용 */
+  background-color: var(--primary-color);
+  border: none;
+  border-radius: var(--border-radius-md);
+  font-size: 18px;
+  font-weight: 700;
+  color: white;
+  cursor: pointer;
+  transition: background-color var(--transition-base);
+}
+
+.login-btn:hover {
+  /* 호버 시 조금 더 진한 색 */
+  background-color: var(--primary-dark);
+}
+
+/* 5. 하단 링크 영역 스타일 */
+.bottom-links {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.bottom-links span {
+  cursor: pointer;
+  transition: color var(--transition-fast);
+}
+
+.bottom-links span:hover {
+  color: var(--primary-color); /* 호버 시 메인 컬러 */
+  text-decoration: underline;
+}
+
+/* 링크 사이 구분선 (|) */
+.separator {
+  margin: 0 10px;
+  color: var(--border-color);
+  cursor: default !important;
+  text-decoration: none !important;
+}
+
+/* 회원가입 링크 강조 */
+.signup-link {
+  color: var(--text-primary);
+  font-weight: 600;
+}
