@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router'
 import './App.css'
+import './tailwind.css'
 
 // pages
 import HeaderLayout from './components/header'
