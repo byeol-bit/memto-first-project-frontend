@@ -1,4 +1,4 @@
-import "./header.css"
+import style from "./header.module.css"
 import { Outlet, Link } from 'react-router'
 
 const headerData = [
@@ -37,17 +37,17 @@ const headerData = [
 const HeaderLayout = () => {
   return (
     <div>
-      <header className="header">
-        <div className="container navbar-content">
-          <Link to={"/"} className="navbar-brand">Find hiddenMaster</Link>
-          <ul className="navbar-menu">
-            {headerData.map((item) => <li className="navbar-item" key={item.id}><Link to={item.path}>{item.title}</Link></li>)}
+      <header className={style.header}>
+        <div className={`${style.container} ${style.navbarContent}`}>
+          <Link to={"/"} className={style.navbarBrand}>Find hiddenMaster</Link>
+          <ul className={style.navbarMenu}>
+            {headerData.map((item) => <li className={style.navbarItem} key={item.id}><Link to={item.path} className={style.navbarLink}>{item.title}</Link></li>)}
 
           </ul>
         </div>
-      </header>
+      </header >
       <Outlet />
-    </div>
+    </div >
   )
 }
 
