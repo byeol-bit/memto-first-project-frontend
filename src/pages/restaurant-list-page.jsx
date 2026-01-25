@@ -3,6 +3,7 @@ import { Link } from "react-router";
 import { mockRestaurants } from "../data/restaurants.mock";
 import RestaurantCard  from "../components/restaurant/restaurantCard";
 import SearchBar from '../components/restaurant/searchBar';
+import Button from '../components/restaurant/button'
 
 const RestaurantListPage = () => {
   const [keyword, setKeyword] = useState(""); // 입력 중인 글자
@@ -50,7 +51,7 @@ const RestaurantListPage = () => {
   }, [searchQuery]);
 
   return (
-    <div className="flex justify-center">
+    <div className="flex justify-center min-h-screen">
       <div className="justify-items-center">
         {/* 헤더 */}
         <div className="restaurant-header">
@@ -59,8 +60,10 @@ const RestaurantListPage = () => {
             <p className="restaurant-desc">등록된 모든 맛집을 확인해보세요.</p>
           </div>
 
-          <Link to="/restaurants/new" className="btn btn-primary">
-            새 맛집 등록
+          <Link to="/restaurants/new">
+            <Button>
+              + 새 맛집 등록
+            </Button>
           </Link>
         </div>
 
@@ -72,12 +75,26 @@ const RestaurantListPage = () => {
         placeholder="어떤 맛집을 찾으시나요?"
         />
 
-        {/* 레스토랑 카드 그리드*/}
-        <div className="grid grid-cols-3 gap-10">
+        {restaurants.length > 0 ? (
+          /* 레스토랑 카드 그리드*/
+          <div className="grid grid-cols-3 gap-10">
             {restaurants.map((r) => (
               <RestaurantCard key={r.id} restaurant={r} />
             ))}
           </div>
+        ) : (
+          /* 결과가 없을 때 : 안내 메시지와 등록 버튼 보여줌 */
+          <div className="flex flex-col items-center justify-center py-20">
+            <p className="text-gray-500 text-lg mb-4">
+              검색된 맛집이 없습니다 😭
+            </p>
+            <Link to="/restaurants/new" > 
+              <Button>
+                새로운 맛집 등록하러 가기
+              </Button>
+            </Link>
+          </div>
+        )}
       </div>
     </div>
   )
