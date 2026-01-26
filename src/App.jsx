@@ -20,7 +20,7 @@ import SignUpPage from './pages/sign-up-page'
 function App() {
 
   return (
-    <div className="app-container">
+    <div className="app-container p-6">
       <Routes>
         <Route element={<HeaderLayout />}>
           <Route path="/" element={<IndexPage />} />
