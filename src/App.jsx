@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router'
 import './App.css'
+import './tailwind.css'
 
 // pages
 import HeaderLayout from './components/header'
@@ -9,12 +10,13 @@ import NotFoundPage from './pages/not-found-page'
 import UserListPage from './pages/user-list-page'
 import UserDetailPage from './pages/user-detail-page'
 import RestaurantListPage from './pages/restaurant-list-page'
+import RestaurantRegisterPage from '../src/pages/restaurant-register-page'
 import RestaurantDetailPage from './pages/restaurant-detail-page'
 import MapPage from './pages/map-page'
 import FeedPage from './pages/feed-page'
 import SignInPage from './pages/sign-in-page'
 import SignUpPage from './pages/sign-up-page'
-
+import MapLayout from './components/map-layout'
 
 
 function App() {
@@ -28,8 +30,11 @@ function App() {
           <Route path="/users" element={<UserListPage />} />
           <Route path="/users/:id" element={<UserDetailPage />} />
           <Route path="/restaurants" element={<RestaurantListPage />} />
+          <Route path="/restaurants/new" element={<RestaurantRegisterPage />} />
           <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
-          <Route path="/map" element={<MapPage />} />
+          <Route element={<MapLayout />}>
+            <Route path="/map" element={<MapPage />} />
+          </Route>
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
