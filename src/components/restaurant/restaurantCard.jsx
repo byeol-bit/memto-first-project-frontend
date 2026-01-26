@@ -16,7 +16,7 @@ const RestaurantCard = ({ restaurant }) => {
         />
 
         {/* 내용 */}
-        <div className="px-6 py-4">
+        <div className="px-8 pt-6 pb-5">
           {/* 맛집 카테고리 */}
           <div className="text-sm text-red-400 font-bold mb-1">
             {category}

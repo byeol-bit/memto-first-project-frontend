@@ -52,10 +52,10 @@ const RestaurantListPage = () => {
 
   return (
     <div className="flex justify-center min-h-screen">
-      <div className="justify-items-center">
+      <div className="flex flex-col items-center">
         {/* 헤더 */}
-        <div className="grid grid-cols-7 gap-4">
-          <h1 className="col-start-1 col-end-7 mt-15">맛집목록</h1>
+        <div className="grid grid-cols-7 gap-4 w-full max-w-6xl">
+          <h1 className="text-3xl font-bold">맛집목록</h1>
           <p className="text-gray-500 col-start-1 col-end-3">
             등록된 모든 맛집을 확인해보세요.
           </p>
