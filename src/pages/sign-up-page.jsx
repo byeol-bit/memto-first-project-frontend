@@ -2,7 +2,7 @@ import { useState, useRef } from "react";
 // useState: 화면에 보여지는 데이터(상태)를 저장하는 통
 // useRef: 특정 HTML 요소(여기서는 파일 업로드 창)를 코드로 조작하기 위한 도구
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 // useNavigate: 회원가입이 끝나면 로그인 페이지로 '이동'시켜주는 네비게이션
 
 import "./sign-up-page.css";

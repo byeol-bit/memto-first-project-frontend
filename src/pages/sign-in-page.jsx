@@ -2,7 +2,7 @@ import { useState } from "react";
 // 입력창에 타자를 칠 때마다 그 글자가 저장됨
 // 아이디와 비밀번호를 입력 안하면 나중에 버튼을 못 누르게 막을 수도 있음
 
-import { useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router";
 // '회원가입' 버튼을 누르면 페이지를 이동시켜주는 도구
 // 새로고침 없이 부드럽게 넘어가서 앱처럼 느껴지게 함
 
