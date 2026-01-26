@@ -16,7 +16,7 @@ import MapPage from './pages/map-page'
 import FeedPage from './pages/feed-page'
 import SignInPage from './pages/sign-in-page'
 import SignUpPage from './pages/sign-up-page'
-
+import MapLayout from './components/map-layout'
 
 
 function App() {
@@ -32,7 +32,9 @@ function App() {
           <Route path="/restaurants" element={<RestaurantListPage />} />
           <Route path="/restaurants/new" element={<RestaurantRegisterPage />} />
           <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
-          <Route path="/map" element={<MapPage />} />
+          <Route element={<MapLayout />}>
+            <Route path="/map" element={<MapPage />} />
+          </Route>
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />
