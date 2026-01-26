@@ -1,6 +1,5 @@
 import { Route, Routes } from 'react-router'
 import './App.css'
-import './tailwind.css'
 
 // pages
 import HeaderLayout from './components/header'
@@ -22,7 +21,7 @@ import MapLayout from './components/map-layout'
 function App() {
 
   return (
-    <div className="app-container p-6">
+    <div className="app-container">
       <Routes>
         <Route element={<HeaderLayout />}>
           <Route path="/" element={<IndexPage />} />

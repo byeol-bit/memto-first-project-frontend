@@ -1,5 +1,4 @@
 /* Find hiddenMaster - 공통 스타일시트 */
-/* @import "tailwindcss"; */
 
 /* ========================================
    CSS 변수 (Color Palette & Typography)
@@ -112,12 +111,6 @@
 /* ========================================
    리셋 및 기본 스타일
    ======================================== */
-* {
-  box-sizing: border-box;
-  margin: 0;
-  padding: 0;
-}
-
 html,
 body {
   margin: 0px;
