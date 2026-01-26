@@ -54,16 +54,14 @@ const RestaurantListPage = () => {
     <div className="flex justify-center min-h-screen">
       <div className="justify-items-center">
         {/* 헤더 */}
-        <div className="restaurant-header">
-          <div>
-            <h1 className="restaurant-title">맛집 목록</h1>
-            <p className="restaurant-desc">등록된 모든 맛집을 확인해보세요.</p>
-          </div>
+        <div className="grid grid-cols-7 gap-4">
+          <h1 className="col-start-1 col-end-7 mt-15">맛집목록</h1>
+          <p className="text-gray-500 col-start-1 col-end-3">
+            등록된 모든 맛집을 확인해보세요.
+          </p>
 
           <Link to="/restaurants/new">
-            <Button>
-              + 새 맛집 등록
-            </Button>
+            <Button className="col-span-2 col-end-7">+ 새 맛집 등록</Button>
           </Link>
         </div>
 

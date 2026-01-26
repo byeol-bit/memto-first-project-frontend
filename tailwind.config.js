@@ -1,8 +1,5 @@
 /** @type {import('tailwindcss').Config} */
 export default {
-  // ✅ 1. 접두사 설정: 이제 모든 클래스 앞에 'tw-'를 붙여야 작동합니다.
-  prefix: "tw-",
-
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {},
