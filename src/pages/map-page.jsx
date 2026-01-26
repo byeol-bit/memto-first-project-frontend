@@ -1,6 +1,12 @@
+import style from './map-page.module.css'
+import Map from "../components/map"
+
 const MapPage = () => {
+
   return (
-    <div>Map Page</div>
+    <div className={style.map}>
+      <Map />
+    </div>
   )
 }
 

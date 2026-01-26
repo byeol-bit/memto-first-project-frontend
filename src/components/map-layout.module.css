@@ -1,0 +1,72 @@
+.mapSidebarContainer {
+  display: flex;
+  flex-direction: column;
+  height: calc(100vh - var(--header-height) - 10px);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.leftContainer {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.leftSidebar {
+  width: 60px;
+  background-color: transparent;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--background-dark);
+}
+
+.leftSidebarBtn {
+  background-color: var(--background-color);
+  border: none;
+  border-bottom: 1px solid var(--background-dark);
+  color: rgb(66, 65, 65);
+  padding: var(--spacing-sm) 0;
+  height: 55px;
+  cursor: pointer;
+}
+
+.leftSidebarBtn:hover {
+  border-bottom: 1px solid var(--background-dark);
+  color: var(--primary-dark);
+  transition: all var(--transition-base);
+  padding: var(--spacing-sm) 0;
+  height: 55px;
+  cursor: pointer;
+}
+
+.leftSidebarBtn.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-bottom: 1px solid var(--primary-dark);
+}
+
+.leftSidebarBtn.active:hover {
+  background-color: var(--primary-dark);
+  color: white;
+}
+
+.leftSidebarDetail {
+  width: 380px;
+  background-color: transparent;
+  flex-shrink: 0;
+  display: flex;
+  padding: 20px;
+  flex-direction: column;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-height: 0;
+  box-sizing: border-box;
+}
+
+.outlet {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
