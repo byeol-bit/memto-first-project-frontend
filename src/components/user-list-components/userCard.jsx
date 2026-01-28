@@ -1,14 +1,15 @@
-import profileImage from '../../assets/PPURY.png'
-
+import {profileImage} from '../../data/users.mock'
 import { useNavigate } from 'react-router'
 
 const UserCard = ({user}) => {
     const navigate = useNavigate()
 
-
     return (
-        <div className='border-b-black border' onClick={() => navigate(`/users/${user.id}`)}>
-            <div className="flex flex-row">
+        <div 
+            className='rounded-2xl shadow-xl hover:cursor-pointer hover: flex flex-col gap-2 hover:border-l-amber-100 border' 
+            onClick={() => navigate(`/users/${user.id}`)}
+        >
+            <div className="flex flex-row p-8">
                 <div>
                     <img className="rounded-full size-16" src={profileImage}/>
                 </div>
@@ -26,10 +27,16 @@ const UserCard = ({user}) => {
                 </div>
             </div>
             <div>{user.comment}</div>
-            <button onClick={(e) => {
-                e.stopPropagation()
-                console.log('버튼 클릭')
-            }}>팔로우</button>
+            
+            <div 
+                className="text-center py-5 rounded-b-2xl border-amber-900 border"
+                onClick={(e) => {
+                    e.stopPropagation()
+                    console.log('버튼 클릭')
+                }}
+            >
+                팔로우
+            </div>
         </div>
     )
 }

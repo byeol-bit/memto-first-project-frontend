@@ -1,4 +1,4 @@
-import profileImage from '../../assets/PPURY.png'
+import {profileImage} from '../../data/users.mock'
 import { useNavigate } from 'react-router'
 
 
