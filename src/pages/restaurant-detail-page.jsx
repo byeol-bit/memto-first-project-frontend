@@ -1,10 +1,15 @@
 import React from "react";
 import { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router";
-import { mockRestaurants } from "../data/restaurants.mock";
+import {
+  mockRestaurants,
+  mockRestaurantImages,
+  mockVisits,
+} from "../data/restaurants.mock";
 import MiniMap from "../components/restaurant/miniMap";
 import Chat from "../components/restaurant/chat";
 import RestaurantDetailCard from "../components/restaurant/restaurantDetailCard";
+import Gallery from "../components/restaurant/gallery";
 
 const RestaurantDetailPage = () => {
   // 좋아요
@@ -16,9 +21,15 @@ const RestaurantDetailPage = () => {
 
   const { id } = useParams(); // 예: /restaurants/1
   console.log(id);
+  const currentId = parseInt(id);
 
   // ID에 맞는 맛집 찾기
-  const restaurant = mockRestaurants.find((r) => r.id === Number(id));
+  const restaurant = mockRestaurants.find((r) => r.id === currentId);
+
+  // 일단 그냥 이미지 가져오기
+  const displayImages = mockRestaurantImages
+    .filter((img) => img.restaurantId === currentId) // 이 가게의 사진만 찾아서
+    .map((img) => img.imageUrl); // 이미지 주소만 꺼냄
 
   if (!restaurant) {
     return <div>삭제 되었거나, 찾을 수 없는 맛집입니다 😭</div>;
@@ -60,6 +71,13 @@ const RestaurantDetailPage = () => {
 
         {/* 오른쪽 스크롤 */}
         <div className="md:col-span-2 flex flex-col gap-10">
+          <Gallery images={displayImages} />
+          <Chat />
+          <Chat />
+          <Chat />
+          <Chat />
+          <Chat />
+          <Chat />
           <Chat />
         </div>
       </div>
