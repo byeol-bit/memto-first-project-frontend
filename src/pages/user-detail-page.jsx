@@ -5,6 +5,8 @@ import UserProfile from "../components/user-detail-components/userProfile"
 import UserReview from "../components/user-detail-components/userReview"
 import UserVisited from "../components/user-detail-components/userVisited"
 
+import {users} from "../data/users.mock"
+
 // 해당 유저의 상세 정보 api
 const USER = {
     name: "맛집탐험가",

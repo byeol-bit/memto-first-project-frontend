@@ -11,10 +11,10 @@ const UserListPage = () => {
   } = useUserFilter();
 
   return (
-    <div className="flex justify-center min-h-screen"> 
+    <div className='max-w-7xl mx-auto px-6'> 
       <div >
         {/* 상단 메뉴 설명 (메뉴 이름, 숨은 고수들을 탐색해보세요.) */}
-        <div>
+        <div className='text-2xl font-bold'>
           고수목록
         </div>
         <div>
