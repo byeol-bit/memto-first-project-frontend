@@ -7,15 +7,15 @@ import {
   mockVisits,
 } from "../data/restaurants.mock";
 import MiniMap from "../components/restaurant/miniMap";
-import Chat from "../components/restaurant/chat";
 import RestaurantDetailCard from "../components/restaurant/restaurantDetailCard";
 import Gallery from "../components/restaurant/gallery";
+import Review from "../components/restaurant/review";
 
 const RestaurantDetailPage = () => {
   // 좋아요
   const [isLike, setIsLike] = useState(false);
 
-  const isLiked = () => {
+  const onLike = () => {
     setIsLike(!isLike); // true면 false로, false면 true로 뒤집어라!
   };
 
@@ -43,7 +43,7 @@ const RestaurantDetailPage = () => {
           <RestaurantDetailCard
             restaurant={restaurant}
             isLike={isLike}
-            onLike={isLiked}
+            onLike={onLike}
           />
 
           <div className="flex flex-col items-center w-full">
@@ -72,13 +72,8 @@ const RestaurantDetailPage = () => {
         {/* 오른쪽 스크롤 */}
         <div className="md:col-span-2 flex flex-col gap-10">
           <Gallery images={displayImages} />
-          <Chat />
-          <Chat />
-          <Chat />
-          <Chat />
-          <Chat />
-          <Chat />
-          <Chat />
+
+          <Review />
         </div>
       </div>
     </div>
