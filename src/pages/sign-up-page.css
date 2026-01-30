@@ -1,42 +1,37 @@
-/* src/pages/sign-up-page.css */
-
-/* [1] 전체 레이아웃 설정 
-  - 화면 중앙 정렬을 하지 않고, 위에서부터 일정 거리(60px)를 띄워서 배치
-  - 입력창이 많아서 스크롤이 생길 수 있으니 넉넉하게 여백을 줌
-*/
+/* =========================================
+   1. 레이아웃 기본 설정
+========================================= */
 .signup-page-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   padding-top: 60px;
   min-height: 100vh;
-  background-color: var(--background-light);
-  box-sizing: border-box;
+  background-color: #f8f9fa;
   padding-bottom: 60px;
 }
 
-/* 로고 스타일 (살구색) */
 .logo {
-  color: var(--primary-color);
+  color: #ee5a6f;
   font-size: 40px;
   font-weight: 900;
   margin-bottom: 30px;
-  letter-spacing: -1.5px;
 }
 
-/* 하얀색 입력 박스 스타일 */
-.signupBox {
+.signup-box {
   width: 100%;
   max-width: 520px;
-  background-color: var(--background-color);
+  background-color: white;
   padding: 40px 30px;
-  border: 1px solid var(--border-color);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-lg);
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   box-sizing: border-box;
 }
 
-/* --- 📸 프로필 사진 섹션 --- */
+/* =========================================
+   2. 프로필 사진 섹션
+========================================= */
 .profile-section {
   display: flex;
   flex-direction: column;
@@ -44,176 +39,164 @@
   margin-bottom: 30px;
 }
 
-/* [메인 미리보기 원]
-  - 클릭이 안 되도록 cursor: pointer를 뺐습니다.
-  - 이미지가 넘치지 않게 overflow: hidden을 줌
-*/
+/* 큰 원 (미리보기) */
 .main-profile-preview {
   width: 100px;
   height: 100px;
   border-radius: 50%;
-  border: 2px solid var(--border-color); /* 기본 회색 테두리 */
-  position: relative;
+  border: 2px solid #eee;
   overflow: hidden;
-  transition: border-color var(--transition-fast);
   display: flex;
   align-items: center;
   justify-content: center;
+  margin-bottom: 10px;
 }
-
-/* 미리보기 안의 이미지 스타일 (꽉 차게) */
 .main-profile-preview img {
   width: 100%;
   height: 100%;
   object-fit: cover;
 }
-
-/* "프로필 사진을 선택해주세요" 글씨 */
+.camera-placeholder {
+  font-size: 40px;
+}
 .profile-text {
-  margin: 10px 0;
   font-size: 14px;
-  color: var(--text-secondary);
+  color: #888;
+  margin-bottom: 10px;
 }
 
-/* [작은 선택지 리스트 (5개 원)]
-  - 가로로 나열하고 간격을 12px 줌
-*/
+/* 작은 원 리스트 */
 .default-images-list {
   display: flex;
   gap: 12px;
 }
+.default-images-list.has-preview {
+  margin-top: 10px;
+}
 
-/* 각각의 작은 원 스타일 */
+/* 선택지 아이템 */
 .default-img-item {
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  cursor: pointer; /* 클릭 가능하다는 손가락 표시 */
-
-  /* [중요] 기본 상태에서는 테두리가 투명해서 안 보임 */
+  cursor: pointer;
   border: 2px solid transparent;
-
-  transition: all var(--transition-fast);
-  overflow: hidden;
+  transition: all 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
-
-/* [선택된 상태 (.selected)]
-  - JSX에서 선택된 항목에만 이 클래스를 붙여줌
-  - 테두리가 살구색(primary-color)으로 변함
-  - 크기가 1.1배 살짝 커짐
-*/
 .default-img-item.selected {
-  border-color: var(--primary-color);
+  border-color: #ee5a6f;
   transform: scale(1.1);
-  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.2); /* 살짝 번지는 효과 */
 }
-
-/* 실루엣 아이콘 크기 조절 */
 .option-icon {
   width: 60%;
-  height: 60%;
   opacity: 0.9;
 }
 
-/* (5번) 파일 업로드 버튼 스타일 (+) */
+/* 업로드 버튼 */
 .upload-btn {
   background-color: #f1f3f5;
-  border: 1px dashed #ccc; /* 점선 테두리 */
+  border: 1px dashed #ccc;
 }
-
-/* 업로드 버튼이 선택되었을 때 (빨간 실선으로 변경) */
-.upload-btn.selected {
-  border: 2px solid var(--primary-color);
-  background-color: white;
-}
-
 .upload-btn:hover {
   background-color: #e9ecef;
-  border-color: var(--text-secondary);
 }
-
-/* 선택된 상태에서는 마우스를 올려도 빨간색 유지 */
-.upload-btn.selected:hover {
-  border-color: var(--primary-color);
+.hidden-input {
+  display: none;
 }
-
 .plus-icon {
   font-size: 24px;
-  color: var(--text-secondary);
-  font-weight: 300;
+  color: #888;
   margin-top: -2px;
 }
 
-/* --- 입력창 및 버튼 스타일 (로그인 페이지와 통일) --- */
+/* =========================================
+   3. 입력 폼 스타일
+========================================= */
 .simple-input-group {
   display: flex;
   align-items: center;
   width: 100%;
   height: 56px;
   padding: 0 20px;
-  border: 1px solid var(--border-color);
-  background-color: var(--background-color);
+  border: 1px solid #ddd;
+  background-color: white;
   box-sizing: border-box;
-  transition: all var(--transition-fast);
+  transition: border-color 0.2s;
 }
 
-/* Textarea(소개글) 그룹은 높이를 더 크게 */
-.simple-input-group.textarea-group {
-  height: 120px;
-  padding: 15px 20px;
-  align-items: flex-start; /* 글자 시작점을 왼쪽 위로 */
-}
-
-/* 입력창을 클릭했을 때(Focus) 박스 테두리 색 변경 */
+/* [핵심] 입력창 포커스 시 테두리 색상 및 겹침 문제 해결 */
 .simple-input-group:focus-within {
-  border-color: var(--primary-color);
+  border-color: #ee5a6f;
+  position: relative;
   z-index: 1;
 }
 
-/* 맨 위쪽 입력창 둥글게 */
-.simple-input-group:first-of-type {
-  border-top-left-radius: var(--border-radius-lg);
-  border-top-right-radius: var(--border-radius-lg);
+/* 그룹별 둥근 모서리 처리 */
+.group-top {
+  border-top-left-radius: 12px;
+  border-top-right-radius: 12px;
+}
+.group-middle {
+  border-radius: 0;
+  margin-top: -1px; /* 테두리 겹치기 */
+}
+.group-bottom {
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  margin-top: -1px;
 }
 
-/* 맨 아래쪽 입력창 둥글게 */
-.simple-input-group:last-of-type {
-  border-bottom-left-radius: var(--border-radius-lg);
-  border-bottom-right-radius: var(--border-radius-lg);
+.textarea-group {
+  height: 120px;
+  padding: 15px 20px;
+  align-items: flex-start;
 }
 
-/* 실제 input 태그 스타일 (투명 배경, 테두리 없음) */
 .simple-input {
   flex: 1;
   height: 100%;
   border: none;
   font-size: 16px;
-  color: var(--text-primary);
   outline: none;
-  background-color: transparent;
+  background: transparent;
   resize: none;
-  font-family: inherit;
-}
-.simple-input::placeholder {
-  color: var(--text-muted);
 }
 
+/* =========================================
+   4. 버튼 스타일
+========================================= */
 /* 비밀번호 보기/숨기기 버튼 */
 .toggle-password-btn {
   background: none;
   border: none;
-  padding: 10px;
-  margin-right: -10px;
   cursor: pointer;
-  font-size: 14px;
+  color: #888;
   font-weight: 600;
-  color: var(--text-secondary);
 }
 .toggle-password-btn:hover {
-  color: var(--primary-color);
+  color: #ffb6b9;
+}
+
+/* 중복확인 버튼 */
+.check-btn {
+  background-color: #555;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: bold;
+  cursor: pointer;
+  white-space: nowrap;
+  margin-left: 10px;
+  transition: background 0.2s;
+}
+.check-btn:hover {
+  background-color: #ee5a6f;
 }
 
 /* 가입하기 버튼 */
@@ -221,33 +204,30 @@
   width: 100%;
   padding: 18px 0;
   margin-top: 30px;
-  background-color: var(--primary-color);
+  background-color: #ee5a6f;
+  color: white;
   border: none;
-  border-radius: var(--border-radius-lg);
+  border-radius: 12px;
   font-size: 20px;
   font-weight: 700;
-  color: white;
   cursor: pointer;
-  transition: background-color var(--transition-base);
 }
 .signup-btn:hover {
-  background-color: var(--primary-dark);
+  background-color: #ee5a6f;
 }
 
-/* 하단 링크 */
 .bottom-links {
   margin-top: 24px;
   text-align: center;
-  font-size: 15px;
-  color: var(--text-secondary);
+  color: #888;
 }
 .login-link {
   margin-left: 10px;
   font-weight: 600;
-  color: var(--text-primary);
+  color: #333;
   cursor: pointer;
 }
 .login-link:hover {
-  color: var(--primary-color);
+  color: #ee5a6f;
   text-decoration: underline;
 }
