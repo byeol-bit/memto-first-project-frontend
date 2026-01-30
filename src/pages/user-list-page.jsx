@@ -1,97 +1,31 @@
 import { useState } from 'react'
 import UserList from '../components/user-list-components/userList'
-import UserSearchName from '../components/user-list-components/userSearchName'
+import UserFilter from '../components/user-list-components/userFilter'
+import useUserFilter from '../hooks/useUserFilter'
 
-const USER = [
-  { 
-    id: 1,
-    name: "맛집탐험가",
-    tag: "푸드파이터",
-    visited_count: 25,
-    reviews: 30,
-    followers: 15,
-    following: 3,
-    comment: "맛집만 추천합니다!"
-  },
-
-  {
-    id : 2,
-    name: "맛집탐험가",
-    tag: "푸드파이터",
-    visited_count: 25,
-    reviews: 30,
-    followers: 15,
-    following: 3,
-    comment: "맛집만 추천합니다!"
-  },
-  {
-    id : 3,
-    name: "맛집탐험가",
-    tag: "푸드파이터",
-    visited_count: 25,
-    reviews: 30,
-    followers: 15,
-    following: 3,
-    comment: "맛집만 추천합니다!"
-  },
-  {
-    id : 4,
-    name: "맛집탐험가",
-    tag: "푸드파이터",
-    visited_count: 25,
-    reviews: 30,
-    followers: 15,
-    following: 3,
-    comment: "맛집만 추천합니다!"
-  },
-  { 
-    id : 5,
-    name: "맛집탐험가",
-    tag: "푸드파이터",
-    visited_count: 25,
-    reviews: 30,
-    followers: 15,
-    following: 3,
-    comment: "맛집만 추천합니다!"
-  },
-  { 
-    id : 6,
-    name: "맛집탐험가",
-    tag: "푸드파이터",
-    visited_count: 25,
-    reviews: 30,
-    followers: 15,
-    following: 3,
-    comment: "맛집만 추천합니다!"
-  },
-]
-const TAG = [
-  {
-    id : 1,
-    name: "푸드파이터"
-  },
-  {
-    id : 2,
-    name: "먹방유튜버"
-  },
-  {
-    id : 3,
-    name: "동네맛집고수"
-  }
-]
 
 const UserListPage = () => {
-  const [keyword, setKeyword] = useState("");
-  const [tag, setTag] = useState([]);
+   
+  const {
+    users, keyword, setKeyword, tag, setTag, tags
+  } = useUserFilter();
 
+  const [followindUsers, setFollowingUsers] = useState([])
 
-  // 필터링 유저 저장 나중에 userList로 넘기기 const filteredUsers = USER.filter()
+  const toggleFollow = (userId) => {
+    setFollowingUsers((prev) => {
+      return prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+
+    })
+  }
 
   return (
-    <div> 
-      <div className="mx-auto m-4 p-4">
+    <div className='max-w-7xl mx-auto px-6'> 
+      <div >
         {/* 상단 메뉴 설명 (메뉴 이름, 숨은 고수들을 탐색해보세요.) */}
-        <div>
+        <div className='text-2xl font-bold'>
           고수목록
         </div>
         <div>
@@ -99,16 +33,13 @@ const UserListPage = () => {
         </div>
 
 
-        {/* 고수 검색창 */}
-        <form onSubmit={(e) => e.preventDefault()}>
-          <UserSearchName keyword={keyword} setKeyword={setKeyword} />
-          <p>현재 검색어 : {keyword}</p>
+        {/* 고수 검색창 + 태그 필터링 */}
+        <form className='p-4' onSubmit={(e) => e.preventDefault()}>
+          <UserFilter keyword={keyword} setKeyword={setKeyword} tag={tag} setTag={setTag} tags={tags}/>
         </form>
 
-
-        {/* 태그 필터링 */}
         {/* 고수 리스트 */}
-        <UserList users={USER} />
+        <UserList users={users} followingUsers={followindUsers} toggleFollow={toggleFollow} />
       </div>
     </div>
   )
