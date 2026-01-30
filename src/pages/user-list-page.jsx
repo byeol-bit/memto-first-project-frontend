@@ -10,6 +10,17 @@ const UserListPage = () => {
     users, keyword, setKeyword, tag, setTag, tags
   } = useUserFilter();
 
+  const [followindUsers, setFollowingUsers] = useState([])
+
+  const toggleFollow = (userId) => {
+    setFollowingUsers((prev) => {
+      return prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+
+    })
+  }
+
   return (
     <div className='max-w-7xl mx-auto px-6'> 
       <div >
@@ -28,7 +39,7 @@ const UserListPage = () => {
         </form>
 
         {/* 고수 리스트 */}
-        <UserList users={users} />
+        <UserList users={users} followingUsers={followindUsers} toggleFollow={toggleFollow} />
       </div>
     </div>
   )

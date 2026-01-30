@@ -6,8 +6,10 @@ export const users = [
     visited_count: 25,
     reviews: 30,
     followers: 15,
-    following: 3,
-    comment: "프로수원러"
+    followings: 3,
+    comment: "수원에서 주로 활동함. 편식함 버섯 안먹음. 고기 초밥 좋아함. ",
+    most_visited: 7,
+    stars: '4.8'
   },
 
   {
@@ -17,8 +19,10 @@ export const users = [
     visited_count: 265,
     reviews: 200,
     followers: 37,
-    following: 3,
-    comment: "맛집만 추천합니다!"
+    followings: 3,
+    comment: "맛집만 추천합니다!",
+    most_visited: 7,
+    stars: '4.8'
   },
   {
     id : 3,
@@ -27,8 +31,10 @@ export const users = [
     visited_count: 25,
     reviews: 30,
     followers: 15,
-    following: 3,
-    comment: "맛집만 추천합니다!"
+    followings: 3,
+    comment: "맛집만 추천합니다!",
+    most_visited: 7,
+    stars: '4.8'
   },
   {
     id : 4,
@@ -37,8 +43,10 @@ export const users = [
     visited_count: 344,
     reviews: 279,
     followers: 76,
-    following: 0,
-    comment: "나는 오늘도 맛있는 음식을 찾아 떠난다."
+    followings: 0,
+    comment: "나는 오늘도 맛있는 음식을 찾아 떠난다.",
+    most_visited: 7,
+    stars: '4.8'
   },
   { 
     id : 5,
@@ -47,8 +55,10 @@ export const users = [
     visited_count: 421,
     reviews: 177,
     followers: 37,
-    following: 33,
-    comment: "맛집 다뿌숨"
+    followings: 33,
+    comment: "맛집 다뿌숨",
+    most_visited: 7,
+    stars: '4.8'
   },
   { 
     id : 6,
@@ -57,8 +67,10 @@ export const users = [
     visited_count: 1023,
     reviews: 664,
     followers: 1002,
-    following: 0,
-    comment: "숨은 맛집 찾아 떠나요."
+    followings: 0,
+    comment: "숨은 맛집 찾아 떠나요.",
+    most_visited: 7,
+    stars: '4.8'
   },
 ]
 

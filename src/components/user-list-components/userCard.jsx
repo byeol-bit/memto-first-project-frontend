@@ -1,7 +1,8 @@
 import {profileImage} from '../../data/users.mock'
 import { useNavigate } from 'react-router'
+import FollowButton from '../user-detail-components/followButton'
 
-const UserCard = ({user}) => {
+const UserCard = ({user, isFollowing, toggleFollow}) => {
     const navigate = useNavigate()
 
     return (
@@ -9,8 +10,8 @@ const UserCard = ({user}) => {
             className='bg-white rounded-2xl shadow-md hover:shadow-xl transition-all cursor-pointer flex flex-col h-full' 
             onClick={() => navigate(`/users/${user.id}`)}
         >
-            <div className="flex gap-4 p-8 flex-1">
-                <div className="shrink-0">
+            <div className='flex gap-4 p-8 flex-1'>
+                <div className='shrink-0'>
                     <img className="rounded-full w-16 h-16 object-cover" src={profileImage}/>
                 </div>
                 <div className='flex justify-between flex-1 min-w-0'>
@@ -22,27 +23,22 @@ const UserCard = ({user}) => {
                     <div className='flex flex-col items-center gap-2'>
                         <span className='text-xs text-gray-600'>팔로워</span>
                         <span className='text-xs font-semibold '>{user.followers}</span>
-                        <div 
-                            className="bg-gray-50  shadow-md hover:shadow-xl text-red-400 hover:bg-red-100 text-xs font-medium py-1.5 px-4 rounded-sm transition-colors"
-                            onClick={(e) => {
-                                e.stopPropagation()
-                                console.log('버튼 클릭')
-                            }}
-                        >
-                            팔로우
-                        </div>
+                        <FollowButton isFollowing={isFollowing} onToggle={() => toggleFollow(user.id)} />
                     </div>
                 
 
                 </div>
             </div>
 
-                <div className='flex border-t border-gray-100 bg-gray-50/30 items-stretch'> 
+                <div className='flex border-t border-gray-100 items-stretch'> 
                     <div 
-                        className="flex-1 flex items-center justify-center gap-2 py-4 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
-                        onClick={(e) => { e.stopPropagation();}}
+                        className='flex-1 flex items-center justify-center gap-2 py-4 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer'
+                        onClick={(e) => { 
+                            e.stopPropagation();
+                            navigate(`/users/${user.id}?tab=visited`)
+                        }}
                     >
-                        <span className="text-gray-400">방문 맛집</span> 
+                        <span className='text-gray-400'>방문 맛집</span> 
                         <span className='font-bold'>{user.visited_count}개</span>
                     </div>
                     
@@ -50,10 +46,13 @@ const UserCard = ({user}) => {
                     <div className='w-px bg-gray-100'></div>
 
                     <div 
-                        className="flex-1 flex items-center justify-center gap-2 py-4 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer"
-                        onClick={(e) => { e.stopPropagation();}}
+                        className='flex-1 flex items-center justify-center gap-2 py-4 text-xs font-medium text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer'
+                        onClick={(e) => { 
+                            e.stopPropagation()
+                            navigate(`/users/${user.id}?tab=reviews`)
+                        }}
                     >
-                        <span className="text-gray-400">리뷰</span> 
+                        <span className='text-gray-400'>리뷰</span> 
                         <span className='font-bold'>{user.reviews}개</span>
                     </div>
                 </div>
