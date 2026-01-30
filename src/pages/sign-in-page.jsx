@@ -19,7 +19,7 @@ const SignInPage = () => {
       const token = response.accessToken || response.data?.token;
       if (token) {
         localStorage.setItem("accessToken", token);
-        alert("로그인 성공! 메인으로 이동합니다.");
+        alert("로그인 성공!");
         navigate("/");
       } else {
         alert("토큰을 받아오지 못했습니다.");
@@ -32,12 +32,14 @@ const SignInPage = () => {
 
   return (
     <div className="signin-container">
-      <h1 className="logo">숨은 고수 찾기</h1>
+      <h1 className="logo" onClick={() => navigate("/")}>
+        숨은 고수 찾기
+      </h1>
 
       <div className="signin-box">
         <h2 className="signin-title">로그인</h2>
 
-        {/* 아이디 입력창 구조 변경*/}
+        {/* 아이디 입력창*/}
         <div className="input-group">
           <input
             type="text"
@@ -51,7 +53,7 @@ const SignInPage = () => {
           </label>
         </div>
 
-        {/*비밀번호 입력창 구조 변경*/}
+        {/*비밀번호 입력창*/}
         <div className="input-group">
           <input
             type="password"

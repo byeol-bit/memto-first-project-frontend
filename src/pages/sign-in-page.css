@@ -34,7 +34,7 @@
   color: #333;
 }
 
-/* [수정 2] 플로팅 라벨을 위한 그룹 스타일 (핵심!) */
+/* 플로팅 라벨 */
 .input-group {
   position: relative; /* 라벨을 안에 가두기 위해 필수 */
   margin-bottom: 20px; /* 간격 조금 늘림 */
@@ -56,14 +56,14 @@
 }
 
 .input-group input:focus {
-  border-color: #ee5a6f; /* 로고 색과 깔맞춤 */
+  border-color: #ee5a6f;
 }
 
 .floating-label {
   position: absolute;
   top: 50%;
   left: 15px;
-  transform: translateY(-50%); /* 정중앙 배치 */
+  transform: translateY(-50%); /* 수직 중앙 정렬 */
   font-size: 16px;
   color: #999;
   pointer-events: none; /* 라벨을 클릭해도 입력창이 클릭되게 통과시킴 */
