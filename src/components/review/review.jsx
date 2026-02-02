@@ -1,11 +1,22 @@
 import React, { useState } from "react";
-import Button from "./button";
-import Like from "./Like";
+import Button from "../common/button";
+import Like from "../common/like";
 
-const Review = () => {
+const Review = ({ reviews }) => {
+  // reviews가 없을때도 넣어줘야하는데 자꾸 userState 빨간 줄 그임
+  // 리뷰 좋아요 & 좋아요 수
   const [isLike, setIsLike] = useState(false);
+  const [likeCount, setLikeCount] = useState(reviews.likeCount ?? 0); // 옵셔널 체이닝 + 널 병합
 
   const onLike = () => {
+    if (isLike) {
+      // 이미 좋아요 상태라면? -> 취소 (-1)
+      setLikeCount((prev) => prev - 1);
+    } else {
+      // 좋아요가 아니라면? -> 추가 (+1)
+      setLikeCount((prev) => prev + 1);
+    }
+    // 상태 반전 (T/F)
     setIsLike(!isLike);
   };
 
@@ -91,8 +102,12 @@ const Review = () => {
           <div className="flex items-center gap-6 text-gray-500">
             {/* 좋아요 */}
             <div className="flex items-center gap-2 cursor-pointer transition-colors group">
-              <Like isLike={isLike} onLike={onLike} />
-              <span className="font-medium">129</span>
+              <Like
+                isLike={isLike}
+                onLike={onLike}
+                likeCount={likeCount}
+                direction="row"
+              />
             </div>
             {/* 댓글 */}
             <div className="flex items-center gap-2 cursor-pointer hover:text-blue-500 transition-colors group">

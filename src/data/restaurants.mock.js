@@ -56,6 +56,7 @@ export const mockRestaurants = [
     visitCount: 15,
     expertCount: 3,
     tags: ["데이트코스", "파스타맛집", "분위기좋은"],
+    likeCount: 24,
   },
   {
     id: 2,
@@ -73,6 +74,7 @@ export const mockRestaurants = [
     visitCount: 23,
     expertCount: 5,
     tags: ["상견례", "가성비", "회식장소"],
+    likeCount: 20,
   },
   {
     id: 3,
@@ -90,6 +92,7 @@ export const mockRestaurants = [
     visitCount: 31,
     expertCount: 7,
     tags: ["신선함", "제철방어", "모임장소"],
+    likeCount: 0,
   },
 ];
 
@@ -268,6 +271,7 @@ export const mockVisits = [
       cost: 3, // 가성비가 좋아요
       kind: 8, // 친절해요
     },
+    likeCount: 5,
   },
   {
     id: 2,
@@ -286,6 +290,7 @@ export const mockVisits = [
       mood: 8,
       kind: 2,
     },
+    likeCount: 7,
   },
   {
     id: 3,
@@ -303,6 +308,7 @@ export const mockVisits = [
       fresh: 10,
       clean: 7,
     },
+    likeCount: 3,
   },
 ];
 // ----------------------------------------------------------------------
