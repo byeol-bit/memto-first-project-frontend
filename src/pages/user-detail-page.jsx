@@ -5,6 +5,7 @@ import UserReview from "../components/user-detail-components/userReview"
 import UserVisited from "../components/user-detail-components/userVisited"
 
 import {users} from "../data/users.mock"
+import SelectedTab from "../components/follow/selectedTab"
 
 
 const UserDetailPage = () => {
@@ -23,39 +24,16 @@ const UserDetailPage = () => {
   return (
     <div>
       <UserProfile user={user} />
-  
-      <div className='flex border-t border-gray-100 items-stretch'> 
-        <div 
-            className={
-              `flex-1 flex items-center justify-center gap-2 py-4 text-xs  text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer
-              ${selectedTab=='visited'
-                ? 'text-red-400 border-b border-red-400 font-semibold'
-                : 'font-medium border-b border-gray-100'
-              }`
-            }
-            onClick={() => {setSearchParams({tab: 'visited'})}}
-        >
-          <span className="text-gray-400">방문 맛집</span> 
-          <span className='font-bold'>{user.visited_count}개</span>
-        </div>
-            
-        <div className='w-px bg-gray-100'></div>
-
-        <div 
-            className={
-              `flex-1 flex items-center justify-center gap-2 py-4 text-xs  text-gray-600 hover:bg-gray-100 transition-colors cursor-pointer
-              ${selectedTab=='reviews'
-                ? 'text-red-400 border-b border-red-400 font-semibold'
-                : 'font-medium border-b border-gray-100'
-              }`
-            }
-            onClick={() => {setSearchParams({tab: 'reviews'})}}
-        >
-          <span className="text-gray-400">리뷰</span> 
-          <span className='font-bold'>{user.reviews}개</span>
-        </div>
-      </div>     
-         {/* 선택된 탭에 따라 다른 컴포넌트 출력 */}
+      {/* 상단 탭바 */}
+      <SelectedTab 
+        tabs={[
+          { label: '방문목록', value: 'visited' },
+          { label: '리뷰', value: 'reviews'}
+        ]}
+        active={selectedTab}
+        onChange={(tab) => setSearchParams({tab})}
+      />
+      {/* 선택된 탭에 따라 다른 컴포넌트 출력 */}
       <div>
         {selectedTab === 'visited' && <UserVisited />}
         {selectedTab === 'reviews' && <UserReview />}

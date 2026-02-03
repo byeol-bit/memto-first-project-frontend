@@ -35,11 +35,11 @@ const UserProfile = ({user, isFollowing=false}) => {
                 </div>
                 <div className='flex flex-row'>
                     
-                    <div onClick={() => navigate(`/users`)}>
+                    <div onClick={() => navigate(`/users/${user.id}/followings`)}>
                         <p>팔로잉</p>
                         <p>{user.followings}</p>
                     </div>
-                    <div onClick={() => navigate(`/users`)}>
+                    <div onClick={() => navigate(`/users/${user.id}/followers`)}>
                         <p>팔로워</p> 
                         <p>{user.followers}</p>
                     </div>
