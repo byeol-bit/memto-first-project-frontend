@@ -255,13 +255,16 @@ export const mockVisits = [
     userId: 1,
     restaurantId: 1,
     visitDate: "2024-01-20T12:00:00Z",
+
     // 내용도 조금 더 길게 수정해서 "더보기" 테스트하기 좋게 만듦
     review:
       "사진 많이 찍어왔어요! 📸\n여기 크림 파스타 진짜 꾸덕하고 맛있습니다. 분위기도 좋아서 데이트 강추!\n직원분들도 너무 친절하시고 매장도 청결해서 기분 좋게 식사했습니다. 재방문 의사 200% 입니다!",
+
     createdAt: "2024-01-20T12:30:00Z",
     updatedAt: "2024-01-20T12:30:00Z",
     user: mockUsers[0],
     restaurant: mockRestaurants[0],
+
     // [중요] 아까 만든 6장짜리 이미지들(mockVisitImages)을 여기서 가져옴
     visitImages: mockVisitImages.filter((img) => img.visitId === 1),
     // [신규] 네이버 스타일 태그 카운트

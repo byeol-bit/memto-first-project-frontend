@@ -1,14 +1,19 @@
 import UserCard from './userCard'
 
-const UserList = ({users}) => {
+const UserList = ({users, followingUsers, toggleFollow}) => {
     return(
-        <div>
-            <div className="grid grid-cols-3 gap-2">
-                {users.map((user) => (
-                    <UserCard key={user.id} user={user} />
-                ))}
+        users.length ?
+            <div>
+                <div className="grid gap-6 grid-cols-[repeat(auto-fit,minmax(300px,1fr))]">
+                    {users.map((user) => (
+                        <UserCard key={user.id} user={user} isFollowing={followingUsers.includes(user.id)} toggleFollow={toggleFollow} />
+                    ))}
+                </div>
+            </div> 
+        :
+            <div>
+                검색 결과가 없습니다.
             </div>
-        </div>
     )
 }
 
