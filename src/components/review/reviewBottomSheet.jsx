@@ -2,8 +2,10 @@ import React, { useState } from "react";
 import HoneyCombo from "./honeyCombo";
 
 const ReviewBottomSheet = ({ open, onClose, restaurant }) => {
-  // [State] 꿀조합 배열 관리
+  // 꿀조합
   const [combos, setCombos] = useState([]);
+  // 리뷰 작성란
+  const [content, setContent] = useState("");
 
   if (!open) return null;
 
@@ -72,11 +74,14 @@ const ReviewBottomSheet = ({ open, onClose, restaurant }) => {
               {/* 추천 코멘트 */}
               <section>
                 <h3 className="text-base font-bold text-gray-800 mb-4">
-                  ✍️ 추천 코멘트
+                  💡 고수 TIP
                 </h3>
-                <div className="w-full h-40 bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm text-gray-400">
-                  이 곳에 대한 리뷰를 남겨주세요 (최소 10자)
-                </div>
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder="이 곳을 처음 방문하는 뉴비들에게 고수님의 팁을 전수해 주세요!"
+                  className="w-full h-40 bg-gray-50 border border-gray-200 rounded-2xl p-4 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-orange-500/20 focus:border-red-400 transition-all resize-none"
+                />
               </section>
             </div>
 
