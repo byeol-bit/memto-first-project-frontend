@@ -10,6 +10,8 @@ import MiniMap from "../components/restaurant/miniMap";
 import RestaurantDetailCard from "../components/restaurant/restaurantDetailCard";
 import Gallery from "../components/restaurant/gallery";
 import Review from "../components/review/review";
+import PlusBtn from "../components/review/plusBtn";
+import ReviewBottomSheet from "../components/review/reviewBottomSheet";
 
 const RestaurantDetailPage = () => {
   const { id } = useParams(); // 예: /restaurants/1
@@ -25,6 +27,8 @@ const RestaurantDetailPage = () => {
   // 맛집 디테일 좋아요 & 좋아요 수
   const [isLike, setIsLike] = useState(false);
   const [likeCount, setLikeCount] = useState(restaurant?.likeCount || 0); // 옵셔널 체이닝 + 널 병합
+  // 바텀시트 오픈 플러스 버튼
+  const [openBottomSheet, setOpenBottomSheet] = useState(false);
 
   const onLike = () => {
     if (isLike) {
@@ -93,6 +97,16 @@ const RestaurantDetailPage = () => {
           />
         </div>
       </div>
+
+      {/* 리뷰 추가 우측 하단 고정 */}
+      <PlusBtn onClick={() => setOpenBottomSheet(true)} />
+
+      {/* 바텀시트 */}
+      <ReviewBottomSheet
+        open={openBottomSheet}
+        onClose={() => setOpenBottomSheet(false)}
+        restaurant={restaurant}
+      />
     </div>
   );
 };
