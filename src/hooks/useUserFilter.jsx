@@ -1,5 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
-import { users, tags } from '../data/users.mock'
+import { tags } from '../data/users.mock'
+import { useQuery } from '@tanstack/react-query';
+import { getUsers } from '../api/user.api';
 
 const useUserFilter = () => {
   const [keyword, setKeyword] = useState("");
@@ -7,6 +9,11 @@ const useUserFilter = () => {
   const [tag, setTag] = useState([]);
   
   const [searchKeyword, setSearchKeyword] = useState("")
+
+  const {data: users = [], isLoading, error} = useQuery({
+    queryKey: ['users'],
+    queryFn: getUsers,
+  })
 
   // 디바운싱
   useEffect(() => {
@@ -20,7 +27,7 @@ const useUserFilter = () => {
 
   // 유저 필터링
   const filteredUsers = useMemo (() => {
-    let filtered = users;
+    let filtered = users
 
     // 선택된 등급(태그)과 비교
     if (tag.length > 0) {
@@ -34,14 +41,16 @@ const useUserFilter = () => {
     }
 
     return filtered
-  }, [searchKeyword, tag])
+  }, [users, searchKeyword, tag])
   return {
     users: filteredUsers,
     keyword,
     setKeyword,
     tag,
     setTag,
-    tags: tags
+    tags: tags,
+    isLoading,
+    error
   
   }
 }

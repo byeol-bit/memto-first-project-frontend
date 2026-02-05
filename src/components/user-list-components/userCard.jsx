@@ -1,9 +1,10 @@
-import {profileImage} from '../../data/users.mock'
+
 import { useNavigate } from 'react-router'
 import FollowButton from '../user-detail-components/followButton'
 
 const UserCard = ({user, isFollowing, toggleFollow}) => {
     const navigate = useNavigate()
+    
 
     return (
         <div 
@@ -12,13 +13,13 @@ const UserCard = ({user, isFollowing, toggleFollow}) => {
         >
             <div className='flex gap-4 p-8 flex-1'>
                 <div className='shrink-0'>
-                    <img className="rounded-full w-16 h-16 object-cover" src={profileImage}/>
+                    <img className="rounded-full w-16 h-16 object-cover" src={user.profile_image}/>
                 </div>
                 <div className='flex justify-between flex-1 min-w-0'>
                     <div className='flex flex-col gap-1 flex-1 min-w-0 pr-4'>
-                        <span className='px-2 inline-block border-red-400 rounded-full border text-xs text-red-400 w-fit'>{user.tag}</span>
-                        <span className='font-semibold text-gray-900'>{user.name}</span>
-                        <span className=' text-sm text-gray-700 flex-1'>{user.comment}</span>
+                        <span className='px-2 inline-block border-red-400 rounded-full border text-xs text-red-400 w-fit'>{user.category}</span>
+                        <span className='font-semibold text-gray-900'>{user.nickname}</span>
+                        <span className=' text-sm text-gray-700 flex-1'>{user.introduction}</span>
                     </div>
                     <div className='flex flex-col items-center gap-2'>
                         <span className='text-xs text-gray-600'>팔로워</span>
