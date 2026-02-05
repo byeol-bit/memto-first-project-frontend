@@ -3,7 +3,7 @@ import { Link } from "react-router";
 import { mockRestaurants } from "../data/restaurants.mock";
 import RestaurantCard from "../components/restaurant/restaurantCard";
 import SearchBar from "../components/restaurant/searchBar";
-import Button from "../components/restaurant/button";
+import Button from "../components/common/button";
 
 const RestaurantListPage = () => {
   const [keyword, setKeyword] = useState(""); // 입력 중인 글자

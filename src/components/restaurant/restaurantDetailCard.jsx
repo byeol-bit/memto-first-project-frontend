@@ -1,7 +1,7 @@
 import React from "react";
-import Like from "./Like";
+import Like from "../common/like";
 
-const RestaurantDetailCard = ({ restaurant, isLike, onLike }) => {
+const RestaurantDetailCard = ({ restaurant, isLike, onLike, likeCount }) => {
   return (
     <>
       <div className="relative w-full">
@@ -31,7 +31,13 @@ const RestaurantDetailCard = ({ restaurant, isLike, onLike }) => {
             </div>
 
             {/* 하트 */}
-            <Like isLike={isLike} onLike={onLike} className="w-8 h-8" />
+            <Like
+              isLike={isLike}
+              onLike={onLike}
+              likeCount={likeCount}
+              className="w-8 h-8"
+              direction="col"
+            />
           </div>
 
           <div className="px-6 py-4">

@@ -1,7 +1,7 @@
-import { createRoot } from 'react-dom/client'
+import { createRoot } from "react-dom/client";
 
-import './tailwind.css'
-import './index.css'
+import "./tailwind.css";
+import "./index.css";
 
 import App from './App.jsx'
 import { BrowserRouter } from "react-router"
@@ -22,7 +22,7 @@ const queryClient = new QueryClient({
   }
 })
 
-createRoot(document.getElementById('root')).render(
+createRoot(document.getElementById("root")).render(
   <BrowserRouter>
     <QueryClientProvider client={queryClient}>
       <ReactQueryDevtools />
