@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import Button from "./button";
-import Like from "./Like";
+import Like from "./like";
 
 const Review = () => {
   const [isLike, setIsLike] = useState(false);
