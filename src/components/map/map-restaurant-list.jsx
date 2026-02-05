@@ -1,6 +1,6 @@
 import style from "./map-restaurant-list.module.css"
 import { useContext } from "react"
-import { DetailStateContext } from "./map-layout"
+import { DetailStateContext } from "../layout/map-layout"
 import MapRestaurantDetail from "./map-restaurant-detail"
 
 const RestaurantList = () => {

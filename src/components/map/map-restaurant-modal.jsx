@@ -1,6 +1,6 @@
 import style from "./map-restaurant-modal.module.css"
 import { useContext } from "react"
-import { DetailStateContext } from "./map-layout"
+import { DetailStateContext } from "../layout/map-layout"
 
 const MapRestaurantModal = () => {
   const { isModalOpen, setIsModalOpen, selectedRestaurant } = useContext(DetailStateContext)

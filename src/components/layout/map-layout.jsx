@@ -1,10 +1,10 @@
 import { useState, createContext } from "react"
 import style from "./map-layout.module.css"
 import { Outlet } from "react-router"
-import UserList from "./map-user-list"
-import RestaurantList from "./map-restaurant-list"
-import { mockUsers, mockRestaurants } from "../data/mockData"
-import MapRestaurantModal from "./map-restaurant-modal"
+import UserList from "../map/map-user-list"
+import RestaurantList from "../map/map-restaurant-list"
+import { mockUsers, mockRestaurants } from "../../data/mockData"
+import MapRestaurantModal from "../map/map-restaurant-modal"
 
 
 export const DetailStateContext = createContext()

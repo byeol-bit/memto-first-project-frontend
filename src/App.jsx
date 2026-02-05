@@ -2,7 +2,7 @@ import { Route, Routes } from 'react-router'
 import './App.css'
 
 // pages
-import HeaderLayout from './components/header'
+import HeaderLayout from './components/layout/header'
 import IndexPage from './pages/index-page'
 import DesignSystemPage from './pages/design-system'
 import NotFoundPage from './pages/not-found-page'
@@ -12,6 +12,7 @@ import RestaurantListPage from './pages/restaurant-list-page'
 import RestaurantRegisterPage from './pages/restaurant-register-page'
 import RestaurantDetailPage from './pages/restaurant-detail-page'
 import MapPage from './pages/map-page'
+import ApiTestPage from './pages/api-test'
 import FeedPage from './pages/feed-page'
 import SignInPage from './pages/sign-in-page'
 import SignUpPage from './pages/sign-up-page'
@@ -36,6 +37,7 @@ function App() {
           <Route element={<MapLayout />}>
             <Route path="/map" element={<MapPage />} />
           </Route>
+          <Route path="/api-test" element={<ApiTestPage />} />s
           <Route path="/feed" element={<FeedPage />} />
           <Route path="/sign-in" element={<SignInPage />} />
           <Route path="/sign-up" element={<SignUpPage />} />

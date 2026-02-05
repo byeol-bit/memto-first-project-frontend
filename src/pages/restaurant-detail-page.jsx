@@ -9,22 +9,38 @@ import {
 import MiniMap from "../components/restaurant/miniMap";
 import RestaurantDetailCard from "../components/restaurant/restaurantDetailCard";
 import Gallery from "../components/restaurant/gallery";
-import Review from "../components/restaurant/review";
+import Review from "../components/review/review";
+import PlusBtn from "../components/review/plusBtn";
+import ReviewBottomSheet from "../components/review/reviewBottomSheet";
 
 const RestaurantDetailPage = () => {
-  // 좋아요
-  const [isLike, setIsLike] = useState(false);
-
-  const onLike = () => {
-    setIsLike(!isLike); // true면 false로, false면 true로 뒤집어라!
-  };
-
   const { id } = useParams(); // 예: /restaurants/1
   console.log(id);
   const currentId = parseInt(id);
 
   // ID에 맞는 맛집 찾기
   const restaurant = mockRestaurants.find((r) => r.id === currentId);
+
+  // ID에 맞는 리뷰 찾기
+  const reviews = mockVisits.filter((v) => v.restaurantId === currentId);
+
+  // 맛집 디테일 좋아요 & 좋아요 수
+  const [isLike, setIsLike] = useState(false);
+  const [likeCount, setLikeCount] = useState(restaurant?.likeCount || 0); // 옵셔널 체이닝 + 널 병합
+  // 바텀시트 오픈 플러스 버튼
+  const [openBottomSheet, setOpenBottomSheet] = useState(false);
+
+  const onLike = () => {
+    if (isLike) {
+      // 이미 좋아요 상태라면? -> 취소 (-1)
+      setLikeCount((prev) => prev - 1);
+    } else {
+      // 좋아요가 아니라면? -> 추가 (+1)
+      setLikeCount((prev) => prev + 1);
+    }
+    // 상태 반전 (T/F)
+    setIsLike(!isLike);
+  };
 
   // 일단 그냥 이미지 가져오기
   const displayImages = mockRestaurantImages
@@ -44,6 +60,7 @@ const RestaurantDetailPage = () => {
             restaurant={restaurant}
             isLike={isLike}
             onLike={onLike}
+            likeCount={likeCount}
           />
 
           <div className="flex flex-col items-center w-full">
@@ -73,9 +90,23 @@ const RestaurantDetailPage = () => {
         <div className="md:col-span-2 flex flex-col gap-10">
           <Gallery images={displayImages} />
 
-          <Review />
+          <Review
+            restaurant={restaurant}
+            likeCount={likeCount}
+            reviews={reviews}
+          />
         </div>
       </div>
+
+      {/* 리뷰 추가 우측 하단 고정 */}
+      <PlusBtn onClick={() => setOpenBottomSheet(true)} />
+
+      {/* 바텀시트 */}
+      <ReviewBottomSheet
+        open={openBottomSheet}
+        onClose={() => setOpenBottomSheet(false)}
+        restaurant={restaurant}
+      />
     </div>
   );
 };
