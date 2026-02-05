@@ -1,5 +1,5 @@
 import style from './map-page.module.css'
-import Map from "../components/map"
+import Map from "../components/map/map"
 
 const MapPage = () => {
 

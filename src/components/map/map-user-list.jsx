@@ -1,6 +1,6 @@
 import style from "./map-user-list.module.css"
 import { useContext } from "react"
-import { DetailStateContext } from "./map-layout"
+import { DetailStateContext } from "../layout/map-layout"
 
 const UserList = () => {
   const { mockUsers } = useContext(DetailStateContext)
