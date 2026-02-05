@@ -16,7 +16,7 @@ import ApiTestPage from './pages/api-test'
 import FeedPage from './pages/feed-page'
 import SignInPage from './pages/sign-in-page'
 import SignUpPage from './pages/sign-up-page'
-import MapLayout from './components/map-layout'
+import MapLayout from './components/layout/map-layout'
 import FollowPage from './pages/follow-page'
 
 
