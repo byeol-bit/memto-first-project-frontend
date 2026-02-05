@@ -91,3 +91,30 @@ export const tags = [
 ]
 
 export const profileImage = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/5b/Oryctolagus_cuniculus_Tasmania_2_%28cropped%29.jpg/250px-Oryctolagus_cuniculus_Tasmania_2_%28cropped%29.jpg"
+
+export const followers = [
+  {
+    id : 5,
+    name: "서랑이",
+    tag: "푸드파이터",
+    visited_count: 421,
+    reviews: 177,
+    followers: 37,
+    followings: 33,
+    comment: "맛집 다뿌숨",
+    most_visited: 7,
+    stars: '4.8'
+  },
+  { 
+    id : 6,
+    name: "한푸들",
+    tag: "먹방유튜버",
+    visited_count: 1023,
+    reviews: 664,
+    followers: 1002,
+    followings: 0,
+    comment: "숨은 맛집 찾아 떠나요.",
+    most_visited: 7,
+    stars: '4.8'
+  }
+]

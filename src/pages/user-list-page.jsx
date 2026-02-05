@@ -7,18 +7,35 @@ import useUserFilter from '../hooks/useUserFilter'
 const UserListPage = () => {
    
   const {
-    users, keyword, setKeyword, tag, setTag, tags
+    users, keyword, setKeyword, tag, setTag, tags, isLoading, error
   } = useUserFilter();
 
-  const [followindUsers, setFollowingUsers] = useState([])
+  if(isLoading){
+    return(
+      <div className='flex justify-center items-center'>
+        유저 목록을 불러오는 중입니다.
+      </div>
+    )
+  }
+  
+  if(error){
+    return(
+      <div className='flex justify-center items-center'>
+        유저 목록을 불러오는데 실패했습니다.
+      </div>
+    )
+  }
+
+  // 팔로우 여부 users로 받아오면 삭제하기!
+  const [followingUsers, setFollowingUsers] = useState([])
 
   const toggleFollow = (userId) => {
     setFollowingUsers((prev) => {
       return prev.includes(userId)
         ? prev.filter((id) => id !== userId)
         : [...prev, userId]
-
     })
+    // 서버요청. 실패시 되돌리기..
   }
 
   return (
@@ -39,7 +56,7 @@ const UserListPage = () => {
         </form>
 
         {/* 고수 리스트 */}
-        <UserList users={users} followingUsers={followindUsers} toggleFollow={toggleFollow} />
+        <UserList users={users} followingUsers={followingUsers} toggleFollow={toggleFollow} />
       </div>
     </div>
   )
