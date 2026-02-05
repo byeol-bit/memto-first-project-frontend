@@ -31,6 +31,11 @@ const headerData = [
     id: 6,
     title: "지도",
     path: '/map'
+  },
+  {
+    id: 7,
+    title: "API",
+    path: '/api-test'
   }
 ]
 

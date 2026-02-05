@@ -1,9 +1,9 @@
 
 import style from "./map.module.css"
 import { Map as KakaoMap, MapMarker } from 'react-kakao-maps-sdk'
-import useKakaoLoader from '../hooks/useKakaoLoader'
+import useKakaoLoader from '../../hooks/useKakaoLoader'
 import { useContext, useMemo } from "react"
-import { DetailStateContext } from "./map-layout"
+import { DetailStateContext } from "../layout/map-layout"
 
 const DEFAULT_CENTER = { lat: 33.450701, lng: 126.570667 }
 
