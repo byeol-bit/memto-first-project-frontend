@@ -1,11 +1,14 @@
 import React, { useState } from "react";
 import HoneyCombo from "./honeyCombo";
+import ImagesUploader from "./imagesUploader";
 
 const ReviewBottomSheet = ({ open, onClose, restaurant }) => {
   // 꿀조합
   const [combos, setCombos] = useState([]);
   // 리뷰 작성란
   const [content, setContent] = useState("");
+  // 이미지
+  const [images, setImages] = useState([]);
 
   if (!open) return null;
 
@@ -87,34 +90,9 @@ const ReviewBottomSheet = ({ open, onClose, restaurant }) => {
 
             {/* 오른쪽 : 사진 인증 */}
             <div className="flex flex-col">
-              <section className="flex-1 flex flex-col">
-                <h3 className="text-base font-bold text-gray-800 mb-4 flex items-center gap-2">
-                  📸 맛있는 순간 인증샷
-                </h3>
-                <div className="flex-1 min-h-[350px] bg-gray-50 border-2 border-dashed border-gray-200 rounded-3xl flex flex-col items-center justify-center text-gray-400 hover:bg-gray-100 transition-all cursor-pointer">
-                  <div className="w-14 h-14 bg-white rounded-2xl shadow-sm flex items-center justify-center mb-4">
-                    <svg
-                      className="w-8 h-8 text-orange-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M12 4v16m8-8H4"
-                      />
-                    </svg>
-                  </div>
-                  <span className="text-sm font-medium">
-                    사진 업로드 (필수 1장)
-                  </span>
-                  <span className="text-xs mt-2">
-                    나만의 조합의 인증을 남겨보세요!
-                  </span>
-                </div>
-              </section>
+              <ImagesUploader
+                onImagesChange={(newFiles) => setImages(newFiles)}
+              />
             </div>
           </div>
         </div>
@@ -122,8 +100,8 @@ const ReviewBottomSheet = ({ open, onClose, restaurant }) => {
         {/* 등록 */}
         <div className="px-8 py-6 border-t border-gray-100 bg-white flex-shrink-0">
           <div className="max-w-6xl mx-auto">
-            <button className="w-full py-5 bg-orange-500 text-white font-extrabold text-lg rounded-2xl shadow-xl shadow-orange-100 active:scale-[0.98] transition-all">
-              맛집 인증 완료 👍
+            <button className="w-full py-5 bg-red-400 text-white font-extrabold text-lg rounded-2xl shadow-xl shadow-orange-100 active:scale-[0.98] transition-all">
+              최강 꿀조합으로 입덕시키기 👍
             </button>
           </div>
         </div>
