@@ -1,5 +1,3 @@
-import { API_URL } from "../lib/constants"
-
 export async function createRestaurant({
   name,
   address,
@@ -26,7 +24,7 @@ export async function createRestaurant({
     payload.longitude = parseFloat(longitude)
   }
 
-  const response = await fetch(`${API_URL}/restaurants`, {
+  const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/restaurants`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
