@@ -10,6 +10,19 @@ const UserListPage = () => {
     users, keyword, setKeyword, tag, setTag, tags, isLoading, error
   } = useUserFilter();
 
+    // 팔로우 여부 users로 받아오면 삭제하기!
+  const [followingUsers, setFollowingUsers] = useState([])
+
+  const toggleFollow = (userId) => {
+    setFollowingUsers((prev) => {
+      return prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId]
+    })
+    // 서버요청. 실패시 되돌리기..
+  }
+
+
   if(isLoading){
     return(
       <div className='flex justify-center items-center'>
@@ -26,17 +39,6 @@ const UserListPage = () => {
     )
   }
 
-  // 팔로우 여부 users로 받아오면 삭제하기!
-  const [followingUsers, setFollowingUsers] = useState([])
-
-  const toggleFollow = (userId) => {
-    setFollowingUsers((prev) => {
-      return prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
-    })
-    // 서버요청. 실패시 되돌리기..
-  }
 
   return (
     <div className='max-w-7xl mx-auto px-6'> 
