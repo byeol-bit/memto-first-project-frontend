@@ -54,7 +54,7 @@ const RestaurantListPage = () => {
 
   return (
     <div className="flex justify-center min-h-screen">
-      <div className="flex flex-col items-center">
+      <div className="w-full max-w-md px-4 py-8 flex flex-col">
         {/* 헤더 */}
         <div className="grid grid-cols-7 gap-4 w-full max-w-6xl mt-10">
           <h1 className="text-3xl font-bold">맛집목록</h1>
@@ -77,7 +77,7 @@ const RestaurantListPage = () => {
 
         {restaurants.length > 0 ? (
           /* 레스토랑 카드 그리드*/
-          <div className="grid grid-cols-3 gap-10">
+          <div className="grid grid-cols-1 gap-6">
             {restaurants.map((r) => (
               <RestaurantCard key={r.id} restaurant={r} />
             ))}
