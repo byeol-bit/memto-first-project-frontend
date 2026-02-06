@@ -21,6 +21,10 @@ const MapLayout = () => {
     setActiveTab(activeTab === tab ? null : tab)
   }
 
+  const handleSelectRestaurant = (restaurant) => {
+    setSelectedRestaurant((prev) => (prev?.id === restaurant?.id ? null : restaurant))
+  }
+
   return (
     <div className={style.mapSidebarContainer}>
       <div className={style.leftContainer}>
@@ -50,7 +54,7 @@ const MapLayout = () => {
             mockUsers,
             mockRestaurants,
             selectedRestaurant,
-            setSelectedRestaurant,
+            setSelectedRestaurant: handleSelectRestaurant,
             isModalOpen,
             setIsModalOpen,
           }}>
@@ -62,9 +66,11 @@ const MapLayout = () => {
                 {activeTab === 'feed' && <div>피드 기능은 준비 중입니다.</div>}
               </div>
             )}
-            {selectedRestaurant && (
+            {activeTab && selectedRestaurant && (
               <div className={style.leftSidebarDoubleDetail}>
-                <RestaurantDetailPage />
+                <div className={style.leftSidebarDoubleDetailInner}>
+                  <RestaurantDetailPage />
+                </div>
               </div>
             )}
           </div>
