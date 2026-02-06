@@ -1,4 +1,3 @@
-export const API_URL = "https://hidden-master-server.fly.dev"
 export const QUERY_KEYS = {
   user: {
     all: ["user"],
