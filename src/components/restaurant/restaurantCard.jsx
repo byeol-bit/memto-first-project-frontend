@@ -1,18 +1,30 @@
 import React from 'react';
 import { Link } from 'react-router';
 
+import { useContext } from "react"
+import { DetailStateContext } from "../layout/map-layout"
+
 const RestaurantCard = ({ restaurant }) => {
+  const { setSelectedRestaurant } = useContext(DetailStateContext)
   const { id, name, thumbnail, category, expertCount, tags, address } = restaurant;
 
+  const onRestaurantDetailClick = () => {
+    setSelectedRestaurant(restaurant)
+  }
+
   return (
-    <Link to={`/restaurants/${id}`} className="block w-full mb-6">
+    < div
+      onClick={onRestaurantDetailClick}
+      className="block w-full mb-6" >
+      {/*<Link to={`/restaurants/${id}`} className="block w-full mb-6">*/}
+
       <div className="max-w-sm rounded overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300">
-        
+
         {/* 썸네일 */}
-        <img 
-          className="w-full h-48 object-cover" 
-          src={thumbnail} 
-          alt={name} 
+        <img
+          className="w-full h-48 object-cover"
+          src={thumbnail}
+          alt={name}
         />
 
         {/* 내용 */}
@@ -29,7 +41,7 @@ const RestaurantCard = ({ restaurant }) => {
 
           {/* 주소, 고수 추천수 */}
           <p className="text-gray-700 text-base">
-            📍 {address} <br/>
+            📍 {address} <br />
             <span className="mt-1 inline-block text-sm text-gray-500">🏆 고수 <b>{expertCount}명</b>이 인정했어요!</span>
           </p>
         </div>
@@ -37,8 +49,8 @@ const RestaurantCard = ({ restaurant }) => {
         {/* 태그 */}
         <div className="px-6 pb-4">
           {tags && tags.map((tag, index) => (
-            <span 
-              key={index} 
+            <span
+              key={index}
               className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"
             >
               # {tag}
@@ -46,7 +58,9 @@ const RestaurantCard = ({ restaurant }) => {
           ))}
         </div>
       </div>
-    </Link>
+      {/*</Link>*/}
+    </div >
+
   );
 };
 

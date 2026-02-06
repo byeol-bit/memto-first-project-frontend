@@ -13,10 +13,14 @@ import Review from "../components/review/review";
 import PlusBtn from "../components/review/plusBtn";
 import ReviewBottomSheet from "../components/review/reviewBottomSheet";
 
+import { useContext } from "react"
+import { DetailStateContext } from "../components/layout/map-layout";
+
 const RestaurantDetailPage = () => {
-  const { id } = useParams(); // 예: /restaurants/1
-  console.log(id);
-  const currentId = parseInt(id);
+  const { selectedRestaurant } = useContext(DetailStateContext)
+  // const { id } = useParams(); // 예: /restaurants/1
+  console.log(selectedRestaurant.id);
+  const currentId = parseInt(selectedRestaurant.id);
 
   // ID에 맞는 맛집 찾기
   const restaurant = mockRestaurants.find((r) => r.id === currentId);

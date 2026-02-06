@@ -3,11 +3,14 @@ import style from "./map-layout.module.css"
 import { Outlet } from "react-router"
 import UserList from "../map/map-user-list"
 import RestaurantList from "../map/map-restaurant-list"
+import RestaurantListPage from "../../pages/restaurant-list-page"
+import RestaurantDetailPage from "../../pages/restaurant-detail-page"
 import { mockUsers, mockRestaurants } from "../../data/mockData"
 import MapRestaurantModal from "../map/map-restaurant-modal"
 
 
 export const DetailStateContext = createContext()
+// 하나의 컨택스트라는 공간을 만들어서 Provider 안에 선언된 컴포넌트들은 모두 이 해당 컨택스트에 접근할 수 있다.
 
 const MapLayout = () => {
   const [activeTab, setActiveTab] = useState(null)
@@ -51,13 +54,21 @@ const MapLayout = () => {
             isModalOpen,
             setIsModalOpen,
           }}>
-          {activeTab && (
-            <div className={style.leftSidebarDetail}>
-              {activeTab === 'users' && <UserList />}
-              {activeTab === 'restaurants' && <RestaurantList />}
-              {activeTab === 'feed' && <div>피드 기능은 준비 중입니다.</div>}
-            </div>
-          )}
+          <div className="bg-transparent flex gap-4">
+            {activeTab && (
+              <div className={style.leftSidebarDetail}>
+                {activeTab === 'users' && <UserList />}
+                {activeTab === 'restaurants' && <RestaurantListPage />}
+                {activeTab === 'feed' && <div>피드 기능은 준비 중입니다.</div>}
+              </div>
+            )}
+            {selectedRestaurant && (
+              <div className={style.leftSidebarDoubleDetail}>
+                <RestaurantDetailPage />
+              </div>
+            )}
+          </div>
+
           <div className={style.outlet}>
 
             <Outlet />
