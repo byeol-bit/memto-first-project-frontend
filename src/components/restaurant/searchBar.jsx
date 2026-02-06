@@ -9,7 +9,7 @@ const SearchBar = ({ value, onChange, onSearch, placeholder }) => {
   };
 
   return (
-    <div className="flex items-center border pl-4 gap-2 bg-white border-gray-500/30 h-[46px] rounded-full overflow-hidden max-w-md w-full my-13">
+    <div className="flex items-center border pl-4 gap-2 bg-white border-gray-500/30 h-[46px] rounded-full overflow-hidden max-w-md w-full my-8">
       <svg
         xmlns="http://www.w3.org/2000/svg"
         width="30"

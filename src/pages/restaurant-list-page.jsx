@@ -54,26 +54,22 @@ const RestaurantListPage = () => {
 
   return (
     <div className="flex justify-center min-h-screen">
-      <div className="w-full max-w-md px-4 py-8 flex flex-col">
+      <div className="w-full max-w-md px-4 py-8 flex flex-col items-center">
         {/* 헤더 */}
-        <div className="grid grid-cols-7 gap-4 w-full max-w-6xl mt-10">
-          <h1 className="text-3xl font-bold">맛집목록</h1>
-          <p className="text-gray-500 col-start-1 col-end-3">
-            등록된 모든 맛집을 확인해보세요.
+        <div className="w-full flex flex-col items-center text-center">
+          <h1 className="text-3xl font-bold text-gray-900">모든 맛집</h1>
+          <p className="text-sm text-gray-500 mt-2">
+            고수들이 직접 발굴한 찐 맛집들을 확인해보세요.
           </p>
 
-          <Link to="/restaurants/new">
-            <Button className="col-span-2 col-end-7">+ 새 맛집 등록</Button>
-          </Link>
+          {/* 검색 */}
+          <SearchBar
+            value={keyword}
+            onChange={handleKeywordChange}
+            onSearch={handleSearch}
+            placeholder="어떤 맛집을 찾으시나요?"
+          />
         </div>
-
-        {/* 검색 */}
-        <SearchBar
-          value={keyword}
-          onChange={handleKeywordChange}
-          onSearch={handleSearch}
-          placeholder="어떤 맛집을 찾으시나요?"
-        />
 
         {restaurants.length > 0 ? (
           /* 레스토랑 카드 그리드*/
@@ -86,10 +82,10 @@ const RestaurantListPage = () => {
           /* 결과가 없을 때 : 안내 메시지와 등록 버튼 보여줌 */
           <div className="flex flex-col items-center justify-center py-20">
             <p className="text-gray-500 text-lg mb-4">
-              검색된 맛집이 없습니다 😭
+              찾으시는 맛집이 아직 없습니다 😭
             </p>
             <Link to="/restaurants/new">
-              <Button>새로운 맛집 등록하러 가기</Button>
+              <Button>첫 번째 리뷰 달기</Button>
             </Link>
           </div>
         )}

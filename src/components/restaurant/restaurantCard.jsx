@@ -17,7 +17,7 @@ const RestaurantCard = ({ restaurant }) => {
   const Res_card = (
     <div className="max-w-sm rounded overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300">
       {/* 썸네일 */}
-      <img className="w-full h-48 object-cover" src={thumbnail} alt={name} />
+      <img className="w-full h-40 object-cover" src={thumbnail} alt={name} />
 
       {/* 내용 */}
       <div className="px-8 pt-6 pb-5">
@@ -37,7 +37,7 @@ const RestaurantCard = ({ restaurant }) => {
       </div>
 
       {/* 태그 */}
-      <div className="px-6 pb-4">
+      {/* <div className="px-6 pb-4">
         {tags &&
           tags.map((tag, index) => (
             <span
@@ -47,7 +47,7 @@ const RestaurantCard = ({ restaurant }) => {
               # {tag}
             </span>
           ))}
-      </div>
+      </div> */}
     </div>
   );
 
