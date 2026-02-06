@@ -13,14 +13,22 @@ import Review from "../components/review/review";
 import PlusBtn from "../components/review/plusBtn";
 import ReviewBottomSheet from "../components/review/reviewBottomSheet";
 
-import { useContext } from "react"
+import { useContext } from "react";
 import { DetailStateContext } from "../components/layout/map-layout";
 
 const RestaurantDetailPage = () => {
-  const { selectedRestaurant } = useContext(DetailStateContext)
-  // const { id } = useParams(); // 예: /restaurants/1
-  console.log(selectedRestaurant.id);
-  const currentId = parseInt(selectedRestaurant.id);
+  const context = useContext(DetailStateContext);
+  const { id } = useParams();
+
+  // const currentId = parseInt(context.selectedRestaurant.id);
+  let currentId;
+  if (context?.selectedRestaurant?.id) {
+    // 맵 레이아웃 안에서 카드를 클릭해 들어온 경우
+    currentId = parseInt(context.selectedRestaurant.id);
+  } else {
+    // 리스트 페이지에서 링크를 타고 직접 들어온 경우
+    currentId = parseInt(id);
+  }
 
   // ID에 맞는 맛집 찾기
   const restaurant = mockRestaurants.find((r) => r.id === currentId);
