@@ -53,13 +53,13 @@ const RestaurantDetailCard = ({ restaurant, isLike, onLike, likeCount }) => {
               <li className="flex items-center gap-2">
                 <span className="text-lg">👍</span>
                 <span className="text-sm font-semibold">
-                  총 {restaurant.visitCount}명 방문
+                  방문자 리뷰 {restaurant.visitCount}
                 </span>
               </li>
             </ul>
           </div>
 
-          <div className="px-6 pb-6">
+          {/* <div className="px-6 pb-6">
             {restaurant.tags.map((tag, index) => (
               <span
                 key={index}
@@ -68,7 +68,7 @@ const RestaurantDetailCard = ({ restaurant, isLike, onLike, likeCount }) => {
                 # {tag}
               </span>
             ))}
-          </div>
+          </div> */}
         </div>
       </div>
     </>

@@ -12,11 +12,21 @@ import Gallery from "../components/restaurant/gallery";
 import Review from "../components/review/review";
 import PlusBtn from "../components/review/plusBtn";
 import ReviewBottomSheet from "../components/review/reviewBottomSheet";
+import Like from "../components/common/like";
+import { MapPin, Phone } from "lucide-react";
 
 import { useContext } from "react";
 import { DetailStateContext } from "../components/layout/map-layout";
 
+import { useQuery } from "@tanstack/react-query";
+import { apiRestaurants } from "../api/restaurant";
+
 const RestaurantDetailPage = () => {
+  const { data: restaurants, isLoading } = useQuery({
+    queryKey: ["restaurants"], // 쿼리 키
+    queryFn: apiRestaurants, // 우리가 만든 함수
+  });
+
   const context = useContext(DetailStateContext);
   const { id } = useParams();
 
@@ -42,6 +52,9 @@ const RestaurantDetailPage = () => {
   // 바텀시트 오픈 플러스 버튼
   const [openBottomSheet, setOpenBottomSheet] = useState(false);
 
+  // 탭
+  const [activeTab, setActiveTab] = useState("home");
+
   const onLike = () => {
     if (isLike) {
       // 이미 좋아요 상태라면? -> 취소 (-1)
@@ -64,62 +77,185 @@ const RestaurantDetailPage = () => {
   }
 
   return (
-    <div className="max-w-6xl mx-auto px-6 min-h-screen mt-7">
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
-        {/* 왼쪽 고정 */}
-        <div className="md:col-span-1 sticky top-25 h-fit flex flex-col gap-6">
-          <RestaurantDetailCard
-            restaurant={restaurant}
-            isLike={isLike}
-            onLike={onLike}
-            likeCount={likeCount}
-          />
+    <div className="flex justify-center min-h-screen bg-white">
+      {/* 너비를 max-w-md로 고정하여 모바일 뷰 느낌 강조 */}
+      <div className="w-full max-w-md flex flex-col relative">
+        {/* 1. 상단 이미지 갤러리 (시안처럼 크게 배치) */}
+        <div className="w-full h-55 relative">
+          <Gallery images={displayImages} layoutType="hero" />
+          {/* Gallery 내부에서 첫 이미지를 크게 보여주는 hero 모드라고 가정 */}
+        </div>
 
-          <div className="flex flex-col items-center w-full">
-            <div className="relative w-full mt-3">
-              <div className="rounded-2xl border-2 border-gray-200 bg-white shadow-lg overflow-hidden h-[250px] w-full">
-                <MiniMap
-                  latitude={restaurant.latitude}
-                  longitude={restaurant.longitude}
-                />
+        {/* 2. 맛집 기본 정보 (카드 형태가 아닌 페이지 일체형) */}
+        <div className="px-5 py-6 border-b-8 border-gray-100">
+          <div className="flex justify-between items-start">
+            {/* 이름과 카테고리를 한 묶음으로 결합 */}
+            <div className="flex flex-col gap-1">
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-bold text-gray-900">
+                  {restaurant.name}
+                </h1>
+                {/* 카테고리 배지 */}
+                <span className="rounded-full bg-gradient-to-r from-orange-400 to-pink-500 px-3 py-0.5 text-[10px] font-semibold text-white whitespace-nowrap">
+                  {restaurant.category}
+                </span>
+              </div>
+              <div className="flex items-center gap-2 mt-1">
+                <span className="text-sm">방문자 리뷰</span>
+                <span className="text-sm font-semibold">
+                  {restaurant.visitCount}
+                </span>
+              </div>
+              <div className="mt-2 flex items-baseline">
+                <span className="text-xl mr-1">😋</span>
+                <span className="text-2xl font-bold">
+                  {restaurant.expertCount}
+                </span>
+                <span className="ml-1 text-xm text-gray-500">
+                  명의 고수 인정한 맛집이에요
+                </span>
               </div>
             </div>
-            <a
-              href={`https://map.kakao.com/link/map/${restaurant.name},${restaurant.latitude},${restaurant.longitude}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="w-full mt-4 bg-[#FAE100] hover:bg-[#EAC100] text-[#3C1E1E] font-bold py-3 px-4 rounded-xl text-center shadow-md transition-colors flex items-center justify-center gap-2"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 3C5.925 3 1 6.925 1 11.775C1 14.866 3.033 17.583 6.075 19.167C5.908 20.083 5.375 22.15 5.333 22.317C5.3 22.567 5.567 22.75 5.792 22.608C5.992 22.483 8.7 20.625 9.775 19.892C10.5 19.983 11.242 20.033 12 20.033C18.075 20.033 23 16.108 23 11.258C23 6.408 18.075 3 12 3Z" />
-              </svg>
-              <span className="text-sm">카카오맵 보기</span>
-            </a>
+
+            {/* 좋아요 버튼 영역은 우측 상단 고정 */}
+            <div className="flex flex-col items-center gap-1">
+              <Like
+                isLike={isLike}
+                onLike={onLike}
+                likeCount={likeCount}
+                className="w-8 h-8"
+                direction="col"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 mt-4">
+            {/* 시안의 '출발', '도착' 같은 버튼 스타일 */}
+            <button className="flex-1 bg-blue-50 py-3 rounded-xl text-blue-600 font-bold text-sm">
+              길찾기
+            </button>
+            <button className="flex-1 bg-blue-600 py-3 rounded-xl text-white font-bold text-sm">
+              전화하기
+            </button>
           </div>
         </div>
 
-        {/* 오른쪽 스크롤 */}
-        <div className="md:col-span-2 flex flex-col gap-10">
-          <Gallery images={displayImages} />
-
-          <Review
-            restaurant={restaurant}
-            likeCount={likeCount}
-            reviews={reviews}
-          />
+        {/* 3. 탭 메뉴 (홈, 리뷰, 사진) */}
+        <div className="sticky top-0 bg-white border-b border-gray-100 flex z-20">
+          {["home", "review", "photo"].map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className={`flex-1 py-4 text-sm font-bold transition-colors ${
+                activeTab === tab
+                  ? "text-black border-b-2 border-black"
+                  : "text-gray-400"
+              }`}
+            >
+              {tab === "home" ? "홈" : tab === "review" ? "리뷰" : "사진"}
+            </button>
+          ))}
         </div>
+
+        {/* 4. 탭 내용 영역 */}
+        <div className="px-5 py-6 pb-24">
+          {activeTab === "home" && (
+            <div className="flex flex-col gap-8">
+              {/* 상세 정보 (주소, 영업시간 등) */}
+              <section className="flex flex-col gap-4">
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
+                  <span className="text-sl">{restaurant.address}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Phone className="w-5 h-5 text-gray-400" />
+                  <span className="text-sl">{restaurant.phoneNumber}</span>
+                </div>
+                <div className="h-48 rounded-xl overflow-hidden border border-gray-100">
+                  <MiniMap
+                    latitude={restaurant.latitude}
+                    longitude={restaurant.longitude}
+                  />
+                </div>
+              </section>
+            </div>
+          )}
+
+          {activeTab === "review" && (
+            <Review restaurant={restaurant} reviews={reviews} />
+          )}
+
+          {activeTab === "photo" && (
+            <div className="grid grid-cols-3 gap-1">
+              {displayImages.map((img, i) => (
+                <img
+                  key={i}
+                  src={img}
+                  className="aspect-square object-cover"
+                  alt="맛집 사진"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* 리뷰 작성 버튼 */}
+        <PlusBtn onClick={() => setOpenBottomSheet(true)} />
+        <ReviewBottomSheet
+          open={openBottomSheet}
+          onClose={() => setOpenBottomSheet(false)}
+          restaurant={restaurant}
+        />
       </div>
-
-      {/* 리뷰 추가 우측 하단 고정 */}
-      <PlusBtn onClick={() => setOpenBottomSheet(true)} />
-
-      {/* 바텀시트 */}
-      <ReviewBottomSheet
-        open={openBottomSheet}
-        onClose={() => setOpenBottomSheet(false)}
-        restaurant={restaurant}
-      />
     </div>
+    // <div className="flex justify-center min-h-scree">
+    //   <div className="w-full max-w-md px-4 py-8 flex flex-col gap-8">
+    //     {/* 상단 카드 영역: 최상단에 배치 */}
+    //     <RestaurantDetailCard
+    //       restaurant={restaurant}
+    //       isLike={isLike}
+    //       onLike={onLike}
+    //       likeCount={likeCount}
+    //     />
+
+    //     {/* 지도 영역: 너비를 꽉 채우고 높이를 적절히 조절 */}
+    //     <div className="flex flex-col w-full">
+    //       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden h-[200px] w-full">
+    //         <MiniMap
+    //           latitude={restaurant.latitude}
+    //           longitude={restaurant.longitude}
+    //         />
+    //       </div>
+    //       <a
+    //         href={`https://map.kakao.com/link/map/${restaurant.name},${restaurant.latitude},${restaurant.longitude}`}
+    //         target="_blank"
+    //         rel="noopener noreferrer"
+    //         className="w-full mt-3 bg-[#FAE100] hover:bg-[#EAC100] text-[#3C1E1E] font-bold py-3 rounded-xl text-center text-sm shadow-sm transition-colors flex items-center justify-center gap-2"
+    //       >
+    //         <span>카카오맵으로 길찾기</span>
+    //       </a>
+    //     </div>
+
+    //     {/* 리뷰 영역: 하단 배치 */}
+    //     <div className="pb-20">
+    //       {" "}
+    //       {/* 플러스 버튼 공간 확보를 위한 하단 패딩 */}
+    //       <Review
+    //         restaurant={restaurant}
+    //         likeCount={likeCount}
+    //         reviews={reviews}
+    //       />
+    //     </div>
+
+    //     {/* 리뷰 추가 버튼 & 바텀시트 */}
+    //     <PlusBtn onClick={() => setOpenBottomSheet(true)} />
+    //     <ReviewBottomSheet
+    //       open={openBottomSheet}
+    //       onClose={() => setOpenBottomSheet(false)}
+    //       restaurant={restaurant}
+    //     />
+    //   </div>
+    // </div>
   );
 };
 

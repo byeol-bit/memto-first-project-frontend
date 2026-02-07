@@ -1,31 +1,28 @@
-import React from "react";
-import { Map, MapMarker } from "react-kakao-maps-sdk";
-import useKakaoLoader from "../../hooks/useKakaoLoader";
+import { Map as KakaoMap, MapMarker } from "react-kakao-maps-sdk";
 
 const MiniMap = ({ latitude, longitude }) => {
-  const { loading, error } = useKakaoLoader();
+  if (!latitude || !longitude) return null;
 
-  if (loading)
-    return (
-      <div className="w-full h-[300px] bg-gray-100 flex items-center justify-center">
-        지도를 불러오는 중...
-      </div>
-    );
-  if (error)
-    return (
-      <div className="w-full h-[300px] bg-red-50 flex items-center justify-center">
-        지도 에러: {error.message}
-      </div>
-    );
+  const center = {
+    lat: Number(latitude),
+    lng: Number(longitude),
+  };
+
+  if (Number.isNaN(center.lat) || Number.isNaN(center.lng)) return null;
 
   return (
-    <Map
-      center={{ lat: latitude, lng: longitude }} // 지도의 중심 좌표
-      style={{ width: "100%", height: "300px" }} // 지도 크기 (높이는 조절 가능)
-      level={3} // 확대 레벨 (숫자가 작을수록 확대)
+    <KakaoMap
+      center={center}
+      level={3}
+      style={{
+        width: "100%",
+        height: "100%",
+      }}
+      draggable={false}
+      zoomable={false}
     >
-      <MapMarker position={{ lat: latitude, lng: longitude }} />
-    </Map>
+      <MapMarker position={center} />
+    </KakaoMap>
   );
 };
 
