@@ -1,11 +1,6 @@
 import React from "react";
 import { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router";
-import {
-  mockRestaurants,
-  mockRestaurantImages,
-  mockVisits,
-} from "../data/restaurants.mock";
 import MiniMap from "../components/restaurant/miniMap";
 import RestaurantDetailCard from "../components/restaurant/restaurantDetailCard";
 import Gallery from "../components/restaurant/gallery";
@@ -18,42 +13,61 @@ import { MapPin, Phone } from "lucide-react";
 import { useContext } from "react";
 import { DetailStateContext } from "../components/layout/map-layout";
 
-import { useQuery } from "@tanstack/react-query";
-import { apiRestaurants } from "../api/restaurant";
+import { useRestaurantDetail } from "../hooks/queries/use-restaurants-data";
+import { useRestaurantReviews } from "../hooks/queries/use-reviews-data";
 
 const RestaurantDetailPage = () => {
-  const { data: restaurants, isLoading } = useQuery({
-    queryKey: ["restaurants"], // 쿼리 키
-    queryFn: apiRestaurants, // 우리가 만든 함수
-  });
-
   const context = useContext(DetailStateContext);
   const { id } = useParams();
 
-  // const currentId = parseInt(context.selectedRestaurant.id);
-  let currentId;
-  if (context?.selectedRestaurant?.id) {
-    // 맵 레이아웃 안에서 카드를 클릭해 들어온 경우
-    currentId = parseInt(context.selectedRestaurant.id);
-  } else {
-    // 리스트 페이지에서 링크를 타고 직접 들어온 경우
-    currentId = parseInt(id);
-  }
+  // ID 결정 로직
+  const currentId = context?.selectedRestaurant?.id || id;
 
-  // ID에 맞는 맛집 찾기
-  const restaurant = mockRestaurants.find((r) => r.id === currentId);
+  const {
+    data: restaurantDetailData,
+    isLoading: isDetailLoading,
+    isError: isDetailError,
+  } = useRestaurantDetail(currentId);
 
-  // ID에 맞는 리뷰 찾기
-  const reviews = mockVisits.filter((v) => v.restaurantId === currentId);
+  console.log(restaurantDetailData);
+
+  const { data: reviewsData, isLoading: isReviewsLoading } =
+    useRestaurantReviews(restaurantDetailData?.id);
+
+  console.log(reviewsData);
+
+  const reviews = reviewsData ?? [];
 
   // 맛집 디테일 좋아요 & 좋아요 수
   const [isLike, setIsLike] = useState(false);
-  const [likeCount, setLikeCount] = useState(restaurant?.likeCount || 0); // 옵셔널 체이닝 + 널 병합
+  const [likeCount, setLikeCount] = useState(0);
+
   // 바텀시트 오픈 플러스 버튼
   const [openBottomSheet, setOpenBottomSheet] = useState(false);
 
   // 탭
   const [activeTab, setActiveTab] = useState("home");
+
+  // 일단 아직 이미지가 없다는 가정하에
+  const displayImages = useMemo(() => {
+    // 실제 서버 데이터(restaurant.images)가 있다면 그것을 사용
+    if (
+      restaurantDetailData?.images &&
+      restaurantDetailData.images.length > 0
+    ) {
+      return restaurantDetailData.images.slice(0, 6); // 최대 6장까지만
+    }
+
+    // 6장의 목업 이미지
+    return [
+      "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80", // 칵테일/분위기
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80", // 스테이크
+      "https://images.unsplash.com/photo-1473093226795-af9932fe5856?w=800&q=80", // 파스타
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80", // 고기 요리
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80", // 샐러드
+      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80", // 피자
+    ];
+  }, [restaurantDetailData]);
 
   const onLike = () => {
     if (isLike) {
@@ -67,50 +81,72 @@ const RestaurantDetailPage = () => {
     setIsLike(!isLike);
   };
 
-  // 일단 그냥 이미지 가져오기
-  const displayImages = mockRestaurantImages
-    .filter((img) => img.restaurantId === currentId) // 이 가게의 사진만 찾아서
-    .map((img) => img.imageUrl); // 이미지 주소만 꺼냄
+  const expertsCount = useMemo(() => {
+    const uniqueUsers = reviews.filter(
+      (review, index, self) =>
+        index === self.findIndex((r) => r.userId === review.userId),
+    );
+    return uniqueUsers.length;
+  }, [reviews]);
 
-  if (!restaurant) {
-    return <div>삭제 되었거나, 찾을 수 없는 맛집입니다 😭</div>;
+  if (isDetailLoading) {
+    return (
+      <div className="py-20 text-center">
+        맛집 정보를 불러오는 중입니다... 😋
+      </div>
+    );
   }
+
+  if (isDetailError || !restaurantDetailData) {
+    return (
+      <div className="py-20 text-center text-red-500">
+        삭제 되었거나, 찾을 수 없는 맛집입니다 😭
+      </div>
+    );
+  }
+
+  const handleRoute = () => {
+    const { name, latitude, longitude, kakao_place_id, address } =
+      restaurantDetailData;
+
+    // 가장 안정적인 URL 스킴 형식입니다.
+    // 이름, 위도, 경도를 콤마(,)로 구분하여 넘깁니다.
+    const routeUrl = `https://dapi.kakao.com/v2/local/search/${address}.process.env.VITE_KAKAO_API_KEY`;
+
+    // 만약 정확한 Kakao Place ID를 알고 있다면 상세 페이지로도 보낼 수 있습니다.
+    // const detailUrl = `https://place.map.kakao.com/${kakao_place_id}`;
+
+    window.open(routeUrl, "_blank");
+  };
 
   return (
     <div className="flex justify-center min-h-screen bg-white">
-      {/* 너비를 max-w-md로 고정하여 모바일 뷰 느낌 강조 */}
       <div className="w-full max-w-md flex flex-col relative">
-        {/* 1. 상단 이미지 갤러리 (시안처럼 크게 배치) */}
         <div className="w-full h-55 relative">
           <Gallery images={displayImages} layoutType="hero" />
-          {/* Gallery 내부에서 첫 이미지를 크게 보여주는 hero 모드라고 가정 */}
         </div>
 
-        {/* 2. 맛집 기본 정보 (카드 형태가 아닌 페이지 일체형) */}
+        {/* 맛집 기본 정보 */}
         <div className="px-5 py-6 border-b-8 border-gray-100">
           <div className="flex justify-between items-start">
-            {/* 이름과 카테고리를 한 묶음으로 결합 */}
             <div className="flex flex-col gap-1">
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-gray-900">
-                  {restaurant.name}
+                  {restaurantDetailData.name}
                 </h1>
-                {/* 카테고리 배지 */}
                 <span className="rounded-full bg-gradient-to-r from-orange-400 to-pink-500 px-3 py-0.5 text-[10px] font-semibold text-white whitespace-nowrap">
-                  {restaurant.category}
+                  {restaurantDetailData.category}
                 </span>
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-sm">방문자 리뷰</span>
                 <span className="text-sm font-semibold">
-                  {restaurant.visitCount}
+                  {reviews.length ?? 0}
                 </span>
               </div>
               <div className="mt-2 flex items-baseline">
                 <span className="text-xl mr-1">😋</span>
-                <span className="text-2xl font-bold">
-                  {restaurant.expertCount}
-                </span>
+                <span className="text-2xl font-bold">{expertsCount ?? 0}</span>
                 <span className="ml-1 text-xm text-gray-500">
                   명의 고수 인정한 맛집이에요
                 </span>
@@ -131,11 +167,11 @@ const RestaurantDetailPage = () => {
 
           <div className="flex gap-2 mt-4">
             {/* 시안의 '출발', '도착' 같은 버튼 스타일 */}
-            <button className="flex-1 bg-blue-50 py-3 rounded-xl text-blue-600 font-bold text-sm">
+            <button
+              onClick={handleRoute}
+              className="flex-1 bg-blue-50 py-3 rounded-xl text-blue-600 font-bold text-sm"
+            >
               길찾기
-            </button>
-            <button className="flex-1 bg-blue-600 py-3 rounded-xl text-white font-bold text-sm">
-              전화하기
             </button>
           </div>
         </div>
@@ -165,16 +201,20 @@ const RestaurantDetailPage = () => {
               <section className="flex flex-col gap-4">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
-                  <span className="text-sl">{restaurant.address}</span>
+                  <span className="text-sl">
+                    {restaurantDetailData.address}
+                  </span>
                 </div>
                 <div className="flex items-center gap-2">
                   <Phone className="w-5 h-5 text-gray-400" />
-                  <span className="text-sl">{restaurant.phoneNumber}</span>
+                  <span className="text-sl">
+                    {restaurantDetailData.phone_number}
+                  </span>
                 </div>
                 <div className="h-48 rounded-xl overflow-hidden border border-gray-100">
                   <MiniMap
-                    latitude={restaurant.latitude}
-                    longitude={restaurant.longitude}
+                    latitude={restaurantDetailData.latitude}
+                    longitude={restaurantDetailData.longitude}
                   />
                 </div>
               </section>
@@ -182,7 +222,21 @@ const RestaurantDetailPage = () => {
           )}
 
           {activeTab === "review" && (
-            <Review restaurant={restaurant} reviews={reviews} />
+            <div className="flex flex-col gap-4">
+              {reviews.length > 0 ? (
+                reviews.map((v) => (
+                  <Review
+                    key={v.id}
+                    reviewData={v} // 개별 리뷰 데이터를 넘겨줍니다.
+                  />
+                ))
+              ) : (
+                <div className="py-20 text-center text-gray-400">
+                  아직 등록된 꿀조합이 없어요. <br />첫 번째 고수가 되어보세요!
+                  🍯
+                </div>
+              )}
+            </div>
           )}
 
           {activeTab === "photo" && (
@@ -204,58 +258,10 @@ const RestaurantDetailPage = () => {
         <ReviewBottomSheet
           open={openBottomSheet}
           onClose={() => setOpenBottomSheet(false)}
-          restaurant={restaurant}
+          restaurant={restaurantDetailData}
         />
       </div>
     </div>
-    // <div className="flex justify-center min-h-scree">
-    //   <div className="w-full max-w-md px-4 py-8 flex flex-col gap-8">
-    //     {/* 상단 카드 영역: 최상단에 배치 */}
-    //     <RestaurantDetailCard
-    //       restaurant={restaurant}
-    //       isLike={isLike}
-    //       onLike={onLike}
-    //       likeCount={likeCount}
-    //     />
-
-    //     {/* 지도 영역: 너비를 꽉 채우고 높이를 적절히 조절 */}
-    //     <div className="flex flex-col w-full">
-    //       <div className="rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden h-[200px] w-full">
-    //         <MiniMap
-    //           latitude={restaurant.latitude}
-    //           longitude={restaurant.longitude}
-    //         />
-    //       </div>
-    //       <a
-    //         href={`https://map.kakao.com/link/map/${restaurant.name},${restaurant.latitude},${restaurant.longitude}`}
-    //         target="_blank"
-    //         rel="noopener noreferrer"
-    //         className="w-full mt-3 bg-[#FAE100] hover:bg-[#EAC100] text-[#3C1E1E] font-bold py-3 rounded-xl text-center text-sm shadow-sm transition-colors flex items-center justify-center gap-2"
-    //       >
-    //         <span>카카오맵으로 길찾기</span>
-    //       </a>
-    //     </div>
-
-    //     {/* 리뷰 영역: 하단 배치 */}
-    //     <div className="pb-20">
-    //       {" "}
-    //       {/* 플러스 버튼 공간 확보를 위한 하단 패딩 */}
-    //       <Review
-    //         restaurant={restaurant}
-    //         likeCount={likeCount}
-    //         reviews={reviews}
-    //       />
-    //     </div>
-
-    //     {/* 리뷰 추가 버튼 & 바텀시트 */}
-    //     <PlusBtn onClick={() => setOpenBottomSheet(true)} />
-    //     <ReviewBottomSheet
-    //       open={openBottomSheet}
-    //       onClose={() => setOpenBottomSheet(false)}
-    //       restaurant={restaurant}
-    //     />
-    //   </div>
-    // </div>
   );
 };
 
