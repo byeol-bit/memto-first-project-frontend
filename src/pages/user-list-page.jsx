@@ -1,6 +1,6 @@
 import { useState } from "react";
 import UserList from "../components/user-list-components/userList";
-import UserFilter from "../components/user-list-components/userFilter";
+import UserSearch from "../components/user-list-components/userSearch";
 import useUserFilter from "../hooks/useUserFilter";
 
 const UserListPage = () => {
@@ -44,7 +44,7 @@ const UserListPage = () => {
 
         {/* 고수 검색창 + 태그 필터링 */}
         <form className="p-4" onSubmit={(e) => e.preventDefault()}>
-          <UserFilter
+          <UserSearch
             keyword={keyword}
             setKeyword={setKeyword}
             tag={tag}

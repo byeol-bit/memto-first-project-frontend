@@ -7,6 +7,8 @@ import RestaurantListPage from "../../pages/restaurant-list-page"
 import RestaurantDetailPage from "../../pages/restaurant-detail-page"
 import { mockUsers, mockRestaurants } from "../../data/mockData"
 import MapRestaurantModal from "../map/map-restaurant-modal"
+import UserListPage from "../../pages/user-list-page"
+import UserDetailPage from "../../pages/user-detail-page"
 
 
 export const DetailStateContext = createContext()
@@ -14,11 +16,16 @@ export const DetailStateContext = createContext()
 
 const MapLayout = () => {
   const [activeTab, setActiveTab] = useState(null)
+  const [selectedUser, setSelectedUser] = useState()
   const [selectedRestaurant, setSelectedRestaurant] = useState()
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   const handleTabClick = (tab) => {
     setActiveTab(activeTab === tab ? null : tab)
+  }
+
+  const handleSelectUser = (user) => {
+    setSelectedUser((prev) => (prev?.id === user?.id ? null : user))
   }
 
   const handleSelectRestaurant = (restaurant) => {
@@ -53,6 +60,8 @@ const MapLayout = () => {
           value={{
             mockUsers,
             mockRestaurants,
+            selectedUser,
+            setSelectedUser: handleSelectUser,
             selectedRestaurant,
             setSelectedRestaurant: handleSelectRestaurant,
             isModalOpen,
@@ -61,7 +70,7 @@ const MapLayout = () => {
           <div className="bg-transparent flex gap-4">
             {activeTab && (
               <div className={style.leftSidebarDetail}>
-                {activeTab === 'users' && <UserList />}
+                {activeTab === 'users' && <UserListPage />}
                 {activeTab === 'restaurants' && <RestaurantListPage />}
                 {activeTab === 'feed' && <div>피드 기능은 준비 중입니다.</div>}
               </div>
@@ -70,6 +79,13 @@ const MapLayout = () => {
               <div className={style.leftSidebarDoubleDetail}>
                 <div className={style.leftSidebarDoubleDetailInner}>
                   <RestaurantDetailPage />
+                </div>
+              </div>
+            )}
+            {activeTab === 'users' && selectedUser && (
+              <div className={style.leftSidebarDoubleDetail}>
+                <div className={style.leftSidebarDoubleDetailInner}>
+                  <UserDetailPage />
                 </div>
               </div>
             )}
