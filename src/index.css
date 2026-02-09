@@ -131,3 +131,13 @@ body {
   line-height: var(--line-height-normal);
   color: var(--text-primary);
 }
+
+/* 랭킹 뱃지: 도레미파솔~ 파미레도처럼 한 번에 올랐다 내려오는 자연스러운 반짝임 */
+@keyframes rank-sparkle {
+  0%, 100% { filter: brightness(1); transform: scale(1); }
+  50% { filter: brightness(1.25); transform: scale(1.2); }
+}
+
+.rank-img-sparkle {
+  animation: rank-sparkle 4s ease-in-out infinite;
+}
