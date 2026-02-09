@@ -66,7 +66,7 @@ const MapLayout = () => {
                 {activeTab === 'feed' && <div>피드 기능은 준비 중입니다.</div>}
               </div>
             )}
-            {activeTab && selectedRestaurant && (
+            {activeTab === 'restaurants' && selectedRestaurant && (
               <div className={style.leftSidebarDoubleDetail}>
                 <div className={style.leftSidebarDoubleDetailInner}>
                   <RestaurantDetailPage />
