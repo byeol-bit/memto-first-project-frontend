@@ -4,11 +4,10 @@ import axios from "axios";
 // 그래야 요청이 http://localhost:5173/users/... 로 날아가고,
 // Vite가 그걸 낚아채서 fly.dev로 보내줍니다.
 const api = axios.create({
-  baseURL: "",
+  baseURL: "https://hidden-master-server.fly.dev",
   headers: {
     "Content-Type": "application/json",
   },
-  withCredentials: true, // CORS 쿠키 등을 위해 유지
 });
 
 export default api;
