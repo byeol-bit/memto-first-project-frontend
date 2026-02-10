@@ -2,7 +2,6 @@ import React from "react";
 import { useState, useMemo, useEffect } from "react";
 import { useParams } from "react-router";
 import MiniMap from "../components/restaurant/miniMap";
-import RestaurantDetailCard from "../components/restaurant/restaurantDetailCard";
 import Gallery from "../components/restaurant/gallery";
 import Review from "../components/review/review";
 import PlusBtn from "../components/common/plusBtn";
