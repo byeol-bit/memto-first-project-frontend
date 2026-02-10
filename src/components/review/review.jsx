@@ -37,58 +37,60 @@ const Review = ({ reviewData }) => {
   if (!reviewData) return null;
 
   return (
-    <div className="w-full max-w-2xl mx-auto rounded px-4 pt-6 pb-5 overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300">
-      {/* 작성자 정보 */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex items-center">
-          <img
-            className="w-10 h-10 rounded-full mr-3 object-cover"
-            src="https://v1.tailwindcss.com/img/jonathan.jpg"
-            alt="Andrew Wilson"
-          />
-          <div className="flex flex-col">
-            <div className="flex items-center gap-2">
-              <span className="text-gray-900 font-bold text-sm">
-                Andrew Wilson
-              </span>
-              <span className="bg-gray-100 rounded-full px-2 py-0.5 text-[10px] text-gray-500 font-medium">
-                먹고수
+    <div className="max-w-sm rounded overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300">
+      <div className="py-8 mx-6">
+        {/* 작성자 정보 */}
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex items-center">
+            <img
+              className="w-10 h-10 rounded-full mr-3 object-cover"
+              src="https://v1.tailwindcss.com/img/jonathan.jpg"
+              alt="Andrew Wilson"
+            />
+            <div className="flex flex-col">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-900 font-bold text-sm">
+                  Andrew Wilson
+                </span>
+                <span className="bg-gray-100 rounded-full px-2 py-0.5 text-[10px] text-gray-500 font-medium">
+                  먹고수
+                </span>
+              </div>
+              <span className="text-[11px] text-gray-400 mt-0.5">
+                {displayDate}
               </span>
             </div>
-            <span className="text-[11px] text-gray-400 mt-0.5">
-              {displayDate}
-            </span>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <Button className="py-1.5 px-3 text-xs">팔로우</Button>
           </div>
         </div>
 
-        <div className="flex items-center gap-3">
-          <Button className="py-1.5 px-3 text-xs">팔로우</Button>
+        {/* 2. 중간: 리뷰 이미지 (가로로 꽉 차게) */}
+        <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 border border-gray-50">
+          <img
+            src="https://v1.tailwindcss.com/img/card-left.jpg"
+            alt="리뷰 사진"
+            className="w-full h-full object-cover"
+          />
         </div>
-      </div>
 
-      {/* 2. 중간: 리뷰 이미지 (가로로 꽉 차게) */}
-      <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 border border-gray-50">
-        <img
-          src="https://v1.tailwindcss.com/img/card-left.jpg"
-          alt="리뷰 사진"
-          className="w-full h-full object-cover"
-        />
-      </div>
+        {/* 본문 */}
+        <div className="mb-6">
+          <p className="text-gray-800 text-sm leading-relaxed mb-2">
+            {reviewData?.review}
+          </p>
+        </div>
 
-      {/* 본문 */}
-      <div className="mb-6">
-        <p className="text-gray-800 text-sm leading-relaxed mb-2">
-          {reviewData?.review}
-        </p>
-      </div>
+        {/* 좋아요 */}
 
-      {/* 좋아요 */}
-
-      <div className="flex items-center gap-1.5 cursor-pointer transition-colors group">
-        <Like isLike={isLike} onLike={onLike} />
-        <span className="text-xm text-gray-500 font-medium group-active:scale-95 transition-transform">
-          {likeCount}
-        </span>
+        <div className="flex items-center gap-1.5 cursor-pointer transition-colors group">
+          <Like isLike={isLike} onLike={onLike} />
+          <span className="text-xm text-gray-500 font-medium group-active:scale-95 transition-transform">
+            {likeCount}
+          </span>
+        </div>
       </div>
     </div>
   );
