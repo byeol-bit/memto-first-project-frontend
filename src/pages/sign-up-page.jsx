@@ -184,7 +184,7 @@ const SignUpPage = () => {
                 className="w-full h-full object-cover"
               />
             ) : (
-              <span className="text-gray-400 text-3xl">👤</span>
+              <span className="text-gray-400 text-3xl">？</span>
             )}
           </div>
 
