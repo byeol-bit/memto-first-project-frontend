@@ -36,7 +36,7 @@ function ImagesUploader({ onImagesChange }) {
           handleFiles(e.dataTransfer.files);
         }}
         onClick={() => fileInputRef.current.click()}
-        className={`flex-1 min-h-[350px] bg-gray-50 border-2 border-dashed rounded-3xl flex flex-col items-center justify-center transition-all cursor-pointer
+        className={`flex-1 min-h-[160px] bg-gray-50 border-2 border-dashed rounded-3xl flex flex-col items-center justify-center transition-all cursor-pointer
           ${isDragging ? "border-red-400 bg-red-50" : "border-gray-200 hover:bg-gray-100"}`}
       >
         {/* 플러스 아이콘 */}

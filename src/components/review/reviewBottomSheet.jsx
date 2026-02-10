@@ -1,12 +1,9 @@
 import React, { useState } from "react";
-import HoneyCombo from "./honeyCombo";
 import ImagesUploader from "./imagesUploader";
 
 import { useCreateReviewMutation } from "../../hooks/mutations/use-create-review-mutation";
 
 const ReviewBottomSheet = ({ open, onClose, restaurant }) => {
-  // 꿀조합
-  const [combos, setCombos] = useState([]);
   // 리뷰 작성란
   const [content, setContent] = useState("");
   // 이미지
@@ -17,7 +14,6 @@ const ReviewBottomSheet = ({ open, onClose, restaurant }) => {
 
   if (!open) return null;
 
-  // 버튼 클릭 시 전송
   const handleSubmit = () => {
     if (!content.trim()) {
       alert("뉴비들을 위해 고수님의 팁을 한 마디만 적어주세요! ✍️");
@@ -91,24 +87,8 @@ const ReviewBottomSheet = ({ open, onClose, restaurant }) => {
         {/* 메인 컨텐츠 (스크롤 가능) */}
         <div className="flex-1 overflow-y-auto p-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 max-w-6xl mx-auto">
-            {/* 왼쪽 : 텍스트 & 태그 기반 섹션들 */}
+            {/* 왼쪽 : 텍스트 */}
             <div className="space-y-12">
-              {/* 감성 태그 (최대 3개 선택) */}
-              <section>
-                <h3 className="text-sm font-bold text-gray-800 mb-3">
-                  어떤 점이 좋았나요? (최대 3개)
-                </h3>
-                <div className="flex flex-wrap gap-2">
-                  <div className="px-4 py-2 bg-gray-50 border border-gray-200 rounded-full text-sm text-gray-400">
-                    # 해시태그 선택
-                  </div>
-                </div>
-              </section>
-
-              {/* 꿀조합 메뉴 */}
-              <HoneyCombo combos={combos} setCombos={setCombos} />
-
-              {/* 추천 코멘트 */}
               <section>
                 <h3 className="text-base font-bold text-gray-800 mb-4">
                   💡 고수 TIP
@@ -140,9 +120,7 @@ const ReviewBottomSheet = ({ open, onClose, restaurant }) => {
               className={`w-full py-5 text-white font-extrabold text-lg rounded-2xl shadow-xl transition-all 
               ${isLoading ? "bg-gray-400 cursor-not-allowed" : "bg-red-400 active:scale-[0.98] shadow-orange-100"}`}
             >
-              {isLoading
-                ? "꿀조합 전수 중... 🐝"
-                : "최강 꿀조합으로 입덕시키기 👍"}
+              {isLoading ? "꿀조합 전수 중... 🐝" : "리뷰 등록 👍"}
             </button>
           </div>
         </div>

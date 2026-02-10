@@ -5,7 +5,7 @@ import MiniMap from "../components/restaurant/miniMap";
 import RestaurantDetailCard from "../components/restaurant/restaurantDetailCard";
 import Gallery from "../components/restaurant/gallery";
 import Review from "../components/review/review";
-import PlusBtn from "../components/review/plusBtn";
+import PlusBtn from "../components/common/plusBtn";
 import ReviewBottomSheet from "../components/review/reviewBottomSheet";
 import Like from "../components/common/like";
 import { MapPin, Phone } from "lucide-react";
@@ -50,7 +50,6 @@ const RestaurantDetailPage = () => {
 
   // 일단 아직 이미지가 없다는 가정하에
   const displayImages = useMemo(() => {
-    // 실제 서버 데이터(restaurant.images)가 있다면 그것을 사용
     if (
       restaurantDetailData?.images &&
       restaurantDetailData.images.length > 0
@@ -109,12 +108,7 @@ const RestaurantDetailPage = () => {
     const { name, latitude, longitude, kakao_place_id, address } =
       restaurantDetailData;
 
-    // 가장 안정적인 URL 스킴 형식입니다.
-    // 이름, 위도, 경도를 콤마(,)로 구분하여 넘깁니다.
     const routeUrl = `https://dapi.kakao.com/v2/local/search/${address}.process.env.VITE_KAKAO_API_KEY`;
-
-    // 만약 정확한 Kakao Place ID를 알고 있다면 상세 페이지로도 보낼 수 있습니다.
-    // const detailUrl = `https://place.map.kakao.com/${kakao_place_id}`;
 
     window.open(routeUrl, "_blank");
   };
@@ -153,7 +147,6 @@ const RestaurantDetailPage = () => {
               </div>
             </div>
 
-            {/* 좋아요 버튼 영역은 우측 상단 고정 */}
             <div className="flex flex-col items-center gap-1">
               <Like
                 isLike={isLike}
@@ -166,7 +159,6 @@ const RestaurantDetailPage = () => {
           </div>
 
           <div className="flex gap-2 mt-4">
-            {/* 시안의 '출발', '도착' 같은 버튼 스타일 */}
             <button
               onClick={handleRoute}
               className="flex-1 bg-blue-50 py-3 rounded-xl text-blue-600 font-bold text-sm"
@@ -176,7 +168,7 @@ const RestaurantDetailPage = () => {
           </div>
         </div>
 
-        {/* 3. 탭 메뉴 (홈, 리뷰, 사진) */}
+        {/* 탭 메뉴 (홈, 리뷰, 사진) */}
         <div className="sticky top-0 bg-white border-b border-gray-100 flex z-20">
           {["home", "review", "photo"].map((tab) => (
             <button
@@ -193,11 +185,11 @@ const RestaurantDetailPage = () => {
           ))}
         </div>
 
-        {/* 4. 탭 내용 영역 */}
+        {/* 탭 내용 */}
         <div className="px-5 py-6 pb-24">
           {activeTab === "home" && (
             <div className="flex flex-col gap-8">
-              {/* 상세 정보 (주소, 영업시간 등) */}
+              {/* 상세 정보 */}
               <section className="flex flex-col gap-4">
                 <div className="flex items-center gap-2">
                   <MapPin className="w-5 h-5 text-gray-400 mt-0.5" />
@@ -222,14 +214,9 @@ const RestaurantDetailPage = () => {
           )}
 
           {activeTab === "review" && (
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-7">
               {reviews.length > 0 ? (
-                reviews.map((v) => (
-                  <Review
-                    key={v.id}
-                    reviewData={v} // 개별 리뷰 데이터를 넘겨줍니다.
-                  />
-                ))
+                reviews.map((v) => <Review key={v.id} reviewData={v} />)
               ) : (
                 <div className="py-20 text-center text-gray-400">
                   아직 등록된 꿀조합이 없어요. <br />첫 번째 고수가 되어보세요!
