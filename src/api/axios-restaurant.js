@@ -1,4 +1,4 @@
-import api from "./axios";
+import api from "./axios-basic";
 
 /* 
   식당 등록
