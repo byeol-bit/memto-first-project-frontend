@@ -1,4 +1,4 @@
-import axios from "./axios";
+import api from "./axios";
 
 // 1. 회원가입 요청
 // - 사용자가 입력한 정보를 서버의 데이터베이스에 저장

@@ -15,6 +15,7 @@ export const QUERY_KEYS = {
   restaurant: {
     all: ["restaurant"],
     list: ["restaurant", "list"],
+    topFive: ["restaurant", "top-five"],
     detail: (id) => ["restaurant", "detail", id]
   }
 }
