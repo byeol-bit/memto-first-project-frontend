@@ -1,27 +1,24 @@
-import { Route, Routes } from 'react-router'
-import './App.css'
+import { Route, Routes } from "react-router";
+import "./App.css";
 
 // pages
-import HeaderLayout from './components/layout/header'
-import IndexPage from './pages/index-page'
-import DesignSystemPage from './pages/design-system'
-import NotFoundPage from './pages/not-found-page'
-import UserListPage from './pages/user-list-page'
-import UserDetailPage from './pages/user-detail-page'
-import RestaurantListPage from './pages/restaurant-list-page'
-import RestaurantRegisterPage from './pages/restaurant-register-page'
-import RestaurantDetailPage from './pages/restaurant-detail-page'
-import MapPage from './pages/map-page'
-import ApiTestPage from './pages/api-test'
-import FeedPage from './pages/feed-page'
-import SignInPage from './pages/sign-in-page'
-import SignUpPage from './pages/sign-up-page'
-import MapLayout from './components/layout/map-layout'
-import FollowPage from './pages/follow-page'
-
+import HeaderLayout from "./components/layout/header";
+import IndexPage from "./pages/index-page";
+import DesignSystemPage from "./pages/design-system";
+import NotFoundPage from "./pages/not-found-page";
+import UserListPage from "./pages/user-list-page";
+import UserDetailPage from "./pages/user-detail-page";
+import RestaurantListPage from "./pages/restaurant-list-page";
+import RestaurantDetailPage from "./pages/restaurant-detail-page";
+import MapPage from "./pages/map-page";
+import ApiTestPage from "./pages/api-test";
+import FeedPage from "./pages/feed-page";
+import SignInPage from "./pages/sign-in-page";
+import SignUpPage from "./pages/sign-up-page";
+import MapLayout from "./components/layout/map-layout";
+import FollowPage from "./pages/follow-page";
 
 function App() {
-
   return (
     <div className="app-container">
       <Routes>
@@ -32,7 +29,6 @@ function App() {
           <Route path="/users/:id" element={<UserDetailPage />} />
           <Route path="/users/:id/:type" element={<FollowPage />} />
           <Route path="/restaurants" element={<RestaurantListPage />} />
-          <Route path="/restaurants/new" element={<RestaurantRegisterPage />} />
           <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
           <Route element={<MapLayout />}>
             <Route path="/map" element={<MapPage />} />
@@ -45,7 +41,7 @@ function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </div>
-  )
+  );
 }
 
-export default App
+export default App;

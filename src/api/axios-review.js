@@ -39,7 +39,7 @@ export const fetchUserReviews = async (userId) => {
   GET /visits/:restaurantId
 */
 export const fetchRestaurantReviews = async (restaurantId) => {
-  return await api.get(`/visits/${restaurantId}`);
+  return await api.get("/visits", { params: { restaurantId } });
 };
 
 /*
