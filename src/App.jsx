@@ -10,7 +10,6 @@ import NotFoundPage from "./pages/not-found-page";
 import UserListPage from "./pages/user-list-page";
 import UserDetailPage from "./pages/user-detail-page";
 import RestaurantListPage from "./pages/restaurant-list-page";
-import RestaurantRegisterPage from "./pages/restaurant-register-page";
 import RestaurantDetailPage from "./pages/restaurant-detail-page";
 import MapPage from "./pages/map-page";
 import ApiTestPage from "./pages/api-test";
@@ -32,10 +31,6 @@ function App() {
             <Route path="/users/:id" element={<UserDetailPage />} />
             <Route path="/users/:id/:type" element={<FollowPage />} />
             <Route path="/restaurants" element={<RestaurantListPage />} />
-            <Route
-              path="/restaurants/new"
-              element={<RestaurantRegisterPage />}
-            />
             <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
             <Route element={<MapLayout />}>
               <Route path="/map" element={<MapPage />} />

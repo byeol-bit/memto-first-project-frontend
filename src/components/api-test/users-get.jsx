@@ -1,7 +1,7 @@
-import { useUsersData } from "../../hooks/quries/use-users-data"
+import { useUsersData } from "../../hooks/queries/use-users-data";
 
 const GetUsersApiComponent = () => {
-  const { data: users, isLoading, error } = useUsersData()
+  const { data: users, isLoading, error } = useUsersData();
 
   if (error) {
     return (
@@ -11,7 +11,7 @@ const GetUsersApiComponent = () => {
           오류가 발생했습니다.
         </div>
       </div>
-    )
+    );
   }
 
   if (isLoading) {
@@ -22,7 +22,7 @@ const GetUsersApiComponent = () => {
           로딩 중입니다...
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -40,8 +40,12 @@ const GetUsersApiComponent = () => {
               className="p-4 bg-slate-50 rounded-lg border border-slate-100"
             >
               <div className="flex items-center gap-2 mb-2">
-                <span className="text-xs font-medium text-slate-500">#{user.id}</span>
-                <span className="font-medium text-slate-800">{user.nickname}</span>
+                <span className="text-xs font-medium text-slate-500">
+                  #{user.id}
+                </span>
+                <span className="font-medium text-slate-800">
+                  {user.nickname}
+                </span>
                 <span className="text-xs px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full">
                   {user.category}
                 </span>
@@ -56,7 +60,7 @@ const GetUsersApiComponent = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default GetUsersApiComponent
+export default GetUsersApiComponent;
