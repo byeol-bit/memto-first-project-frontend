@@ -35,31 +35,18 @@ const RestaurantCard = ({ restaurant }) => {
           </span>
         </p>
       </div>
-
-      {/* 태그 */}
-      {/* <div className="px-6 pb-4">
-        {tags &&
-          tags.map((tag, index) => (
-            <span
-              key={index}
-              className="inline-block bg-gray-200 rounded-full px-3 py-1 text-sm font-semibold text-gray-700 mr-2 mb-2"
-            >
-              # {tag}
-            </span>
-          ))}
-      </div> */}
     </div>
   );
 
   return (
     <div className="block w-full mb-6">
       {!context ? (
-        /* 1. context가 없을 때: 상세 페이지로 이동하는 Link 사용 */
+        /* context가 없을 때: 상세 페이지로 이동하는 Link 사용 */
         <Link to={`/restaurants/${id}`} className="block w-full">
           {Res_card}
         </Link>
       ) : (
-        /* 2. context가 있을 때: 클릭 시 상태만 변경하는 div 사용 */
+        /* context가 있을 때: 클릭 시 상태만 변경하는 div 사용 */
         <div onClick={onRestaurantDetailClick} className="cursor-pointer">
           {Res_card}
         </div>

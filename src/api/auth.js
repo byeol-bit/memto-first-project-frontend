@@ -1,34 +1,47 @@
 import api from "./axios";
 
-// 1. 회원가입 요청
-// - 사용자가 입력한 정보를 서버의 데이터베이스에 저장
-// - method: POST, - url: /api/users
-
-export const registerUser = async (userData) => {
-  const response = await api.post("/api/register", userData);
-  return response;
+/**
+ * 1. 고수 등록 (회원가입)
+ * Method: POST
+ * Endpoint: /users
+ * Content-Type: multipart/form-data
+ */
+export const registerUser = async (formData) => {
+  return await api.post("/users", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
 };
 
-// 2. 로그인 요청 함수
-// 아이디와 비밀번호를 서버에 보내고, 인증 토큰(Token)을 받아옵니다.
-// method: POST, url: /api/login (새로 요청한 주소)
-
-export const loginUser = async (loginData) => {
-  const response = await api.post("/api/login", loginData);
-  return response;
+/**
+ * 2. 로그인 (아이디 + 비밀번호)
+ * Method: POST
+ * Endpoint: /users/login
+ */
+export const loginUser = async (loginId, password) => {
+  // 백엔드가 { loginId, password }를 받는다고 가정
+  return await api.post("/users/login", { loginId, password });
 };
 
-//  3. 아이디 중복 확인 함수
-// - method: POST, url: /api/check-id
-
-export const checkIdDuplicate = async (id) => {
-  const response = await api.post("/api/check-id", { loginId: id });
-  return response;
+/**
+ * 3. 아이디 중복 확인
+ * Method: GET
+ * Endpoint: /users/check-id
+ */
+export const checkIdDuplicate = async (loginId) => {
+  return await api.get("/users/check-id", {
+    params: { loginId }, // ?loginId=... 형태로 전송
+  });
 };
 
-// 4. 닉네임 중복 확인 함수
-// - method: POST, url: /api/check-nickname
+/**
+ * 4. 닉네임 중복 확인
+ * Method: GET
+ * Endpoint: /users/check-nickname
+ */
 export const checkNicknameDuplicate = async (nickname) => {
-  const response = await api.post("/api/check-nickname", { nickname });
-  return response;
+  return await api.get("/users/check-nickname", {
+    params: { nickname }, // ?nickname=... 형태로 전송
+  });
 };

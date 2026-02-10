@@ -1,6 +1,6 @@
 import { useState } from "react"
 import TopRestaurantItem from "./top-restaurant-item"
-import { useTopFiveRestaurantsData } from "../../hooks/quries/use-top-five-data"
+import { useTopFiveRestaurantsData } from "../../hooks/queries/use-top-five-data"
 
 
 const TopFiveRestaurants = () => {

@@ -1,7 +1,7 @@
-import { useRestaurantsData } from "../../hooks/quries/use-restaurants-data"
+import { useRestaurants } from "../../hooks/queries/use-restaurants-data";
 
 const GetRestaurantsApiComponent = () => {
-  const { data: restaurants, isLoading, error } = useRestaurantsData()
+  const { data: restaurants, isLoading, error } = useRestaurants();
 
   if (error) {
     return (
@@ -11,7 +11,7 @@ const GetRestaurantsApiComponent = () => {
           오류가 발생했습니다.
         </div>
       </div>
-    )
+    );
   }
 
   if (isLoading) {
@@ -22,7 +22,7 @@ const GetRestaurantsApiComponent = () => {
           로딩 중입니다...
         </div>
       </div>
-    )
+    );
   }
 
   return (
@@ -43,7 +43,9 @@ const GetRestaurantsApiComponent = () => {
                 <span className="text-xs font-medium text-slate-500">
                   #{restaurant.id}
                 </span>
-                <span className="font-medium text-slate-800">{restaurant.name}</span>
+                <span className="font-medium text-slate-800">
+                  {restaurant.name}
+                </span>
                 <span className="text-xs px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full">
                   {restaurant.category}
                 </span>
@@ -63,7 +65,7 @@ const GetRestaurantsApiComponent = () => {
         )}
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default GetRestaurantsApiComponent
+export default GetRestaurantsApiComponent;

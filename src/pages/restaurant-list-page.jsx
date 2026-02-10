@@ -1,13 +1,22 @@
 import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router";
-import { mockRestaurants } from "../data/restaurants.mock";
+
 import RestaurantCard from "../components/restaurant/restaurantCard";
 import SearchBar from "../components/restaurant/searchBar";
 import Button from "../components/common/button";
+import RegisterRestaurantModal from "../components/restaurant/registerRestaurantModal";
+
+import { useRestaurants } from "../hooks/queries/use-restaurants-data";
 
 const RestaurantListPage = () => {
+  // Hook 이용 : TanStack Query로 데이터 가져오기
+  const { data: restaurantsData, isLoading, isError, error } = useRestaurants();
+  console.log(restaurantsData);
+
   const [keyword, setKeyword] = useState(""); // 입력 중인 글자
   const [searchQuery, setSearchQuery] = useState(""); // 검색 실행된 단어
+
+  const [isModalOpen, setIsModalOpen] = useState(false); // 맛집 등록 모달
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -33,8 +42,17 @@ const RestaurantListPage = () => {
 
   // 이미지가 있는 맛집만 필터링하고, 검색어로 필터링
   const restaurants = useMemo(() => {
-    // 사진 있는 것들만 남기기
-    let filtered = mockRestaurants.filter((r) => r.thumbnail);
+    const list = restaurantsData ?? [];
+    if (!list.length) return [];
+
+    const displayImages = list.map((r) => ({
+      ...r,
+      thumbnail:
+        r.thumbnail ||
+        "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80",
+    }));
+
+    let filtered = displayImages.filter((r) => r.thumbnail);
 
     // 검색어
     if (searchQuery.trim()) {
@@ -50,7 +68,10 @@ const RestaurantListPage = () => {
     }
 
     return filtered;
-  }, [searchQuery]);
+  }, [restaurantsData, searchQuery]); // 의존성 배열에 'data'를 추가해야 데이터가 바뀔 때 화면이 갱신됨!!
+
+  if (isLoading) return <div>맛집 정보를 불러오는 중입니다</div>;
+  if (isError) return <div>에러가 발생했어요: {error.message}</div>;
 
   return (
     <div className="flex justify-center min-h-screen">
@@ -84,9 +105,15 @@ const RestaurantListPage = () => {
             <p className="text-gray-500 text-lg mb-4">
               찾으시는 맛집이 아직 없습니다 😭
             </p>
-            <Link to="/restaurants/new">
-              <Button>첫 번째 리뷰 달기</Button>
-            </Link>
+            <Button onClick={() => setIsModalOpen(true)}>
+              첫 번째 리뷰 달기
+            </Button>
+
+            {/* 모달 컴포넌트 배치 */}
+            <RegisterRestaurantModal
+              open={isModalOpen}
+              onClose={() => setIsModalOpen(false)}
+            />
           </div>
         )}
       </div>
