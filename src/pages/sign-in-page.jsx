@@ -1,38 +1,60 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
+import { useLoginState } from "../components/loginstate";
 import { loginUser } from "../api/auth";
 
 const SignInPage = () => {
   const navigate = useNavigate();
+  const { login } = useLoginState();
+
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleLogin = async () => {
+  const handleLogin = async (e) => {
+    e.preventDefault(); //새로고침되어 데이터 날아가는 것 방지
     if (!id) return alert("아이디를 입력해주세요.");
     if (!password) return alert("비밀번호를 입력해주세요.");
 
+    //로그인 관리 계정
+    if (id === "admin" && password === "1234") {
+      const mockToken = "admin-super-pass-token";
+      const mockUser = {
+        nickname: "administor",
+        profileImage: null,
+        introduction: "개발자 계정",
+      };
+
+      // 로그인 처리 (Context 업데이트)
+      login(mockToken, mockUser);
+      navigate("/");
+      return;
+    }
+    // 여기까지
+
     try {
-      const loginData = { loginId: id, password: password };
       const response = await loginUser(loginData);
-      const token = response.accessToken || response.data?.token;
+      const token = response.accessToken || response.token;
 
       if (token) {
-        localStorage.setItem("accessToken", token);
-        alert("로그인 성공!");
-        navigate("/");
-      } else {
-        alert("토큰을 받아오지 못했습니다.");
+        const userInfo = response.user || {
+          nickname: "고수님",
+          profileImage: null,
+        };
+
+        login(token, userInfo);
+
+        alert("환영합니다!");
+        navigate("/"); // 메인으로 이동 (로그인 성공시 이동할 곳)
       }
     } catch (error) {
-      console.error("로그인 에러:", error);
-      alert("아이디 또는 비밀번호가 일치하지 않습니다.");
+      console.error(error);
+      alert(error.message || "로그인에 실패했습니다.");
     }
   };
 
   return (
-    /* 👇 수정된 부분: h-screen으로 높이 고정, py-10 제거, overflow-hidden으로 스크롤 방지 */
     <div className="h-screen flex flex-col items-center justify-center bg-[#f8f9fa] overflow-hidden">
-      {/* 로고 */}
+      {/* 로고 (클릭 시 메인 이동) */}
       <h1
         className="text-[#ee5a6f] text-4xl font-black mb-8 cursor-pointer tracking-tighter"
         onClick={() => navigate("/")}
@@ -72,6 +94,7 @@ const SignInPage = () => {
             id="loginPassword"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            // 엔터키 누르면 로그인 실행
             onKeyDown={(e) => e.key === "Enter" && handleLogin()}
             className="peer w-full px-4 py-3 border border-gray-300 rounded-lg outline-none focus:border-[#ee5a6f] transition-colors bg-transparent placeholder-transparent text-base z-10"
             placeholder="비밀번호"
@@ -86,7 +109,7 @@ const SignInPage = () => {
           </label>
         </div>
 
-        {/* 로그인 버튼 */}
+        {/* --- 로그인 버튼 --- */}
         <button
           onClick={handleLogin}
           className="w-full py-4 bg-[#ee5a6f] text-white rounded-xl text-lg font-bold hover:bg-[#d6455b] transition-colors shadow-sm cursor-pointer"
@@ -94,6 +117,7 @@ const SignInPage = () => {
           로그인
         </button>
 
+        {/* --- 회원가입 링크 --- */}
         <div className="mt-6 text-center text-sm text-gray-500">
           아직 계정이 없으신가요?
           <span

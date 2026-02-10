@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { tags } from '../data/users.mock'
 import { useQuery } from '@tanstack/react-query';
 import { getUsers } from '../api/user.api';
+import { QUERY_KEYS } from '../lib/constants';
 
 const useUserFilter = () => {
   const [keyword, setKeyword] = useState("");
@@ -11,7 +12,7 @@ const useUserFilter = () => {
   const [searchKeyword, setSearchKeyword] = useState("")
 
   const {data: users = [], isLoading, error} = useQuery({
-    queryKey: ['users'],
+    queryKey: QUERY_KEYS.user.list,
     queryFn: getUsers,
   })
 

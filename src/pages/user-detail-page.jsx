@@ -1,43 +1,35 @@
-import { useParams, useSearchParams } from "react-router"
+import { useParams } from "react-router"
 
 import UserProfile from "../components/user-detail-components/userProfile"
 import UserReview from "../components/user-detail-components/userReview"
-import UserVisited from "../components/user-detail-components/userVisited"
 
-import {users} from "../data/users.mock"
-import SelectedTab from "../components/follow/selectedTab"
+import { useContext } from "react"
+import { DetailStateContext } from "../components/layout/map-layout"
+import { useUserDetail } from "../hooks/useUserDetail"
+
 
 
 const UserDetailPage = () => {
+  const context = useContext(DetailStateContext)
   const {id} = useParams()
-  const [searchParams, setSearchParams] = useSearchParams();
-  
-  const user = users.find((u) =>{
-    return u.id === Number(id)  
-  })
-  // 선택된 탭이 없으면 기본으로 visited탭 보여주기
-  let selectedTab = searchParams.get('tab') ?? 'visited'
 
-  // 팔로잉 정보
-  // const isFollowing = false
+  let currentId
+
+  if(context?.selectedUser?.id){
+    currentId = parseInt(context.selectedUser.id)
+  } else {
+    currentId = parseInt(id)
+  }
+  
+  const { data: user, isLoading, error} = useUserDetail(currentId)
+  
+  if(isLoading) return <div>유저 정보를 불러오고 있습니다.</div>
+  if(error) return <div>유저 정보를 불러오는데 실패했습니다.</div>
 
   return (
     <div>
       <UserProfile user={user} />
-      {/* 상단 탭바 */}
-      <SelectedTab 
-        tabs={[
-          { label: '방문목록', value: 'visited' },
-          { label: '리뷰', value: 'reviews'}
-        ]}
-        active={selectedTab}
-        onChange={(tab) => setSearchParams({tab})}
-      />
-      {/* 선택된 탭에 따라 다른 컴포넌트 출력 */}
-      <div>
-        {selectedTab === 'visited' && <UserVisited />}
-        {selectedTab === 'reviews' && <UserReview />}
-      </div>
+      <UserReview />
     </div>
   )
 }

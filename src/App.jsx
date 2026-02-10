@@ -1,5 +1,6 @@
 import { Route, Routes } from "react-router";
 import "./App.css";
+import { LoginStateProvider } from "./components/loginstate";
 
 // pages
 import HeaderLayout from "./components/layout/header";
@@ -20,27 +21,29 @@ import FollowPage from "./pages/follow-page";
 
 function App() {
   return (
-    <div className="app-container">
-      <Routes>
-        <Route element={<HeaderLayout />}>
-          <Route path="/" element={<IndexPage />} />
-          <Route path="/design-system" element={<DesignSystemPage />} />
-          <Route path="/users" element={<UserListPage />} />
-          <Route path="/users/:id" element={<UserDetailPage />} />
-          <Route path="/users/:id/:type" element={<FollowPage />} />
-          <Route path="/restaurants" element={<RestaurantListPage />} />
-          <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
-          <Route element={<MapLayout />}>
-            <Route path="/map" element={<MapPage />} />
+    <LoginStateProvider>
+      <div className="app-container">
+        <Routes>
+          <Route element={<HeaderLayout />}>
+            <Route path="/" element={<IndexPage />} />
+            <Route path="/design-system" element={<DesignSystemPage />} />
+            <Route path="/users" element={<UserListPage />} />
+            <Route path="/users/:id" element={<UserDetailPage />} />
+            <Route path="/users/:id/:type" element={<FollowPage />} />
+            <Route path="/restaurants" element={<RestaurantListPage />} />
+            <Route path="/restaurants/:id" element={<RestaurantDetailPage />} />
+            <Route element={<MapLayout />}>
+              <Route path="/map" element={<MapPage />} />
+            </Route>
+            <Route path="/api-test" element={<ApiTestPage />} />
+            <Route path="/feed" element={<FeedPage />} />
+            <Route path="/sign-in" element={<SignInPage />} />
+            <Route path="/sign-up" element={<SignUpPage />} />
           </Route>
-          <Route path="/api-test" element={<ApiTestPage />} />s
-          <Route path="/feed" element={<FeedPage />} />
-          <Route path="/sign-in" element={<SignInPage />} />
-          <Route path="/sign-up" element={<SignUpPage />} />
-        </Route>
-        <Route path="*" element={<NotFoundPage />} />
-      </Routes>
-    </div>
+          <Route path="*" element={<NotFoundPage />} />
+        </Routes>
+      </div>
+    </LoginStateProvider>
   );
 }
 
