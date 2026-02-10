@@ -1,4 +1,4 @@
-import api from './axios'
+import api from './axios-basic'
 
 // 유저 리스트 조회
 export const getUsers = async () => {
