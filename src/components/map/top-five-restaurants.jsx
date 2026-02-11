@@ -49,7 +49,7 @@ const TopFiveRestaurants = () => {
 				<div className="flex flex-col gap-2.5 p-3 pt-0">
 					{restaurants?.map((restaurant, idx) => (
 						<TopRestaurantItem
-							key={restaurant.id ?? idx}
+							key={idx}
 							rank={idx}
 							restaurant={restaurant}
 						/>
