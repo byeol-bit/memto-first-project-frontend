@@ -52,7 +52,7 @@ const HeaderLayout = () => {
 
                 {/* 마이페이지 이동 */}
                 <li className={style.navbarItem}>
-                  <Link to="/users/me" className={style.navbarLink}>
+                  <Link to="/users/my-page" className={style.navbarLink}>
                     마이페이지
                   </Link>
                 </li>

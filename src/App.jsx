@@ -18,6 +18,7 @@ import SignInPage from "./pages/sign-in-page";
 import SignUpPage from "./pages/sign-up-page";
 import MapLayout from "./components/layout/map-layout";
 import FollowPage from "./pages/follow-page";
+import MyPage from "./pages/my-page";
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
             <Route path="/feed" element={<FeedPage />} />
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignUpPage />} />
+            <Route path="/my-page" element={<MyPage />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Routes>

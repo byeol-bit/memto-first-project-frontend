@@ -33,9 +33,11 @@
   --info-color: #0984e3;
 
   /* 타이포그래피 */
-  --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
-  --font-family-heading: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  --font-family-base:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu",
+    "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+  --font-family-heading:
+    "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 
   --font-size-xs: 0.75rem;
   /* 12px */
@@ -91,9 +93,12 @@
   --border-radius-full: 9999px;
 
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-  --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  --shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+  --shadow-xl:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
 
   /* 트랜지션 */
   --transition-fast: 150ms ease-in-out;
@@ -134,10 +139,51 @@ body {
 
 /* 랭킹 뱃지: 도레미파솔~ 파미레도처럼 한 번에 올랐다 내려오는 자연스러운 반짝임 */
 @keyframes rank-sparkle {
-  0%, 100% { filter: brightness(1); transform: scale(1); }
-  50% { filter: brightness(1.25); transform: scale(1.2); }
+  0%,
+  100% {
+    filter: brightness(1);
+    transform: scale(1);
+  }
+  50% {
+    filter: brightness(1.25);
+    transform: scale(1.2);
+  }
 }
 
 .rank-img-sparkle {
   animation: rank-sparkle 4s ease-in-out infinite;
+}
+
+/* 아래에서 위로 부드럽게 올라오는 효과 (모달용) */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 위에서 아래로 부드럽게 내려오는 효과 (메뉴/입력창용) */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 리액트에서 className="animate-fade-in-up" 으로 쓸 클래스 */
+.animate-fade-in-up {
+  animation: fadeInUp 0.3s ease-out forwards;
+}
+
+/* 리액트에서 className="animate-fade-in-down" 으로 쓸 클래스 */
+.animate-fade-in-down {
+  animation: fadeInDown 0.3s ease-out forwards;
 }
