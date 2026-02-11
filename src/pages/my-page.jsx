@@ -41,6 +41,24 @@ const MyPage = () => {
 
   useEffect(() => {
     const fetchUserData = async () => {
+      const token = localStorage.getItem("accessToken");
+
+      // 목데이터 전용 코드 시작
+      if (token && token === "mock-token-test-1234") {
+        console.log("🧪 테스트 계정: 가짜 데이터 로드");
+        setUserInfo({
+          nickname: "테스트유저",
+          profileImage:
+            "https://cdn.pixabay.com/photo/2023/01/28/20/23/ai-generated-7751688_1280.jpg",
+        });
+        setNickname("테스트유저");
+        setPreviewImage(
+          "https://cdn.pixabay.com/photo/2023/01/28/20/23/ai-generated-7751688_1280.jpg",
+        );
+        setIsLoading(false);
+        return;
+      }
+      //목데이터 관련 줄
       try {
         const response = await getUserProfile();
         const user = response.data;

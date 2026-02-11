@@ -12,7 +12,23 @@ const SignInPage = () => {
 
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
+    //목데이터 시작 (test / 1234)
+    if (nickname === "test" && password === "1234") {
+      const mockToken = "mock-token-test-1234";
+      const mockUser = {
+        nickname: "테스트유저",
+        profileImage:
+          "https://cdn.pixabay.com/photo/2023/01/28/20/23/ai-generated-7751688_1280.jpg", // 예쁜 가짜 프사
+      };
 
+      localStorage.setItem("accessToken", mockToken);
+      login(mockToken, mockUser);
+
+      alert("🧪 테스트 계정으로 로그인합니다!");
+      navigate("/");
+      return;
+    }
+    //목데이터 종료
     if (!nickname) return alert("닉네임을 입력해주세요.");
     if (!password) return alert("비밀번호를 입력해주세요.");
 
