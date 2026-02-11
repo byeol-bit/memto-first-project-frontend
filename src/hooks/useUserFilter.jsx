@@ -33,12 +33,12 @@ const useUserFilter = () => {
     // 선택된 등급(태그)과 비교
     if (tag.length > 0) {
         // 내가 선택한 tag 목록에 user.tag가 있으면 해당항목 남김
-        filtered = filtered.filter((user) => tag.includes(user.tag))
+        filtered = filtered.filter((user) => tag.includes(user.category))
     }
      
     if (searchKeyword.trim() !== ""){
       const query = searchKeyword.toLowerCase()
-      filtered = filtered.filter((user) => user.name.toLowerCase().includes(query))
+      filtered = filtered.filter((user) => user.nickname?.toLowerCase().includes(query))
     }
 
     return filtered

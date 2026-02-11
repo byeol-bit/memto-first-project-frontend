@@ -31,7 +31,7 @@ export const fetchReviews = async () => {
   GET /visits/:userId
 */
 export const fetchUserReviews = async (userId) => {
-  return await api.get(`/visits/${userId}`);
+  return await api.get(`/visits`, {params: {userId}});
 };
 
 /*
