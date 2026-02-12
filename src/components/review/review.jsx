@@ -1,12 +1,49 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useEffect } from "react";
 import Button from "../common/button";
 import Like from "../common/like";
 import { Bookmark, Calendar, MessageCircle, Plus } from "lucide-react";
 
+import { useReviewLikeStatus } from "../../hooks/queries/use-reviews-data";
+import {
+  useLikeReviewMutation,
+  useUnlikeReviewMutation,
+} from "../../hooks/mutations/use-create-review-mutation";
+
 const Review = ({ reviewData }) => {
+  // userId 가져오기 (localStorage에서만)
+  const userId = useMemo(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        return user?.id ?? null;
+      }
+    } catch (e) {
+      console.error("userId 파싱 실패:", e);
+    }
+    return null;
+  }, []);
+
+  // 리뷰 ID (visitId)
+  const visitId = reviewData?.id;
+
+  // 좋아요 상태 조회
+  const { data: isLikedFromApi = false } = useReviewLikeStatus({
+    userId: userId ?? 0,
+    visitId: visitId ?? 0,
+  });
+
+  // 좋아요 mutation 훅들
+  const { mutate: likeReview } = useLikeReviewMutation();
+  const { mutate: unlikeReview } = useUnlikeReviewMutation();
+
   // 리뷰 좋아요 & 좋아요 수
-  const [isLike, setIsLike] = useState(false);
+  const [isLike, setIsLike] = useState(isLikedFromApi);
   const [likeCount, setLikeCount] = useState(reviewData.likeCount ?? 0); // 옵셔널 체이닝 + 널 병합
+
+  useEffect(() => {
+    setIsLike(isLikedFromApi);
+  }, [isLikedFromApi]);
 
   const displayDate = reviewData?.visit_date
     ? new Date(reviewData.visit_date).toLocaleDateString("ko-KR", {
@@ -21,18 +58,42 @@ const Review = ({ reviewData }) => {
           day: "numeric",
         })
       : "";
-
-  console.log(reviewData);
   const onLike = () => {
-    if (isLike) {
-      // 이미 좋아요 상태라면? -> 취소 (-1)
-      setLikeCount((prev) => prev - 1);
-    } else {
-      // 좋아요가 아니라면? -> 추가 (+1)
-      setLikeCount((prev) => prev + 1);
+    if (!userId || !visitId) {
+      alert("로그인이 필요합니다.");
+      return;
     }
-    // 상태 반전 (T/F)
-    setIsLike(!isLike);
+
+    // Optimistic 업데이트
+    const newIsLike = !isLike;
+    setIsLike(newIsLike);
+    setLikeCount((prev) => (newIsLike ? prev + 1 : prev - 1));
+
+    if (newIsLike) {
+      likeReview(
+        { userId, visitId },
+        {
+          onError: (error) => {
+            setIsLike(!newIsLike);
+            setLikeCount((prev) => (newIsLike ? prev - 1 : prev + 1));
+            console.error("리뷰 좋아요 등록 실패:", error);
+            alert("좋아요 등록에 실패했습니다.");
+          },
+        },
+      );
+    } else {
+      unlikeReview(
+        { userId, visitId },
+        {
+          onError: (error) => {
+            setIsLike(!newIsLike);
+            setLikeCount((prev) => (newIsLike ? prev - 1 : prev + 1));
+            console.error("리뷰 좋아요 취소 실패:", error);
+            alert("좋아요 취소에 실패했습니다.");
+          },
+        },
+      );
+    }
   };
 
   if (!reviewData) return null;

@@ -47,6 +47,11 @@ export const useRestaurantReviews = (restaurantId) =>
 export const useReviewLikeStatus = ({ userId, visitId }) =>
   useQuery({
     queryKey: ["reviews", visitId, "like-status", userId],
-    queryFn: () => fetchReviewLikeStatus({ userId, visitId }),
+    queryFn: async () => {
+      const res = await fetchReviewLikeStatus({ userId, visitId });
+      // 응답: { isLiked: true } 형태
+      const normalized = res?.data ?? res;
+      return normalized?.isLiked ?? false;
+    },
     enabled: !!userId && !!visitId,
   });
