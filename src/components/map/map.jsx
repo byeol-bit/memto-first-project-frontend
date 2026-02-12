@@ -1,14 +1,15 @@
 
 import style from "./map.module.css"
-import { Map as KakaoMap, MapMarker } from 'react-kakao-maps-sdk'
+import { Map as KakaoMap, MapMarker, Polyline } from 'react-kakao-maps-sdk'
 import useKakaoLoader from '../../hooks/useKakaoLoader'
 import { useState, useEffect, useContext, useMemo } from "react"
 import { DetailStateContext } from "../layout/map-layout"
+import { useUserReviews } from "../../hooks/queries/use-reviews-data"
 
 const DEFAULT_CENTER = { lat: 33.450701, lng: 126.570667 }
 const MAP_LEVEL = 7 // 지도 확대 레벨 (항상 동일한 크기로 유지)
 
-// 맵 인스턴스와 좌표를 받아 중심·줌을 설정하는 유틸 (컴포넌트 없이 사용)
+// 맵 인스턴스와 좌표를 받아 중심·줌을 설정 (맛집 단일 마커용)
 const centerMapOnPosition = (map, position) => {
   if (!map || !position) return
   const { kakao } = window
@@ -18,11 +19,76 @@ const centerMapOnPosition = (map, position) => {
   map.setLevel(MAP_LEVEL)
 }
 
+// 여러 마커의 중점으로 지도 중심·줌 설정 (유저 방문 경로용)
+const centerMapOnPositions = (map, positions) => {
+  if (!map || !positions?.length) return
+  const { kakao } = window
+  if (!kakao?.maps) return
+  const bounds = new kakao.maps.LatLngBounds()
+  positions.forEach(({ lat, lng }) => {
+    bounds.extend(new kakao.maps.LatLng(lat, lng))
+  })
+  map.setCenter(bounds.getCenter())
+  map.setLevel(MAP_LEVEL)
+}
+
 const Map = () => {
-  const { selectedRestaurant, setIsModalOpen } = useContext(DetailStateContext)
+  const {
+    selectedUser,
+    selectedRestaurant,
+    setIsModalOpen
+  } = useContext(DetailStateContext)
   const { loading, error } = useKakaoLoader()
   const [geocodedPosition, setGeocodedPosition] = useState(null)
   const [map, setMap] = useState(null)
+
+  // 유저 관련
+  const { data: reviews } = useUserReviews(selectedUser?.id)
+  const [reviewPositions, setReviewPositions] = useState([])
+
+  useEffect(() => {
+    if (!reviews?.length) {
+      setReviewPositions([])
+      return
+    }
+
+    setReviewPositions([]) // 유저 변경 시 초기화
+
+    const { kakao } = window
+    if (!kakao?.maps?.services) return
+
+    const geocoder = new kakao.maps.services.Geocoder()
+
+    const sortedRiviews = [...reviews].sort(
+      (a, b) => new Date(a.updated_at) - new Date(b.updated_at)
+    )
+
+    sortedRiviews.forEach((review, idx) => {
+      const r = review.restaurant
+      if (!r) return
+
+      if (r.latitude != null && r.longitude != null) {
+        setReviewPositions(prev => ([
+          ...prev,
+          { lat: parseFloat(r.latitude), lng: parseFloat(r.longitude) }
+        ]))
+        return
+      }
+
+      if (!r.address) return
+
+      geocoder.addressSearch(r.address, (result, status) => {
+        if (status === kakao.maps.services.Status.OK && result[0]) {
+          const { y, x } = result[0]
+          setReviewPositions(prev => ([
+            ...prev,
+            { lat: parseFloat(y), lng: parseFloat(x) }
+          ]))
+        }
+      })
+    })
+  }, [reviews])
+
 
   const center = useMemo(() => {
     if (selectedRestaurant?.location) {
@@ -88,6 +154,10 @@ const Map = () => {
     centerMapOnPosition(map, position)
   }, [map, position])
 
+  useEffect(() => {
+    centerMapOnPositions(map, reviewPositions)
+  }, [map, reviewPositions])
+
   if (loading) {
     return <div className={style.mapContainer}>지도를 불러오는 중...</div>
   }
@@ -116,6 +186,23 @@ const Map = () => {
           <MapMarker
             position={position}
             onClick={onMarkerClick}
+          />
+        )}
+
+        {reviewPositions.map((pos, idx) => (
+          <MapMarker
+            key={`review-marker-${idx}`}
+            position={pos}
+          // onClick 등 필요하면 추가
+          />
+        ))}
+        {reviewPositions.length >= 2 && (
+          <Polyline
+            path={reviewPositions}
+            strokeWeight={4}
+            strokeColor="#FF0000"
+            strokeOpacity={0.8}
+            strokeStyle="solid"
           />
         )}
       </KakaoMap>
