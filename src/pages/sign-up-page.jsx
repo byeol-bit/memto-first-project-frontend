@@ -198,7 +198,6 @@ const SignUpPage = () => {
                 style={{ backgroundColor: opt.color }}
                 onClick={() => handleSelectDefault(opt, i)}
               >
-                {/* SVG 아이콘 표시 */}
                 <img src={opt.img} alt="icon" className="w-6 opacity-80" />
               </div>
             ))}
