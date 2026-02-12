@@ -45,3 +45,53 @@ export const checkNicknameDuplicate = async (nickname) => {
     params: { nickname }, // ?nickname=... 형태로 전송
   });
 };
+
+/**
+ * 5. 로그아웃
+ * Method: POST
+ * Endpoint: /users/logout
+ */
+export const logoutUser = async () => {
+  return await api.post("/users/logout");
+};
+
+/**
+ * 6. 내 정보 조회 (마이페이지 진입 시)
+ * Method: GET
+ * Endpoint: /users/me (백엔드 경로 확인 필요)
+ */
+export const getUserProfile = async () => {
+  return await api.get("/users/my-page");
+};
+
+/**
+ * 7. 프로필 수정 (닉네임, 이미지)
+ * Method: PATCH
+ * Endpoint: /users/profile (백엔드 경로 확인 필요)
+ * Content-Type: multipart/form-data
+ */
+export const updateProfile = async (formData) => {
+  return await api.patch("/users/profile", formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+/**
+ * 8. 비밀번호 변경
+ * Method: PATCH
+ * Endpoint: /users/password (백엔드 경로 확인 필요)
+ */
+export const updatePassword = async (password) => {
+  return await api.patch("/users/password", { password });
+};
+
+/**
+ * 9. 회원 탈퇴
+ * Method: DELETE
+ * Endpoint: /users
+ */
+export const deleteAccount = async () => {
+  return await api.delete("/users");
+};

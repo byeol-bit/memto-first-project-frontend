@@ -1,24 +1,11 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import TopRestaurantItem from "./top-restaurant-item"
+import { useTopFiveRestaurantsData } from "../../hooks/queries/use-top-five-data"
 
-async function fetchTopFiveRestaurants() {
-	const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/restaurants`)
-	if (!response.ok) throw new Error("Top 5 Restaurants fetch failed!")
-	const data = await response.json()
-	return data
-}
 
 const TopFiveRestaurants = () => {
-	const [restaurants, setRestaurant] = useState([])
+	const { data: restaurants, isLoading, error } = useTopFiveRestaurantsData()
 	const [isCollapsed, setIsCollapsed] = useState(false)
-
-	useEffect(() => {
-		const loadData = async () => {
-			const data = await fetchTopFiveRestaurants()
-			setRestaurant(data)
-		}
-		loadData()
-	}, [])
 
 	return (
 		<div
@@ -60,9 +47,9 @@ const TopFiveRestaurants = () => {
 			{/* 리스트: 접혀 있으면 숨김 */}
 			{!isCollapsed && (
 				<div className="flex flex-col gap-2.5 p-3 pt-0">
-					{restaurants.map((restaurant, idx) => (
+					{restaurants?.map((restaurant, idx) => (
 						<TopRestaurantItem
-							key={restaurant.id ?? idx}
+							key={idx}
 							rank={idx}
 							restaurant={restaurant}
 						/>
