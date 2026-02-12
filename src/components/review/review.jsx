@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import Button from "../common/button";
 import Like from "../common/like";
+import { Bookmark, Calendar, MessageCircle, Plus } from "lucide-react";
 
 const Review = ({ reviewData }) => {
   // 리뷰 좋아요 & 좋아요 수
@@ -85,11 +86,20 @@ const Review = ({ reviewData }) => {
 
         {/* 좋아요 */}
 
-        <div className="flex items-center gap-1.5 cursor-pointer transition-colors group">
-          <Like isLike={isLike} onLike={onLike} />
-          <span className="text-xm text-gray-500 font-medium group-active:scale-95 transition-transform">
-            {likeCount}
-          </span>
+        <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+          <div className="flex items-center gap-1.5 cursor-pointer transition-colors group">
+            <Like isLike={isLike} onLike={onLike} />
+            <span className="text-xm text-gray-500 font-medium group-active:scale-95 transition-transform">
+              {likeCount}
+            </span>
+          </div>
+
+          <button
+            type="button"
+            className="w-8 h-8 rounded-full bg-indigo-500 text-white flex items-center justify-center shadow-md hover:bg-indigo-600 active:scale-95 transition-all"
+          >
+            <Plus className="w-4 h-4" />
+          </button>
         </div>
       </div>
     </div>
