@@ -1,5 +1,5 @@
 import React from "react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useParams } from "react-router";
 import MiniMap from "../components/restaurant/miniMap";
 import Gallery from "../components/restaurant/gallery";
@@ -18,9 +18,10 @@ import { useRestaurantReviews } from "../hooks/queries/use-reviews-data";
 const RestaurantDetailPage = () => {
   const context = useContext(DetailStateContext);
   const { id } = useParams();
+  const reviewTopRef = useRef(null);
 
   // ID 결정 로직
-  const currentId = context?.selectedRestaurant?.id || id;
+  const currentId = Number(context?.selectedRestaurant?.id || id);
 
   const {
     data: restaurantDetailData,
@@ -31,7 +32,7 @@ const RestaurantDetailPage = () => {
   console.log(restaurantDetailData);
 
   const { data: reviewsData, isLoading: isReviewsLoading } =
-    useRestaurantReviews(restaurantDetailData?.id);
+    useRestaurantReviews(Number(restaurantDetailData?.id));
 
   console.log(reviewsData);
 
@@ -94,7 +95,6 @@ const RestaurantDetailPage = () => {
       </div>
     );
   }
-
   if (isDetailError || !restaurantDetailData) {
     return (
       <div className="py-20 text-center text-red-500">
@@ -213,7 +213,7 @@ const RestaurantDetailPage = () => {
           )}
 
           {activeTab === "review" && (
-            <div className="flex flex-col gap-7">
+            <div ref={reviewTopRef} className="flex flex-col gap-7">
               {reviews.length > 0 ? (
                 reviews.map((v) => <Review key={v.id} reviewData={v} />)
               ) : (
@@ -245,6 +245,15 @@ const RestaurantDetailPage = () => {
           open={openBottomSheet}
           onClose={() => setOpenBottomSheet(false)}
           restaurant={restaurantDetailData}
+          onSuccess={() => {
+            setActiveTab("review");
+            setTimeout(() => {
+              reviewTopRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }, 100);
+          }}
         />
       </div>
     </div>

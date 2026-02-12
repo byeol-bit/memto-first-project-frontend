@@ -7,14 +7,52 @@ export const useCreateReviewMutation = () => {
 
   return useMutation({
     mutationFn: createReview,
-    onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["reviews"] });
-      // 해당 식당 리뷰 목록도 갱신 (디테일 페이지에서 바로 반영)
-      if (variables?.restaurantId != null) {
-        queryClient.invalidateQueries({
-          queryKey: ["reviews", "restaurant", variables.restaurantId],
-        });
+
+    onMutate: async (variables) => {
+      const restaurantId = Number(variables.restaurantId);
+      const review = variables.review;
+
+      const queryKey = ["reviews", "restaurant", restaurantId];
+
+      await queryClient.cancelQueries({ queryKey });
+
+      const previousData = queryClient.getQueryData(queryKey);
+
+      const optimisticReview = {
+        id: Date.now(),
+        review,
+        created_at: new Date().toISOString(),
+        likeCount: 0,
+        optimistic: true,
+      };
+
+      queryClient.setQueryData(queryKey, (old = []) => {
+        return [optimisticReview, ...old];
+      });
+
+      return { previousData, queryKey };
+    },
+
+    onError: (err, variables, context) => {
+      if (context?.previousData) {
+        queryClient.setQueryData(context.queryKey, context.previousData);
       }
+    },
+
+    onSuccess: (newReview, variables, context) => {
+      const realReview = newReview?.data ?? newReview;
+
+      // ✅ UI 구조로 normalize
+      const normalizedReview = {
+        ...realReview,
+        review: realReview.review ?? realReview.content ?? variables.review,
+        likeCount: realReview.likeCount ?? 0,
+        optimistic: false,
+      };
+
+      queryClient.setQueryData(context.queryKey, (old = []) => {
+        return [normalizedReview, ...old.filter((r) => !r.optimistic)];
+      });
     },
   });
 };

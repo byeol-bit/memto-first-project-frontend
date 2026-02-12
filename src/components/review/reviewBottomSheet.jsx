@@ -3,7 +3,7 @@ import ImagesUploader from "./imagesUploader";
 
 import { useCreateReviewMutation } from "../../hooks/mutations/use-create-review-mutation";
 
-const ReviewBottomSheet = ({ open, onClose, restaurant }) => {
+const ReviewBottomSheet = ({ open, onClose, restaurant, onSuccess }) => {
   // 리뷰 작성란
   const [content, setContent] = useState("");
   // 이미지
@@ -37,6 +37,7 @@ const ReviewBottomSheet = ({ open, onClose, restaurant }) => {
       onSuccess: () => {
         setContent("");
         setImages([]);
+        onSuccess?.();
         onClose();
       },
     });
