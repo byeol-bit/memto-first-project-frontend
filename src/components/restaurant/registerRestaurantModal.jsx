@@ -4,6 +4,10 @@ import KakaoSearchSection from "./kakaoSearch";
 import useKakaoLoader from "../../hooks/useKakaoLoader";
 import Button from "../common/button";
 import { X } from "lucide-react";
+import { useLoginState } from "../loginstate";
+
+import { useCreateRestaurantMutation } from "../../hooks/mutations/use-create-restaurant-mutation";
+import { useCreateReviewMutation } from "../../hooks/mutations/use-create-review-mutation";
 
 const RegisterRestaurantModal = ({ open, onClose }) => {
   const [step, setStep] = useState(1); // 1: 검색, 2: 작성
@@ -13,6 +17,10 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
   const [images, setImages] = useState([]);
 
   const { loading, error } = useKakaoLoader(); // ✅ 카카오 SDK 로드
+  const { mutate: createRestaurant, isPending: isCreatingRestaurant } =
+    useCreateRestaurantMutation();
+  const { mutate: createReview, isPending: isCreatingReview } =
+    useCreateReviewMutation();
 
   if (!open) return null;
   if (loading) return <div>카카오맵 로딩 중입니다...</div>;
@@ -35,20 +43,64 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
   };
 
   const handleSubmit = async () => {
-    // 트랜잭션 처리 로직 (가게 정보 + 리뷰)
-    const finalData = {
-      restaurant: {
-        name: selectedPlace.place_name,
-        address: selectedPlace.address_name,
-        kakaoId: selectedPlace.id,
-      },
-      firstReview: {
-        content,
-        // images
-      },
+    if (!selectedPlace) {
+      alert("장소를 선택해주세요.");
+      return;
+    }
+
+    if (!content.trim()) {
+      alert("리뷰 내용을 입력해주세요.");
+      return;
+    }
+
+    // 1단계: 맛집 등록
+    const restaurantData = {
+      name: selectedPlace.place_name,
+      address: selectedPlace.address_name,
+      kakao_place_id: selectedPlace.id,
+      latitude: selectedPlace.y ? Number(selectedPlace.y) : undefined,
+      longitude: selectedPlace.x ? Number(selectedPlace.x) : undefined,
+      category: selectedPlace.category_group_name || "",
+      phone_number: selectedPlace.phone || "",
     };
 
-    console.log("등록 데이터:", finalData);
+    createRestaurant(restaurantData, {
+      onSuccess: (createdRestaurant) => {
+        const restaurantId = createdRestaurant?.id;
+
+        if (!restaurantId) {
+          console.error("Restaurant response:", createdRestaurant);
+          alert("맛집 등록은 성공했지만 ID를 찾을 수 없습니다.");
+          return;
+        }
+
+        // 2단계: 첫 리뷰 등록
+        const reviewData = {
+          restaurantId: Number(restaurantId),
+          review: content,
+        };
+
+        createReview(reviewData, {
+          onSuccess: () => {
+            // 성공 시 모달 닫기 및 초기화
+            setContent("");
+            setImages([]);
+            setSelectedPlace(null);
+            setStep(1);
+            onClose();
+            alert("맛집과 리뷰가 등록되었습니다! 🎉");
+          },
+          onError: (error) => {
+            console.error("리뷰 등록 실패:", error);
+            alert("맛집은 등록되었지만 리뷰 등록에 실패했습니다.");
+          },
+        });
+      },
+      onError: (error) => {
+        console.error("맛집 등록 실패:", error);
+        alert("맛집 등록에 실패했습니다. 다시 시도해주세요.");
+      },
+    });
   };
 
   return (
@@ -133,9 +185,12 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
           <div className="p-6 border-t border-gray-100">
             <button
               onClick={handleSubmit}
-              className="w-full py-5 bg-red-400 text-white font-black text-xl rounded-2xl hover:bg-red-500 transition-all shadow-lg"
+              disabled={isCreatingRestaurant || isCreatingReview}
+              className="w-full py-5 bg-red-400 text-white font-black text-xl rounded-2xl hover:bg-red-500 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              🚩 등록하기
+              {isCreatingRestaurant || isCreatingReview
+                ? "등록 중..."
+                : "🚩 등록하기"}
             </button>
           </div>
         )}

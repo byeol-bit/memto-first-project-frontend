@@ -58,11 +58,10 @@ const RestaurantListPage = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((r) => {
-        const nameMatch = r.name.toLowerCase().includes(query);
-        const addressMatch = r.address?.toLowerCase().includes(query);
-        const tagMatch = r.tags?.some((tag) =>
-          tag.toLowerCase().includes(query),
-        );
+        const nameMatch = r.name?.toLowerCase().includes(query) ?? false;
+        const addressMatch = r.address?.toLowerCase().includes(query) ?? false;
+        const tagMatch =
+          r.tags?.some((tag) => tag?.toLowerCase().includes(query)) ?? false;
         return nameMatch || addressMatch || tagMatch;
       });
     }
