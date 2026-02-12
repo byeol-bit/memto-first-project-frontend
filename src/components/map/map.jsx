@@ -7,7 +7,9 @@ import { DetailStateContext } from "../layout/map-layout"
 import { useUserReviews } from "../../hooks/queries/use-reviews-data"
 
 const DEFAULT_CENTER = { lat: 33.450701, lng: 126.570667 }
-const MAP_LEVEL = 7 // 지도 확대 레벨 (항상 동일한 크기로 유지)
+const DEFAULT_ZOOM_LEVEL = 7
+const RES_ZOOM_LEVEL = 7 // 지도 확대 레벨 (항상 동일한 크기로 유지)
+const USER_ZOOM_LEVEL = 9 // 지도 확대 레벨 (항상 동일한 크기로 유지)
 
 // 맵 인스턴스와 좌표를 받아 중심·줌을 설정 (맛집 단일 마커용)
 const centerMapOnPosition = (map, position) => {
@@ -16,20 +18,20 @@ const centerMapOnPosition = (map, position) => {
   if (!kakao?.maps) return
   const latLng = new kakao.maps.LatLng(position.lat + 0.006, position.lng - 0.037)
   map.setCenter(latLng)
-  map.setLevel(MAP_LEVEL)
+  map.setLevel(RES_ZOOM_LEVEL)
 }
 
-// 여러 마커의 중점으로 지도 중심·줌 설정 (유저 방문 경로용)
+// 여러 마커가 모두 보이도록 지도 범위 재설정 (유저 방문 경로용)
 const centerMapOnPositions = (map, positions) => {
   if (!map || !positions?.length) return
   const { kakao } = window
   if (!kakao?.maps) return
   const bounds = new kakao.maps.LatLngBounds()
   positions.forEach(({ lat, lng }) => {
-    bounds.extend(new kakao.maps.LatLng(lat, lng))
+    bounds.extend(new kakao.maps.LatLng(lat + 0.006, lng - 0.3))
   })
-  map.setCenter(bounds.getCenter())
-  map.setLevel(MAP_LEVEL)
+  map.setBounds(bounds)
+  map.setLevel(USER_ZOOM_LEVEL)
 }
 
 const Map = () => {
@@ -180,7 +182,7 @@ const Map = () => {
           width: "100%",
           height: "100%",
         }}
-        level={MAP_LEVEL}
+        level={DEFAULT_ZOOM_LEVEL}
       >
         {position && (
           <MapMarker
