@@ -22,6 +22,8 @@ const SignInPage = () => {
       };
 
       localStorage.setItem("accessToken", mockToken);
+      localStorage.setItem("userRole", "admin");
+
       login(mockToken, mockUser);
 
       alert("🧪 테스트 계정으로 로그인합니다!");

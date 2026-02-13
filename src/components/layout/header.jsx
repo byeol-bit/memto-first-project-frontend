@@ -21,20 +21,23 @@ const HeaderLayout = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const modalRef = useRef(null);
 
+  const filteredNav = headerData.filter((item) => {
+    const role = localStorage.getItem("userRole");
+
+    if (role === "admin") return true;
+
+    return item.title === "홈" || item.title === "지도";
+  });
+
   useEffect(() => {
     const fetchLatestUserInfo = async () => {
       const token = localStorage.getItem("accessToken");
-      // 목데이터 토큰
-      if (token === "mock-token-test-1234") {
-        return;
-      }
-      // 여기까지
+      if (token === "mock-token-test-1234") return;
+
       if (isLoggedIn) {
         try {
           const response = await getUserProfile();
-          if (token) {
-            login(token, response.data);
-          }
+          if (token) login(token, response.data);
         } catch (error) {
           console.error("헤더 프로필 갱신 실패:", error);
         }
@@ -49,6 +52,7 @@ const HeaderLayout = () => {
     } catch (error) {
       console.error("로그아웃 실패:", error);
     } finally {
+      localStorage.removeItem("userRole"); // ⭐ 로그아웃 시 권한 삭제
       logout();
       setIsProfileOpen(false);
       alert("로그아웃 되었습니다.");
@@ -63,9 +67,7 @@ const HeaderLayout = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const defaultProfileImg =
@@ -80,7 +82,7 @@ const HeaderLayout = () => {
           </Link>
 
           <ul className={`${style.navbarMenu} ml-auto`}>
-            {headerData.map((item) => (
+            {filteredNav.map((item) => (
               <li className={style.navbarItem} key={item.id}>
                 <Link to={item.path} className={style.navbarLink}>
                   {item.title}
