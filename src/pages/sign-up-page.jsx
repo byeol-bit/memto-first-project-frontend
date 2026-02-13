@@ -10,34 +10,35 @@ const SignUpPage = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
 
-  // 상태 관리
+  // --- 상태 관리 ---
   const [id, setId] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [nickname, setNickname] = useState("");
   const [introduction, setIntroduction] = useState("");
 
+  // 중복 확인 상태
   const [isIdChecked, setIsIdChecked] = useState(false);
   const [isNicknameChecked, setIsNicknameChecked] = useState(false);
 
-  // 프로필 이미지 관련
+  // 프로필 이미지 관련 상태
   const [previewImage, setPreviewImage] = useState(null); // 보여지는 이미지 주소
   const [selectedFile, setSelectedFile] = useState(null); // 실제 서버로 보낼 파일 객체
   const [selectedColor, setSelectedColor] = useState("#f0f0f0"); // 배경색
-  const [selectedIdx, setSelectedIdx] = useState(null); //  초기값 null -> 선택안함 상태
-  //원본 SVG 문자열 분리 (파일 생성용)
+  const [selectedIdx, setSelectedIdx] = useState(null); // 초기값 null -> 선택안함 상태
+
+  // --- SVG 관련 리소스 ---
   const rawSvgString = `<svg xmlns="http://www.w3.org/2000/svg" 
   viewBox="0 0 24 24" fill="#ffffff">
   <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 
   2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
-  // 기본 프로필 아이콘 (SVG)
+
   const silhouetteIcon = encodeURIComponent(
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff">
     <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 
     4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`,
   );
 
-  // 기본 프로필 옵션
   const defaultOptions = [
     { color: "#FFB6B9", img: `data:image/svg+xml;utf8,${silhouetteIcon}` },
     { color: "#8AC6D1", img: `data:image/svg+xml;utf8,${silhouetteIcon}` },
@@ -45,13 +46,12 @@ const SignUpPage = () => {
     { color: "#FAE3D9", img: `data:image/svg+xml;utf8,${silhouetteIcon}` },
   ];
 
-  // 1. 아이디 중복 확인 핸들러
+  // --- 핸들러 함수들 ---
+
   const handleCheckId = async () => {
     if (!id) return alert("아이디를 입력해주세요.");
-
     try {
       await checkIdDuplicate(id);
-
       alert("사용 가능한 아이디입니다.");
       setIsIdChecked(true);
     } catch (error) {
@@ -61,18 +61,15 @@ const SignUpPage = () => {
       } else {
         console.warn("⚠️ 서버 에러 무시(테스트):", error);
         alert("사용 가능한 아이디입니다. (테스트용 통과)");
-        setIsIdChecked(true); //
+        setIsIdChecked(true);
       }
     }
   };
 
-  // 2. 닉네임 중복 확인 핸들러
   const handleCheckNickname = async () => {
     if (!nickname) return alert("닉네임을 입력해주세요.");
-
     try {
       await checkNicknameDuplicate(nickname);
-
       alert("사용 가능한 닉네임입니다.");
       setIsNicknameChecked(true);
     } catch (error) {
@@ -87,7 +84,6 @@ const SignUpPage = () => {
     }
   };
 
-  // 3. 기본 프로필 선택 핸들러
   const handleSelectDefault = (option, index) => {
     setPreviewImage(option.img);
     setSelectedColor(option.color);
@@ -95,32 +91,64 @@ const SignUpPage = () => {
     setSelectedFile(null);
   };
 
-  // 4. 내 사진 업로드
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     if (file) {
       setPreviewImage(URL.createObjectURL(file));
-      setSelectedFile(file); // 실제 전송할 파일 저장
+      setSelectedFile(file);
       setSelectedColor("#ffffff");
-      setSelectedIdx("upload"); // '직접 업로드' 상태 표시
+      setSelectedIdx("upload");
     }
   };
-  //색상을 받아서 진짜 파일(File)로 만들어주기
-  const createSvgFile = (color) => {
-    // 1. 원본 SVG에 배경색 rect 태그 주입
-    const coloredSvgString = rawSvgString.replace(
-      '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff">',
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff">
-      <rect width="100%" height="100%" fill="${color}" />`,
-    );
 
-    // 2. Blob -> File 변환
-    const blob = new Blob([coloredSvgString], { type: "image/svg+xml" });
-    return new File([blob], "default_profile.svg", { type: "image/svg+xml" });
+  // ⭐ [핵심 수정] SVG를 PNG 파일로 변환하는 함수 (비동기)
+  const createPngFileFromSvg = (color) => {
+    return new Promise((resolve, reject) => {
+      // 1. 색상이 적용된 SVG 문자열 생성
+      const coloredSvgString = rawSvgString.replace(
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff">',
+        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff">
+        <rect width="100%" height="100%" fill="${color}" />`,
+      );
+
+      // 2. SVG를 로드할 이미지 객체 생성
+      const img = new Image();
+      // SVG 문자열을 Base64로 인코딩하여 이미지 소스로 설정
+      const svgBlob = new Blob([coloredSvgString], { type: "image/svg+xml" });
+      const url = URL.createObjectURL(svgBlob);
+
+      img.onload = () => {
+        // 3. 캔버스(Canvas) 생성
+        const canvas = document.createElement("canvas");
+        canvas.width = 500; // 해상도 설정 (500x500)
+        canvas.height = 500;
+        const ctx = canvas.getContext("2d");
+
+        // 4. 이미지를 캔버스에 그리기
+        ctx.drawImage(img, 0, 0, 500, 500);
+
+        // 5. 캔버스를 PNG Blob으로 변환
+        canvas.toBlob((blob) => {
+          if (blob) {
+            // 6. Blob을 진짜 File 객체로 변환 (image/png)
+            const pngFile = new File([blob], "default_profile.png", {
+              type: "image/png",
+            });
+            resolve(pngFile);
+          } else {
+            reject(new Error("이미지 변환 실패"));
+          }
+          URL.revokeObjectURL(url); // 메모리 정리
+        }, "image/png");
+      };
+
+      img.onerror = (e) => reject(e);
+      img.src = url;
+    });
   };
+
   // 5. 회원가입 요청 핸들러
   const handleSignUp = async () => {
-    // 유효성 검사
     if (!nickname || !id || !password)
       return alert("필수 정보를 입력해주세요.");
     if (password !== confirmPassword)
@@ -133,36 +161,40 @@ const SignUpPage = () => {
     }
 
     try {
-      // FormData 생성 (파일 전송을 위해 필수!)
       const formData = new FormData();
       formData.append("loginId", id);
       formData.append("password", password);
       formData.append("nickname", nickname);
       formData.append("introduction", introduction);
 
-      // 이미지 파일 처리 로직 (핵심!)
+      // ⭐ [수정 포인트] 기본 이미지 선택 시 PNG 변환 과정 추가
       if (selectedIdx === "upload" && selectedFile) {
-        // A. 사용자가 직접 사진을 올린 경우
-        formData.append("profileImage", selectedFile);
+        // A. 직접 업로드 (이미 PNG, JPG일 테니 그대로 전송)
+        formData.append("image", selectedFile);
       } else {
-        // B. 기본 이미지를 선택한 경우 -> 즉석에서 파일로 변환
-        const defaultFile = createSvgFile(selectedColor);
-        formData.append("profileImage", defaultFile);
+        // B. 기본 이미지 -> PNG 변환 후 전송
+        try {
+          const pngFile = await createPngFileFromSvg(selectedColor);
+          formData.append("image", pngFile);
+        } catch (convertError) {
+          console.error("이미지 변환 중 오류:", convertError);
+          return alert("프로필 이미지 생성에 실패했습니다.");
+        }
       }
 
       await registerUser(formData);
 
-      alert(`환영합니다, ${nickname} 고수님!`);
+      alert(`환영합니다, ${nickname} 고수님! 로그인 페이지로 이동합니다.`);
       navigate("/sign-in");
     } catch (error) {
       console.error(error);
-      alert("회원가입 실패: " + (error.message || "오류가 발생했습니다."));
+      const errMsg = error.response?.data?.message || "오류가 발생했습니다.";
+      alert("회원가입 실패: " + errMsg);
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8f9fa] py-10 px-4">
-      {/* 로고 */}
       <h1
         className="text-[#ee5a6f] text-4xl font-black mb-8 cursor-pointer tracking-tighter hover:scale-105 transition-transform"
         onClick={() => navigate("/")}
@@ -171,7 +203,6 @@ const SignUpPage = () => {
       </h1>
 
       <div className="w-full max-w-[500px] bg-white px-8 py-10 rounded-2xl shadow-lg border border-gray-100">
-        {/* --- 프로필 선택 영역 --- */}
         <div className="flex flex-col items-center mb-8">
           <div
             className="w-28 h-28 rounded-full border-4 border-white shadow-md overflow-hidden flex items-center justify-center mb-6 transition-all"
@@ -202,7 +233,6 @@ const SignUpPage = () => {
               </div>
             ))}
 
-            {/* 파일 업로드 버튼 */}
             <input
               type="file"
               className="hidden"
@@ -223,7 +253,6 @@ const SignUpPage = () => {
               +
             </button>
           </div>
-          {/* 이미지 미선택 시 안내 문구 */}
           {selectedIdx === null && (
             <p className="text-xs text-[#ee5a6f] mt-2 font-bold animate-pulse">
               프로필 이미지를 선택해주세요!
@@ -231,9 +260,7 @@ const SignUpPage = () => {
           )}
         </div>
 
-        {/* --- 입력 폼 영역 --- */}
         <div className="space-y-4">
-          {/* 아이디 + 중복확인 */}
           <div className="flex gap-2">
             <input
               type="text"
@@ -256,7 +283,6 @@ const SignUpPage = () => {
             </button>
           </div>
 
-          {/* 비밀번호 */}
           <input
             type="password"
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none 
@@ -266,7 +292,6 @@ const SignUpPage = () => {
             placeholder="비밀번호"
           />
 
-          {/* 비밀번호 확인 */}
           <input
             type="password"
             className={`w-full px-4 py-3 bg-gray-50 border rounded-lg outline-none 
@@ -286,7 +311,6 @@ const SignUpPage = () => {
             </p>
           )}
 
-          {/* 닉네임 + 중복확인 */}
           <div className="flex gap-2">
             <input
               type="text"
@@ -308,7 +332,6 @@ const SignUpPage = () => {
             </button>
           </div>
 
-          {/* 자기소개 */}
           <textarea
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none 
             focus:bg-white focus:border-[#ee5a6f] focus:ring-1 focus:ring-[#ee5a6f] transition-all resize-none h-24"
@@ -318,7 +341,6 @@ const SignUpPage = () => {
           />
         </div>
 
-        {/* --- 가입하기 버튼 --- */}
         <button
           onClick={handleSignUp}
           className="w-full py-4 mt-8 bg-[#ee5a6f] text-white rounded-xl text-lg font-bold hover:bg-[#d6455b] transition-all shadow-md active:scale-[0.98]"
@@ -326,7 +348,6 @@ const SignUpPage = () => {
           가입하기
         </button>
 
-        {/* --- 로그인 링크 --- */}
         <div className="mt-6 text-center text-gray-500 text-sm">
           이미 계정이 있으신가요?
           <span
