@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { Link } from "react-router";
 
 import RestaurantCard from "../components/restaurant/restaurantCard";
+import RestaurantListCard from "../components/restaurant/restaurantListCard";
 import SearchBar from "../components/restaurant/searchBar";
 import Button from "../components/common/button";
 import RegisterRestaurantModal from "../components/restaurant/registerRestaurantModal";
@@ -17,6 +18,9 @@ const RestaurantListPage = () => {
   const [searchQuery, setSearchQuery] = useState(""); // 검색 실행된 단어
 
   const [isModalOpen, setIsModalOpen] = useState(false); // 맛집 등록 모달
+
+  // 탭
+  const [activeTab, setActiveTab] = useState("all");
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -58,11 +62,10 @@ const RestaurantListPage = () => {
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter((r) => {
-        const nameMatch = r.name.toLowerCase().includes(query);
-        const addressMatch = r.address?.toLowerCase().includes(query);
-        const tagMatch = r.tags?.some((tag) =>
-          tag.toLowerCase().includes(query),
-        );
+        const nameMatch = r.name?.toLowerCase().includes(query) ?? false;
+        const addressMatch = r.address?.toLowerCase().includes(query) ?? false;
+        const tagMatch =
+          r.tags?.some((tag) => tag?.toLowerCase().includes(query)) ?? false;
         return nameMatch || addressMatch || tagMatch;
       });
     }
@@ -70,52 +73,101 @@ const RestaurantListPage = () => {
     return filtered;
   }, [restaurantsData, searchQuery]); // 의존성 배열에 'data'를 추가해야 데이터가 바뀔 때 화면이 갱신됨!!
 
+  const filteredRestaurant = useMemo(() => {
+    if (activeTab === "liked") {
+      return restaurantsData?.filter((restaurant) => restaurant.isLiked) ?? [];
+    }
+
+    return restaurants;
+  }, [activeTab, restaurantsData, restaurants]);
+
+  const tabs = [
+    { id: "all", label: "모든 맛집" },
+    { id: "liked", label: "관심 목록" },
+  ];
+
   if (isLoading) return <div>맛집 정보를 불러오는 중입니다</div>;
   if (isError) return <div>에러가 발생했어요: {error.message}</div>;
 
   return (
     <div className="flex justify-center min-h-screen">
       <div className="w-full max-w-md px-4 py-8 flex flex-col items-center">
-        {/* 헤더 */}
-        <div className="w-full flex flex-col items-center text-center">
-          <h1 className="text-3xl font-bold text-gray-900">모든 맛집</h1>
-          <p className="text-sm text-gray-500 mt-2">
-            고수들이 직접 발굴한 찐 맛집들을 확인해보세요.
-          </p>
-
-          {/* 검색 */}
-          <SearchBar
-            value={keyword}
-            onChange={handleKeywordChange}
-            onSearch={handleSearch}
-            placeholder="어떤 맛집을 찾으시나요?"
-          />
+        {/* ✅ 탭 메뉴 */}
+        <div className="w-full sticky top-0 bg-white border-b border-gray-100 flex z-20">
+          {tabs.map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`flex-1 py-4 text-sm font-bold transition-colors ${
+                activeTab === tab.id
+                  ? "text-black border-b-2 border-black"
+                  : "text-gray-400"
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
         </div>
 
-        {restaurants.length > 0 ? (
-          /* 레스토랑 카드 그리드*/
-          <div className="grid grid-cols-1 gap-6">
-            {restaurants.map((r) => (
-              <RestaurantCard key={r.id} restaurant={r} />
-            ))}
-          </div>
-        ) : (
-          /* 결과가 없을 때 : 안내 메시지와 등록 버튼 보여줌 */
-          <div className="flex flex-col items-center justify-center py-20">
-            <p className="text-gray-500 text-lg mb-4">
-              찾으시는 맛집이 아직 없습니다 😭
-            </p>
-            <Button onClick={() => setIsModalOpen(true)}>
-              첫 번째 리뷰 달기
-            </Button>
-
-            {/* 모달 컴포넌트 배치 */}
-            <RegisterRestaurantModal
-              open={isModalOpen}
-              onClose={() => setIsModalOpen(false)}
+        {/* ✅ 탭 내용 영역 */}
+        <div className="w-full px-5 py-6 pb-24">
+          {/* 🔍 검색바 (모든 맛집 탭에서만 노출) */}
+          {activeTab === "all" && (
+            <SearchBar
+              value={keyword}
+              onChange={handleKeywordChange}
+              onSearch={handleSearch}
+              placeholder="어떤 맛집을 찾으시나요?"
             />
-          </div>
-        )}
+          )}
+          {isLoading ? (
+            <div className="py-20 text-center text-gray-500">
+              맛집 데이터를 불러오는 중... 😋
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2">
+              {filteredRestaurant.length > 0 ? (
+                filteredRestaurant.map((restaurant) => (
+                  <div
+                    key={restaurant.id}
+                    className="flex justify-center w-full"
+                  >
+                    {activeTab === "all" ? (
+                      <RestaurantListCard restaurant={restaurant} />
+                    ) : (
+                      // <RestaurantCard restaurant={restaurant} />
+                      <RestaurantListCard restaurant={restaurant} />
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="py-20 text-center text-gray-400">
+                  {activeTab === "all" ? (
+                    <div>
+                      <p className="text-gray-500 text-lg mb-4">
+                        찾으시는 맛집이 아직 없습니다 😭
+                      </p>
+                      <Button onClick={() => setIsModalOpen(true)}>
+                        첫 번째 리뷰 달기
+                      </Button>
+
+                      {/* 모달 컴포넌트 배치 */}
+                      <RegisterRestaurantModal
+                        open={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                      />
+                    </div>
+                  ) : (
+                    <p>
+                      아직 좋아요 한 맛집이 없어요. <br />
+                      마음에 드는 맛집에 하트를 눌러보세요! ❤️
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

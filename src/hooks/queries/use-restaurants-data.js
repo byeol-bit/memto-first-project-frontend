@@ -61,6 +61,11 @@ export const useSearchKakaoRestaurants = (q) =>
 export const useRestaurantLikeStatus = ({ userId, restaurantId }) =>
   useQuery({
     queryKey: ["restaurants", restaurantId, "like-status", userId],
-    queryFn: () => fetchLikeStatus({ userId, restaurantId }),
+    queryFn: async () => {
+      const res = await fetchLikeStatus({ userId, restaurantId });
+      // 응답 : { isLiked: true } 형태
+      const normalized = res?.data ?? res;
+      return normalized?.isLiked ?? false;
+    },
     enabled: !!userId && !!restaurantId,
   });

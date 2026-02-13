@@ -1,5 +1,5 @@
 import React from "react";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useMemo, useEffect, useRef } from "react";
 import { useParams } from "react-router";
 import MiniMap from "../components/restaurant/miniMap";
 import Gallery from "../components/restaurant/gallery";
@@ -12,15 +12,23 @@ import { MapPin, Phone } from "lucide-react";
 import { useContext } from "react";
 import { DetailStateContext } from "../components/layout/map-layout";
 
-import { useRestaurantDetail } from "../hooks/queries/use-restaurants-data";
+import {
+  useRestaurantDetail,
+  useRestaurantLikeStatus,
+} from "../hooks/queries/use-restaurants-data";
 import { useRestaurantReviews } from "../hooks/queries/use-reviews-data";
+import {
+  useLikeRestaurantMutation,
+  useUnlikeRestaurantMutation,
+} from "../hooks/mutations/use-create-restaurant-mutation";
 
 const RestaurantDetailPage = () => {
   const context = useContext(DetailStateContext);
   const { id } = useParams();
+  const reviewTopRef = useRef(null);
 
   // ID 결정 로직
-  const currentId = context?.selectedRestaurant?.id || id;
+  const currentId = Number(context?.selectedRestaurant?.id || id);
 
   const {
     data: restaurantDetailData,
@@ -31,15 +39,43 @@ const RestaurantDetailPage = () => {
   console.log(restaurantDetailData);
 
   const { data: reviewsData, isLoading: isReviewsLoading } =
-    useRestaurantReviews(restaurantDetailData?.id);
+    useRestaurantReviews(Number(restaurantDetailData?.id));
 
   console.log(reviewsData);
 
   const reviews = reviewsData ?? [];
 
+  // userId 가져오기 : 로그인 유저 가져올 수 있을 때 삭제 예정!!
+  const userId = useMemo(() => {
+    try {
+      const storedUser = localStorage.getItem("user");
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        return user?.id ?? null;
+      }
+    } catch (e) {
+      console.error("userId 파싱 실패:", e);
+    }
+    return null;
+  }, []);
+
+  const restaurantId = restaurantDetailData?.id;
+  const { data: isLikedFromApi = false } = useRestaurantLikeStatus({
+    userId: userId ?? 0,
+    restaurantId: restaurantId ?? 0,
+  });
+
+  // 좋아요 mutation 훅들
+  const { mutate: likeRestaurant } = useLikeRestaurantMutation();
+  const { mutate: unlikeRestaurant } = useUnlikeRestaurantMutation();
+
   // 맛집 디테일 좋아요 & 좋아요 수
-  const [isLike, setIsLike] = useState(false);
+  const [isLike, setIsLike] = useState(isLikedFromApi);
   const [likeCount, setLikeCount] = useState(0);
+
+  useEffect(() => {
+    setIsLike(isLikedFromApi);
+  }, [isLikedFromApi]);
 
   // 바텀시트 오픈 플러스 버튼
   const [openBottomSheet, setOpenBottomSheet] = useState(false);
@@ -68,15 +104,44 @@ const RestaurantDetailPage = () => {
   }, [restaurantDetailData]);
 
   const onLike = () => {
-    if (isLike) {
-      // 이미 좋아요 상태라면? -> 취소 (-1)
-      setLikeCount((prev) => prev - 1);
-    } else {
-      // 좋아요가 아니라면? -> 추가 (+1)
-      setLikeCount((prev) => prev + 1);
+    if (!userId || !restaurantId) {
+      alert("로그인이 필요합니다.");
+      return;
     }
-    // 상태 반전 (T/F)
-    setIsLike(!isLike);
+
+    // Optimistic 업데이트
+    const newIsLike = !isLike;
+    setIsLike(newIsLike);
+    setLikeCount((prev) => (newIsLike ? prev + 1 : prev - 1));
+
+    // API 호출
+    if (newIsLike) {
+      likeRestaurant(
+        { userId, restaurantId },
+        {
+          onError: (error) => {
+            // 실패 시 롤백
+            setIsLike(!newIsLike);
+            setLikeCount((prev) => (newIsLike ? prev - 1 : prev + 1));
+            console.error("좋아요 등록 실패:", error);
+            alert("좋아요 등록에 실패했습니다.");
+          },
+        },
+      );
+    } else {
+      unlikeRestaurant(
+        { userId, restaurantId },
+        {
+          onError: (error) => {
+            // 실패 시 롤백
+            setIsLike(!newIsLike);
+            setLikeCount((prev) => (newIsLike ? prev - 1 : prev + 1));
+            console.error("좋아요 취소 실패:", error);
+            alert("좋아요 취소에 실패했습니다.");
+          },
+        },
+      );
+    }
   };
 
   const expertsCount = useMemo(() => {
@@ -94,7 +159,6 @@ const RestaurantDetailPage = () => {
       </div>
     );
   }
-
   if (isDetailError || !restaurantDetailData) {
     return (
       <div className="py-20 text-center text-red-500">
@@ -213,7 +277,7 @@ const RestaurantDetailPage = () => {
           )}
 
           {activeTab === "review" && (
-            <div className="flex flex-col gap-7">
+            <div ref={reviewTopRef} className="flex flex-col gap-7">
               {reviews.length > 0 ? (
                 reviews.map((v) => <Review key={v.id} reviewData={v} />)
               ) : (
@@ -245,6 +309,15 @@ const RestaurantDetailPage = () => {
           open={openBottomSheet}
           onClose={() => setOpenBottomSheet(false)}
           restaurant={restaurantDetailData}
+          onSuccess={() => {
+            setActiveTab("review");
+            setTimeout(() => {
+              reviewTopRef.current?.scrollIntoView({
+                behavior: "smooth",
+                block: "start",
+              });
+            }, 100);
+          }}
         />
       </div>
     </div>
