@@ -7,8 +7,7 @@ import { DetailStateContext } from "../layout/map-layout";
 const RestaurantCard = ({ restaurant }) => {
   const context = useContext(DetailStateContext);
 
-  const { id, name, thumbnail, category, expertCount, tags, address } =
-    restaurant;
+  const { id, name, thumbnail, category, expertCount, address } = restaurant;
 
   const onRestaurantDetailClick = () => {
     context.setSelectedRestaurant(restaurant);
