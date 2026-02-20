@@ -15,6 +15,13 @@
   z-index: 5;
 }
 
+.leftContainerInner {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
 .leftSidebar {
   width: 60px;
   background-color: var(--background-color);
@@ -60,7 +67,6 @@
   background-color: var(--background-color);
   flex-shrink: 0;
   display: flex;
-  padding: 20px;
   flex-direction: column;
   overflow-y: auto;
   overflow-x: hidden;
@@ -82,6 +88,7 @@
 }
 
 .leftSidebarDoubleDetail {
+  position: relative;
   width: 380px;
   background-color: var(--background-color);
   flex-shrink: 0;
@@ -107,9 +114,64 @@
   min-height: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  padding: 20px;
+  position: relative;
 }
 
+.detailPanelHeader {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 12px;
+  background-color: transparent;
+  transition: background-color 0.2s ease;
+  z-index: 1;
+}
+
+.detailPanelHeaderScrolled {
+  background-color: rgba(255, 255, 255);
+}
+
+.detailPanelContent {
+  padding-top: 48px;
+}
+
+.detailPanelHeaderClose {
+  background: transparent;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.detailPanelHeaderClose:hover {
+  color: var(--text-primary);
+}
+
+.leftSidebarDoubleDetailInner::-webkit-scrollbar {
+  width: 6px;
+  /* 얇은 두께 */
+}
+
+.leftSidebarDoubleDetailInner::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.leftSidebarDoubleDetailInner::-webkit-scrollbar-thumb {
+  background: var(--background-dark);
+  border-radius: 3px;
+}
+
+/* 위아래 화살표 제거 */
+.leftSidebarDoubleDetailInner::-webkit-scrollbar-button {
+  display: none;
+}
 
 .outlet {
   flex: 1;
