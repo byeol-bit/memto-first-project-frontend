@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useLoginState } from "../components/loginstate";
 import { loginUser } from "../api/auth";
+import KakaoLoginButton from "../components/KakaoLoginButton";
 
 const SignInPage = () => {
   const navigate = useNavigate();
@@ -22,6 +23,8 @@ const SignInPage = () => {
       };
 
       localStorage.setItem("accessToken", mockToken);
+      localStorage.setItem("userRole", "admin");
+
       login(mockToken, mockUser);
 
       alert("🧪 테스트 계정으로 로그인합니다!");
@@ -99,6 +102,7 @@ const SignInPage = () => {
             로그인
           </button>
         </form>
+        <KakaoLoginButton />
         <div className="mt-6 text-center text-gray-500 text-sm">
           아직 계정이 없으신가요?
           <span
