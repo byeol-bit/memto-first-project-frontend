@@ -96,6 +96,8 @@ const MyPage = () => {
       <PasswordModal
         isOpen={logic.isPasswordModalOpen}
         onClose={logic.setIsPasswordModalOpen}
+        currentPassword={logic.currentPassword}
+        setCurrentPassword={logic.setCurrentPassword}
         newPassword={logic.newPassword}
         setNewPassword={logic.setNewPassword}
         confirmPassword={logic.confirmPassword}

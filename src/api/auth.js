@@ -65,13 +65,11 @@ export const getUserProfile = async () => {
 };
 
 /**
- * 7. 프로필 수정 (닉네임, 이미지)
- * Method: PATCH
- * Endpoint: /users/profile (백엔드 경로 확인 필요)
+ * 7. 프로필 수정 (스웨거 반영: PUT /users)
  * Content-Type: multipart/form-data
  */
 export const updateProfile = async (formData) => {
-  return await api.patch("/users/profile", formData, {
+  return await api.put("/users", formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
@@ -79,18 +77,17 @@ export const updateProfile = async (formData) => {
 };
 
 /**
- * 8. 비밀번호 변경
- * Method: PATCH
- * Endpoint: /users/password (백엔드 경로 확인 필요)
+ * 8. 비밀번호 변경 (스웨거 반영: 현재 비번 + 새 비번)
  */
-export const updatePassword = async (password) => {
-  return await api.patch("/users/password", { password });
+export const updatePassword = async (currentPassword, newPassword) => {
+  return await api.patch("/users/password", {
+    password: currentPassword, // 현재 비밀번호
+    newPassword: newPassword, // 바꿀 새 비밀번호
+  });
 };
 
 /**
- * 9. 회원 탈퇴
- * Method: DELETE
- * Endpoint: /users
+ * 9. 회원 탈퇴 (변경 없음, DELETE /users)
  */
 export const deleteAccount = async () => {
   return await api.delete("/users");

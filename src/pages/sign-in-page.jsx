@@ -13,50 +13,43 @@ const SignInPage = () => {
 
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
-    //목데이터 시작 (test / 1234)
+
+    // --- 목데이터 시작 (test / 1234) ---
     if (nickname === "test" && password === "1234") {
-      const mockToken = "mock-token-test-1234";
       const mockUser = {
         nickname: "테스트유저",
         profileImage:
-          "https://cdn.pixabay.com/photo/2023/01/28/20/23/ai-generated-7751688_1280.jpg", // 예쁜 가짜 프사
+          "https://cdn.pixabay.com/photo/2023/01/28/20/23/ai-generated-7751688_1280.jpg",
+        role: "admin", // 전역 상태용 역할 추가
       };
-
-      localStorage.setItem("accessToken", mockToken);
       localStorage.setItem("userRole", "admin");
+      login("mock-cookie-session", mockUser);
 
-      login(mockToken, mockUser);
-
-      alert("🧪 테스트 계정으로 로그인합니다!");
+      alert(
+        "🧪 테스트 계정으로 로그인합니다! (새로고침 시 로그아웃될 수 있습니다)",
+      );
       navigate("/");
       return;
     }
-    //목데이터 종료
-    if (!nickname) return alert("닉네임을 입력해주세요.");
+    // --- 목데이터 종료 ---
+
+    if (!nickname) return alert("아이디(닉네임)를 입력해주세요.");
     if (!password) return alert("비밀번호를 입력해주세요.");
 
     try {
       const response = await loginUser(nickname, password);
 
-      const token =
-        response.headers["token"] ||
-        response.headers["authorization"] ||
-        response.data.accessToken;
-
-      if (token) {
-        localStorage.setItem("accessToken", token);
-        const userInfo = response.data || { nickname: nickname };
-
-        login(token, userInfo);
+      if (response.status === 200) {
+        login("cookie-session", response.data || { nickname });
 
         alert("로그인 성공!");
         navigate("/");
-      } else {
-        alert("로그인 성공했으나 토큰이 없습니다.");
       }
     } catch (error) {
-      console.error(error);
-      alert("로그인 실패: " + (error.response?.data?.message || "오류 발생"));
+      console.error("로그인 에러:", error);
+      const errorMessage =
+        error.response?.data?.message || "로그인에 실패했습니다.";
+      alert(errorMessage);
     }
   };
 
@@ -72,7 +65,7 @@ const SignInPage = () => {
         <form onSubmit={handleLogin} className="space-y-4">
           <div>
             <label className="block text-sm font-bold text-gray-700 mb-1">
-              닉네임
+              닉네임 (또는 아이디)
             </label>
             <input
               type="text"
@@ -91,7 +84,6 @@ const SignInPage = () => {
               className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-[#ee5a6f]"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && handleLogin(e)}
               placeholder="비밀번호"
             />
           </div>

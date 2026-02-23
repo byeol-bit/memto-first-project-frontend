@@ -1,12 +1,14 @@
+import React from "react";
+
 export const NicknameModal = ({
   isOpen,
   onClose,
   nicknameInput,
   setNicknameInput,
-  handleCheckNickname,
   isNicknameChecked,
+  setIsNicknameChecked,
+  handleCheckNickname,
   saveNickname,
-  currentNickname,
 }) => {
   if (!isOpen) return null;
   return (
@@ -15,32 +17,31 @@ export const NicknameModal = ({
         <h2 className="text-xl font-black text-gray-800 mb-6 text-center">
           닉네임 변경
         </h2>
-        <div className="space-y-4">
-          <div className="flex gap-2">
-            <input
-              type="text"
-              value={nicknameInput}
-              onChange={(e) => setNicknameInput(e.target.value)}
-              placeholder="새 닉네임"
-              className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-[#ee5a6f]"
-            />
-            <button
-              onClick={handleCheckNickname}
-              className={`px-4 rounded-lg text-sm font-bold text-white whitespace-nowrap transition-colors ${isNicknameChecked ? "bg-green-500" : "bg-gray-700 hover:bg-gray-800"}`}
-            >
-              {isNicknameChecked ? "확인됨" : "중복확인"}
-            </button>
-          </div>
-          <p className="text-xs text-gray-500 text-center">
-            중복 확인 후 변경하기를 눌러주세요.
-          </p>
+        <div className="flex gap-2 mb-4">
+          <input
+            type="text"
+            value={nicknameInput}
+            onChange={(e) => {
+              setNicknameInput(e.target.value);
+              setIsNicknameChecked(false); // 글자 수정 시 중복확인 다시 하도록
+            }}
+            placeholder="새 닉네임"
+            className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-[#ee5a6f]"
+          />
+          <button
+            onClick={handleCheckNickname}
+            className={`px-4 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${
+              isNicknameChecked
+                ? "bg-green-500 text-white"
+                : "bg-gray-700 text-white hover:bg-gray-800"
+            }`}
+          >
+            {isNicknameChecked ? "확인됨" : "중복확인"}
+          </button>
         </div>
         <div className="flex gap-3 mt-8">
           <button
-            onClick={() => {
-              onClose(false);
-              setNicknameInput(currentNickname);
-            }}
+            onClick={() => onClose(false)}
             className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300"
           >
             취소
@@ -48,7 +49,11 @@ export const NicknameModal = ({
           <button
             onClick={saveNickname}
             disabled={!isNicknameChecked}
-            className={`flex-1 py-3 rounded-xl font-bold text-white transition-colors ${isNicknameChecked ? "bg-[#ee5a6f] hover:bg-[#d6455b]" : "bg-gray-300"}`}
+            className={`flex-1 py-3 text-white rounded-xl font-bold transition-all ${
+              isNicknameChecked
+                ? "bg-[#ee5a6f] hover:bg-[#d6455b]"
+                : "bg-gray-400 cursor-not-allowed"
+            }`}
           >
             변경하기
           </button>
@@ -61,6 +66,8 @@ export const NicknameModal = ({
 export const PasswordModal = ({
   isOpen,
   onClose,
+  currentPassword,
+  setCurrentPassword,
   newPassword,
   setNewPassword,
   confirmPassword,
@@ -75,6 +82,13 @@ export const PasswordModal = ({
           비밀번호 변경
         </h2>
         <div className="space-y-4">
+          <input
+            type="password"
+            value={currentPassword}
+            onChange={(e) => setCurrentPassword(e.target.value)}
+            placeholder="현재 비밀번호"
+            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-[#ee5a6f]"
+          />
           <input
             type="password"
             value={newPassword}
@@ -94,6 +108,7 @@ export const PasswordModal = ({
           <button
             onClick={() => {
               onClose(false);
+              setCurrentPassword("");
               setNewPassword("");
               setConfirmPassword("");
             }}

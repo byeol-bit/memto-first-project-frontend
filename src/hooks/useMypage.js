@@ -34,7 +34,9 @@ export const useMyPage = () => {
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
   const [nicknameInput, setNicknameInput] = useState("");
   const [isNicknameChecked, setIsNicknameChecked] = useState(false);
+
   const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
@@ -62,39 +64,31 @@ export const useMyPage = () => {
   // --- API Effects ---
   useEffect(() => {
     const fetchUserData = async () => {
-      const token = localStorage.getItem("accessToken");
-      if (token === "mock-token-test-1234") {
-        setUserInfo({
-          id: 999,
-          nickname: "테스트유저",
-          profileImage:
-            "https://cdn.pixabay.com/photo/2023/01/28/20/23/ai-generated-7751688_1280.jpg",
-        });
-        setStats({ followerCount: 120, followingCount: 45 });
-        setPreviewImage(
-          "https://cdn.pixabay.com/photo/2023/01/28/20/23/ai-generated-7751688_1280.jpg",
-        );
-        setIsLoading(false);
-        return;
-      }
       try {
         const res = await getUserProfile();
-        setUserInfo(res.data);
-        setNicknameInput(res.data.nickname);
-        setPreviewImage(res.data.profileImage);
-        setSelectedColor("#ffffff");
-        if (res.data.id) {
-          const [fRes, ingRes] = await Promise.all([
-            axios.get(`/follows/${res.data.id}/follower-count`),
-            axios.get(`/follows/${res.data.id}/following-count`),
-          ]);
-          setStats({
-            followerCount: fRes.data?.count || 0,
-            followingCount: ingRes.data?.count || 0,
-          });
+
+        if (res.status === 200 && res.data) {
+          setUserInfo(res.data);
+          setNicknameInput(res.data.nickname);
+          setPreviewImage(res.data.profileImage);
+          setSelectedColor("#ffffff");
+
+          if (res.data.id) {
+            const [fRes, ingRes] = await Promise.all([
+              axios.get(`/follows/${res.data.id}/follower-count`),
+              axios.get(`/follows/${res.data.id}/following-count`),
+            ]);
+            setStats({
+              followerCount: fRes.data?.count || 0,
+              followingCount: ingRes.data?.count || 0,
+            });
+          }
         }
       } catch (e) {
-        console.error(e);
+        if (e.response && e.response.status === 401) {
+          alert("로그인이 필요한 서비스입니다.");
+          navigate("/sign-in");
+        }
       } finally {
         setIsLoading(false);
       }
@@ -157,9 +151,12 @@ export const useMyPage = () => {
     try {
       const formData = new FormData();
       formData.append("nickname", userInfo.nickname);
+
+      // ⭐ [수정] 스웨거 명세서에 맞춰 profileImage -> image 로 이름 변경!
       if (selectedIdx === "upload" && selectedFile)
-        formData.append("profileImage", selectedFile);
-      else formData.append("profileImage", createSvgFile(selectedColor));
+        formData.append("image", selectedFile);
+      else formData.append("image", createSvgFile(selectedColor));
+
       await updateProfile(formData);
       alert("프로필 사진 변경 완료!");
       window.location.reload();
@@ -192,15 +189,21 @@ export const useMyPage = () => {
   };
 
   const handleUpdatePassword = async () => {
-    if (newPassword !== confirmPassword) return alert("비밀번호 불일치");
+    if (!currentPassword) return alert("현재 비밀번호를 입력해주세요.");
+    if (newPassword !== confirmPassword)
+      return alert("새 비밀번호가 일치하지 않습니다.");
+
     try {
-      await updatePassword(newPassword);
+      await updatePassword(currentPassword, newPassword);
       alert("변경 완료. 다시 로그인해주세요.");
+
       await logoutUser();
-      localStorage.removeItem("accessToken");
+
       navigate("/sign-in");
     } catch (e) {
-      alert("오류 발생");
+      const errorMsg =
+        e.response?.data?.message || "비밀번호 변경 중 오류가 발생했습니다.";
+      alert(errorMsg);
     }
   };
 
@@ -223,8 +226,9 @@ export const useMyPage = () => {
     try {
       await logoutUser();
     } catch (e) {
+      console.error(e);
     } finally {
-      localStorage.removeItem("accessToken");
+      alert("로그아웃 되었습니다.");
       navigate("/sign-in");
     }
   };
@@ -233,7 +237,6 @@ export const useMyPage = () => {
     if (window.confirm("정말 탈퇴하시겠습니까?")) {
       try {
         await deleteAccount();
-        localStorage.removeItem("accessToken");
         alert("탈퇴 완료");
         navigate("/");
       } catch (e) {
@@ -268,6 +271,8 @@ export const useMyPage = () => {
     saveNickname,
     isPasswordModalOpen,
     setIsPasswordModalOpen,
+    currentPassword,
+    setCurrentPassword,
     newPassword,
     setNewPassword,
     confirmPassword,
