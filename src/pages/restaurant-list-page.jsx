@@ -97,7 +97,7 @@ const RestaurantListPage = () => {
 
   return (
     <div className="flex justify-center min-h-screen">
-      <div className="w-full max-w-md px-4 py-8 flex flex-col items-center">
+      <div className="w-full max-w-md px-2 py-2 flex flex-col items-center">
         {/* ✅ 탭 메뉴 */}
         <div className="w-full sticky top-0 bg-white border-b border-gray-100 flex z-20">
           {tabs.map((tab) => (
@@ -139,8 +139,9 @@ const RestaurantListPage = () => {
                       className="flex justify-center w-full"
                     >
                       {activeTab === "all" ? (
-                        <RestaurantListCard restaurant={restaurant} />
+                        <RestaurantCard restaurant={restaurant} />
                       ) : (
+                        // <RestaurantListCard restaurant={restaurant} />
                         <RestaurantCard restaurant={restaurant} />
                       )}
                     </div>

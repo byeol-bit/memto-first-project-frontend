@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router";
+import Like from "../common/like";
 
 import { useContext } from "react";
 import { DetailStateContext } from "../layout/map-layout";
@@ -7,7 +8,16 @@ import { DetailStateContext } from "../layout/map-layout";
 const RestaurantCard = ({ restaurant }) => {
   const context = useContext(DetailStateContext);
 
-  const { id, name, thumbnail, category, expertCount, address } = restaurant;
+  const { id, name, thumbnail, category, expertCount, address, isLiked } =
+    restaurant;
+  console.log(restaurant);
+
+  const [isLike, setIsLike] = useState(isLiked ?? false);
+
+  const onLike = (e) => {
+    e?.stopPropagation?.();
+    setIsLike((prev) => !prev);
+  };
 
   const onRestaurantDetailClick = () => {
     context.setSelectedRestaurant(restaurant);
@@ -21,8 +31,12 @@ const RestaurantCard = ({ restaurant }) => {
       {/* 내용 */}
       <div className="px-8 pt-6 pb-5">
         {/* 맛집 카테고리 */}
-        <div className="text-sm text-red-400 font-bold mb-1">{category}</div>
-
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <div className="text-sm text-red-400 font-bold">{category}</div>
+          <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
+            <Like isLike={isLike} onLike={onLike} className="w-6 h-6" />
+          </div>
+        </div>
         {/* 맛집 이름 */}
         <div className="font-bold text-xl mb-2 text-gray-900">{name}</div>
 
