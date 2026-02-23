@@ -1,17 +1,18 @@
 import FollowUserCard from "./followUserCard"
-
-import { followers } from "../../data/users.mock"
+import { useFollowerUsers } from "../../hooks/queries/use-users-data"
+import Loading from "../loading"
 
 const FollowersList = ({userId}) => {
-    // const [users, setUsers] = useState([])
-    // 유저리스트 불러오기
-    // useEffect() => {
+    const {data: followers, isLoading, error} = useFollowerUsers(userId)
+    
+    if(isLoading) {
+        return <Loading />
+    }
 
-    // }
-
-    // 팔로우 버튼 눌렀을 때 (상태가 팔로잉이면? 언팔로우 / 팔로잉중이지 않으면? 팔로우) 상태변경! 리스트는 유지
-    // const toggleFollow = 
-
+    if(!followers?.length){
+        return <div className="flex justify-center items-center min-h-screen overflow-hidden">팔로워가 없습니다.</div>
+    }
+    
     return (
         <div>
             {followers.map((user) => {
@@ -20,7 +21,7 @@ const FollowersList = ({userId}) => {
                         key = {user.id}
                         user={user}
                         // 유저의 상태에 따라 출력되도록 수정하기 (팔로우 / 팔로잉)
-                        type={'팔로우'}
+                        isFollowing={user.follow}
                         toggleFollow={() => alert('팔로우')}    
                     />
                 )
