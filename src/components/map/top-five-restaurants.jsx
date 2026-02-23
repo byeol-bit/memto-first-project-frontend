@@ -1,61 +1,52 @@
-import { useState } from "react"
 import TopRestaurantItem from "./top-restaurant-item"
 import { useTopFiveRestaurantsData } from "../../hooks/queries/use-top-five-data"
 
-
-const TopFiveRestaurants = () => {
-	const { data: restaurants, isLoading, error } = useTopFiveRestaurantsData()
-	const [isCollapsed, setIsCollapsed] = useState(false)
+const TopFiveRestaurants = ({ onClose }) => {
+	const { data: restaurants } = useTopFiveRestaurantsData()
 
 	return (
 		<div
 			className="
-				flex flex-col rounded-xl overflow-hidden
+				flex flex-col rounded-lg overflow-hidden
 				bg-[var(--background-color)] border border-[var(--border-light)]
 				shadow-md
 			"
 		>
-			{/* 헤더: 클릭 시 접기/펼치기 */}
-			<header
-				className={`flex items-center justify-between gap-3 px-4 py-3 bg-[var(--background-color)] ${!isCollapsed ? "border-b border-[var(--border-light)]" : ""}`}
-			>
+			<header className="flex items-center justify-between gap-2 px-2.5 py-2 bg-[var(--background-color)] border-b border-[var(--border-light)]">
 				<div className="min-w-0">
-					<h3 className="font-semibold text-[var(--text-primary)] [font-size:var(--font-size-base)] tracking-tight">
+					<h3 className="font-semibold text-[var(--text-primary)] text-sm tracking-tight">
 						상위 Top 5 맛집
 					</h3>
-					<p className="[color:var(--text-secondary)] [font-size:var(--font-size-xs)] mt-0.5">
+					<p className="[color:var(--text-secondary)] text-[10px] mt-0.5">
 						방문기록 리뷰 수 기준
 					</p>
 				</div>
-				<button
-					type="button"
-					onClick={() => setIsCollapsed((c) => !c)}
-					className="
-						shrink-0 w-8 h-8 flex items-center justify-center rounded-lg
-						text-[var(--text-secondary)] hover:text-[var(--text-primary)]
-						hover:bg-[var(--background-dark)] active:bg-[var(--border-color)]
-						transition-colors duration-150
-						[font-size:var(--font-size-lg)] leading-none
-					"
-					aria-expanded={!isCollapsed}
-					aria-label={isCollapsed ? "리스트 펼치기" : "리스트 접기"}
-				>
-					{isCollapsed ? "+" : "−"}
-				</button>
+				{onClose && (
+					<button
+						type="button"
+						onClick={onClose}
+						className="
+							shrink-0 w-6 h-6 flex items-center justify-center rounded-md
+							text-[var(--text-secondary)] hover:text-[var(--text-primary)]
+							hover:bg-[var(--background-dark)] active:bg-[var(--border-color)]
+							transition-colors duration-150 text-base leading-none
+						"
+						aria-label="닫기"
+					>
+						×
+					</button>
+				)}
 			</header>
 
-			{/* 리스트: 접혀 있으면 숨김 */}
-			{!isCollapsed && (
-				<div className="flex flex-col gap-2.5 p-3 pt-0">
-					{restaurants?.map((restaurant, idx) => (
-						<TopRestaurantItem
-							key={idx}
-							rank={idx}
-							restaurant={restaurant}
-						/>
-					))}
-				</div>
-			)}
+			<div className="flex flex-col gap-1.5 p-2 pt-0">
+				{restaurants?.map((restaurant, idx) => (
+					<TopRestaurantItem
+						key={idx}
+						rank={idx}
+						restaurant={restaurant}
+					/>
+				))}
+			</div>
 		</div>
 	)
 }

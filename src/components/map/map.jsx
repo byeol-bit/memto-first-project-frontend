@@ -1,5 +1,3 @@
-
-import style from "./map.module.css"
 import { Map as KakaoMap, MapMarker, Polyline } from 'react-kakao-maps-sdk'
 import useKakaoLoader from '../../hooks/useKakaoLoader'
 import { useState, useEffect, useContext, useMemo } from "react"
@@ -38,7 +36,8 @@ const Map = () => {
   const {
     selectedUser,
     selectedRestaurant,
-    setIsModalOpen
+    setActiveTab,
+    setSelectedRestaurant,
   } = useContext(DetailStateContext)
   const { loading, error } = useKakaoLoader()
   const [geocodedPosition, setGeocodedPosition] = useState(null)
@@ -46,49 +45,53 @@ const Map = () => {
 
   // 유저 관련
   const { data: reviews } = useUserReviews(selectedUser?.id)
-  const [reviewPositions, setReviewPositions] = useState([])
+  const [reviewMarkers, setReviewMarkers] = useState([])
 
   useEffect(() => {
-    if (!reviews?.length) {
-      setReviewPositions([])
-      return
-    }
-
-    setReviewPositions([]) // 유저 변경 시 초기화
+    if (!reviews?.length) return
 
     const { kakao } = window
     if (!kakao?.maps?.services) return
 
     const geocoder = new kakao.maps.services.Geocoder()
-
-    const sortedRiviews = [...reviews].sort(
+    const sortedReviews = [...reviews].sort(
       (a, b) => new Date(a.updated_at) - new Date(b.updated_at)
     )
 
-    sortedRiviews.forEach((review, idx) => {
+    const geocodePromises = sortedReviews.map((review) => {
       const r = review.restaurant
-      if (!r) return
-
+      if (!r) return Promise.resolve(null)
       if (r.latitude != null && r.longitude != null) {
-        setReviewPositions(prev => ([
-          ...prev,
-          { lat: parseFloat(r.latitude), lng: parseFloat(r.longitude) }
-        ]))
-        return
+        return Promise.resolve({
+          position: { lat: parseFloat(r.latitude), lng: parseFloat(r.longitude) },
+          restaurant: r,
+        })
       }
-
-      if (!r.address) return
-
-      geocoder.addressSearch(r.address, (result, status) => {
-        if (status === kakao.maps.services.Status.OK && result[0]) {
-          const { y, x } = result[0]
-          setReviewPositions(prev => ([
-            ...prev,
-            { lat: parseFloat(y), lng: parseFloat(x) }
-          ]))
-        }
+      if (!r.address) return Promise.resolve(null)
+      return new Promise((resolve) => {
+        geocoder.addressSearch(r.address, (result, status) => {
+          if (status === kakao.maps.services.Status.OK && result[0]) {
+            const { y, x } = result[0]
+            resolve({
+              position: { lat: parseFloat(y), lng: parseFloat(x) },
+              restaurant: r,
+            })
+          } else {
+            resolve(null)
+          }
+        })
       })
     })
+
+    let cancelled = false
+    Promise.all(geocodePromises).then((markers) => {
+      if (cancelled) return
+      setReviewMarkers(markers.filter(Boolean))
+    })
+
+    return () => {
+      cancelled = true
+    }
   }, [reviews])
 
 
@@ -156,23 +159,36 @@ const Map = () => {
     centerMapOnPosition(map, position)
   }, [map, position])
 
+  const pathPositions = useMemo(
+    () => (reviews?.length ? reviewMarkers.map((m) => m.position) : []),
+    [reviews?.length, reviewMarkers]
+  )
+
   useEffect(() => {
-    centerMapOnPositions(map, reviewPositions)
-  }, [map, reviewPositions])
+    centerMapOnPositions(map, pathPositions)
+  }, [map, pathPositions])
 
   if (loading) {
-    return <div className={style.mapContainer}>지도를 불러오는 중...</div>
+    return <div className="w-full h-full">지도를 불러오는 중...</div>
   }
 
   if (error) {
-    return <div className={style.mapContainer}>지도를 불러오는 중 오류가 발생했습니다: {error.message}</div>
+    return <div className="w-full h-full">지도를 불러오는 중 오류가 발생했습니다: {error.message}</div>
   }
-  const onMarkerClick = () => {
-    setIsModalOpen(true)
+
+  const handleRestaurantMarkerClick = () => {
+    if (!selectedRestaurant) return
+    // setActiveTab?.('restaurants')
+    // setSelectedRestaurant?.(selectedRestaurant)
+  }
+
+  const handleUserPathMarkerClick = (restaurant) => {
+    setActiveTab?.('restaurants')
+    setSelectedRestaurant?.(restaurant)
   }
 
   return (
-    <div className={style.mapContainer}>
+    <div className="w-full h-full">
       <KakaoMap
         id="map"
         center={center}
@@ -187,20 +203,20 @@ const Map = () => {
         {position && (
           <MapMarker
             position={position}
-            onClick={onMarkerClick}
+            onClick={handleRestaurantMarkerClick}
           />
         )}
 
-        {reviewPositions.map((pos, idx) => (
+        {reviewMarkers.map(({ position: pos, restaurant }, idx) => (
           <MapMarker
             key={`review-marker-${idx}`}
             position={pos}
-          // onClick 등 필요하면 추가
+            onClick={() => handleUserPathMarkerClick(restaurant)}
           />
         ))}
-        {reviewPositions.length >= 2 && (
+        {pathPositions.length >= 2 && (
           <Polyline
-            path={reviewPositions}
+            path={pathPositions}
             strokeWeight={4}
             strokeColor="#FF0000"
             strokeOpacity={0.8}

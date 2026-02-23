@@ -1,15 +1,8 @@
-import { useState, createContext } from "react"
+import { useState, createContext, useMemo, useCallback } from "react"
 import style from "./map-layout.module.css"
 import { Outlet } from "react-router"
-import UserList from "../map/map-user-list"
-import RestaurantList from "../map/map-restaurant-list"
-import RestaurantListPage from "../../pages/restaurant-list-page"
-import RestaurantDetailPage from "../../pages/restaurant-detail-page"
-import { mockUsers, mockRestaurants } from "../../data/mockData"
-import MapRestaurantModal from "../map/map-restaurant-modal"
-import UserListPage from "../../pages/user-list-page"
-import UserDetailPage from "../../pages/user-detail-page"
-
+import ListPanel from "./ListPanel"
+import SidebarTabs from "./SidebarTabs"
 
 export const DetailStateContext = createContext()
 // 하나의 컨택스트라는 공간을 만들어서 Provider 안에 선언된 컴포넌트들은 모두 이 해당 컨택스트에 접근할 수 있다.
@@ -18,84 +11,80 @@ const MapLayout = () => {
   const [activeTab, setActiveTab] = useState(null)
   const [selectedUser, setSelectedUser] = useState()
   const [selectedRestaurant, setSelectedRestaurant] = useState()
-  const [isModalOpen, setIsModalOpen] = useState(false)
+  const [selectedFeed, setSelectedFeed] = useState()
 
-  const handleTabClick = (tab) => {
-    setActiveTab(activeTab === tab ? null : tab)
-  }
+  const handleTabClick = useCallback((tab) => {
+    setActiveTab((prev) => (prev === tab ? null : tab))
+  }, [])
 
-  const handleSelectUser = (user) => {
-    setSelectedUser((prev) => (prev?.id === user?.id ? null : user))
-  }
+  const currentSelection = useMemo(
+    () => ({ user: selectedUser, restaurant: selectedRestaurant, feed: selectedFeed }),
+    [selectedUser, selectedRestaurant, selectedFeed]
+  )
+  const selectionSetters = useMemo(
+    () => ({
+      user: setSelectedUser,
+      restaurant: setSelectedRestaurant,
+      feed: setSelectedFeed,
+    }),
+    []
+  )
 
-  const handleSelectRestaurant = (restaurant) => {
-    setSelectedRestaurant((prev) => (prev?.id === restaurant?.id ? null : restaurant))
-  }
+  const selectOnly = useCallback((payload) => {
+    const key = Object.keys(payload).find((k) => payload[k] !== undefined)
+    if (!key || !selectionSetters[key]) return
+
+    const value = payload[key]
+    const isTogglingOff = currentSelection[key]?.id === value?.id
+    selectionSetters[key](isTogglingOff ? null : value)
+
+    Object.keys(selectionSetters).forEach((k) => {
+      if (k !== key) selectionSetters[k](null)
+    })
+  }, [currentSelection, selectionSetters])
+
+  const handleSelectUser = useCallback((user) => selectOnly({ user }), [selectOnly])
+  const handleSelectRestaurant = useCallback((restaurant) => selectOnly({ restaurant }), [selectOnly])
+  const handleSelectFeed = useCallback((feed) => selectOnly({ feed }), [selectOnly])
+
+  const contextValue = useMemo(
+    () => ({
+      activeTab,
+      setActiveTab,
+      onTabClick: handleTabClick,
+      selectedUser,
+      setSelectedUser: handleSelectUser,
+      selectedRestaurant,
+      setSelectedRestaurant: handleSelectRestaurant,
+      selectedFeed,
+      setSelectedFeed: handleSelectFeed,
+    }),
+    [
+      activeTab,
+      selectedUser,
+      selectedRestaurant,
+      selectedFeed,
+      handleTabClick,
+      handleSelectUser,
+      handleSelectRestaurant,
+      handleSelectFeed,
+    ]
+  )
 
   return (
     <div className={style.mapSidebarContainer}>
       <div className={style.leftContainer}>
-        <div className={style.leftSidebar}>
-          <button
-            className={`${style.leftSidebarBtn} ${activeTab === 'users' ? style.active : ''}`}
-            onClick={() => handleTabClick('users')}
-          >
-            고수<br />목록
-          </button>
-          <button
-            className={`${style.leftSidebarBtn} ${activeTab === 'restaurants' ? style.active : ''}`}
-            onClick={() => handleTabClick('restaurants')}
-          >
-            맛집<br />목록
-          </button>
-          <button
-            className={`${style.leftSidebarBtn} ${activeTab === 'feed' ? style.active : ''}`}
-            onClick={() => handleTabClick('feed')}
-          >
-            피드
-          </button>
-        </div>
 
-        <DetailStateContext.Provider
-          value={{
-            mockUsers,
-            mockRestaurants,
-            selectedUser,
-            setSelectedUser: handleSelectUser,
-            selectedRestaurant,
-            setSelectedRestaurant: handleSelectRestaurant,
-            isModalOpen,
-            setIsModalOpen,
-          }}>
-          <div className="bg-transparent flex gap-4">
-            {activeTab && (
-              <div className={style.leftSidebarDetail}>
-                {activeTab === 'users' && <UserListPage />}
-                {activeTab === 'restaurants' && <RestaurantListPage />}
-                {activeTab === 'feed' && <div>피드 기능은 준비 중입니다.</div>}
-              </div>
-            )}
-            {activeTab === 'restaurants' && selectedRestaurant && (
-              <div className={style.leftSidebarDoubleDetail}>
-                <div className={style.leftSidebarDoubleDetailInner}>
-                  <RestaurantDetailPage />
-                </div>
-              </div>
-            )}
-            {activeTab === 'users' && selectedUser && (
-              <div className={style.leftSidebarDoubleDetail}>
-                <div className={style.leftSidebarDoubleDetailInner}>
-                  <UserDetailPage />
-                </div>
-              </div>
-            )}
+        <DetailStateContext.Provider value={contextValue}>
+          <div className={style.leftContainerInner}>
+            <SidebarTabs />
+            <div className="bg-transparent flex gap-4">
+              <ListPanel activeTab={activeTab} />
+            </div>
+            <div className={style.outlet}>
+              <Outlet />
+            </div>
           </div>
-
-          <div className={style.outlet}>
-
-            <Outlet />
-          </div>
-          <MapRestaurantModal />
         </DetailStateContext.Provider>
       </div>
 

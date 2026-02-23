@@ -10,6 +10,7 @@ export const QUERY_KEYS = {
   user: {
     all: ["user"],
     list: ["user", "list"],
+    random: ["user", "random"],
     detail: (id) => ["user", "detail", id]
   },
   restaurant: {
@@ -19,3 +20,5 @@ export const QUERY_KEYS = {
     detail: (id) => ["restaurant", "detail", id]
   }
 }
+
+export const MAP_LAYOUT_TABS = { USERS: 'users', RESTAURANTS: 'restaurants', FEED: 'feed' }
