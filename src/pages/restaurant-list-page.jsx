@@ -7,20 +7,37 @@ import SearchBar from "../components/restaurant/searchBar";
 import Button from "../components/common/button";
 import RegisterRestaurantModal from "../components/restaurant/registerRestaurantModal";
 
-import { useRestaurants } from "../hooks/queries/use-restaurants-data";
+import { InfiniteScrollTrigger } from "../components/common/infiniteScrollTrigger";
+
+import { useInfiniteRestaurants } from "../hooks/queries/use-restaurants-data";
 
 const RestaurantListPage = () => {
   // Hook 이용 : TanStack Query로 데이터 가져오기
-  const { data: restaurantsData, isLoading, isError, error } = useRestaurants();
-  console.log(restaurantsData);
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+    isError,
+    error,
+  } = useInfiniteRestaurants();
 
   const [keyword, setKeyword] = useState(""); // 입력 중인 글자
   const [searchQuery, setSearchQuery] = useState(""); // 검색 실행된 단어
-
   const [isModalOpen, setIsModalOpen] = useState(false); // 맛집 등록 모달
+  const [activeTab, setActiveTab] = useState("all"); // 탭
 
-  // 탭
-  const [activeTab, setActiveTab] = useState("all");
+  // 여러 페이지로 나뉜 데이터를 하나의 배열로 합치기
+  const allRestaurants = useMemo(() => {
+    if (!data?.pages) return [];
+    const list = data.pages.flatMap((page) => {
+      if (Array.isArray(page)) return page; // 백엔드가 배열을 그대로 보낸 경우
+      if (page && Array.isArray(page.data)) return page.data; // { data: [...] } 형태인 경우
+      return [];
+    });
+    return list.filter(Boolean);
+  }, [data]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -36,50 +53,39 @@ const RestaurantListPage = () => {
   };
 
   // 검색 버튼 누르거나 엔터 쳤을 때 실행
-  const handleSearch = () => {
-    if (keyword.trim() === "") {
-      setSearchQuery(""); // 검색어 초기화
-      return;
+  const handleSearch = () => setSearchQuery(keyword);
+
+  // 필터링 로직 (allRestaurants를 기준으로 검색/좋아요 필터링)
+  const filteredRestaurants = useMemo(() => {
+    let list = allRestaurants
+      .filter((r) => r != null)
+      .map((r) => ({
+        ...r,
+        thumbnail:
+          r.thumbnail ||
+          "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80",
+      }));
+
+    // [탭 필터링]
+    if (activeTab === "liked") {
+      list = list.filter((r) => r.isLiked);
     }
-    setSearchQuery(keyword);
-  };
 
-  // 이미지가 있는 맛집만 필터링하고, 검색어로 필터링
-  const restaurants = useMemo(() => {
-    const list = restaurantsData ?? [];
-    if (!list.length) return [];
-
-    const displayImages = list.map((r) => ({
-      ...r,
-      thumbnail:
-        r.thumbnail ||
-        "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80",
-    }));
-
-    let filtered = displayImages.filter((r) => r.thumbnail);
-
-    // 검색어
+    // [검색어 필터링]
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
-      filtered = filtered.filter((r) => {
-        const nameMatch = r.name?.toLowerCase().includes(query) ?? false;
-        const addressMatch = r.address?.toLowerCase().includes(query) ?? false;
-        const tagMatch =
-          r.tags?.some((tag) => tag?.toLowerCase().includes(query)) ?? false;
+      list = list.filter((r) => {
+        const nameMatch = r.name?.toLowerCase().includes(query);
+        const addressMatch = r.address?.toLowerCase().includes(query);
+        const tagMatch = r.tags?.some((tag) =>
+          tag?.toLowerCase().includes(query),
+        );
         return nameMatch || addressMatch || tagMatch;
       });
     }
 
-    return filtered;
-  }, [restaurantsData, searchQuery]); // 의존성 배열에 'data'를 추가해야 데이터가 바뀔 때 화면이 갱신됨!!
-
-  const filteredRestaurant = useMemo(() => {
-    if (activeTab === "liked") {
-      return restaurantsData?.filter((restaurant) => restaurant.isLiked) ?? [];
-    }
-
-    return restaurants;
-  }, [activeTab, restaurantsData, restaurants]);
+    return list;
+  }, [allRestaurants, searchQuery, activeTab]);
 
   const tabs = [
     { id: "all", label: "모든 맛집" },
@@ -111,7 +117,6 @@ const RestaurantListPage = () => {
 
         {/* ✅ 탭 내용 영역 */}
         <div className="w-full px-5 py-6 pb-24">
-          {/* 🔍 검색바 (모든 맛집 탭에서만 노출) */}
           {activeTab === "all" && (
             <SearchBar
               value={keyword}
@@ -126,20 +131,29 @@ const RestaurantListPage = () => {
             </div>
           ) : (
             <div className="flex flex-col gap-2">
-              {filteredRestaurant.length > 0 ? (
-                filteredRestaurant.map((restaurant) => (
-                  <div
-                    key={restaurant.id}
-                    className="flex justify-center w-full"
-                  >
-                    {activeTab === "all" ? (
-                      <RestaurantListCard restaurant={restaurant} />
-                    ) : (
-                      // <RestaurantCard restaurant={restaurant} />
-                      <RestaurantListCard restaurant={restaurant} />
-                    )}
-                  </div>
-                ))
+              {filteredRestaurants.length > 0 ? (
+                <>
+                  {filteredRestaurants.map((restaurant) => (
+                    <div
+                      key={restaurant.id}
+                      className="flex justify-center w-full"
+                    >
+                      {activeTab === "all" ? (
+                        <RestaurantListCard restaurant={restaurant} />
+                      ) : (
+                        <RestaurantCard restaurant={restaurant} />
+                      )}
+                    </div>
+                  ))}
+                  {/* 무한 스크롤: 리스트 끝에 도달하면 다음 페이지 로드 */}
+                  {activeTab === "all" && (
+                    <InfiniteScrollTrigger
+                      onIntersect={fetchNextPage}
+                      hasNextPage={hasNextPage}
+                      isFetchingNextPage={isFetchingNextPage}
+                    />
+                  )}
+                </>
               ) : (
                 <div className="py-20 text-center text-gray-400">
                   {activeTab === "all" ? (
