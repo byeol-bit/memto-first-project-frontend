@@ -1,13 +1,35 @@
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import Review from "../components/review/review";
 
 import { useReviews } from "../hooks/queries/use-reviews-data";
 
+import { InfiniteScrollTrigger } from "../components/common/infiniteScrollTrigger";
+
+import { useInfiniteReviews } from "../hooks/queries/use-reviews-data";
+
 const FeedPage = () => {
-  const { data: reviewsData, isLoading: isReviewsLoading } = useReviews();
+  const {
+    data,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading: isReviewsLoading,
+    isError,
+    error,
+  } = useInfiniteReviews();
 
   const [activeTab, setActiveTab] = useState("latest");
-  console.log(reviewsData);
+
+  // 여러 페이지를 하나의 배열로 합치기 (axios는 response.data만 반환)
+  const allReviews = useMemo(() => {
+    if (!data?.pages) return [];
+    const list = data.pages.flatMap((page) => {
+      if (Array.isArray(page)) return page;
+      if (page && Array.isArray(page.data)) return page.data;
+      return [];
+    });
+    return list.filter(Boolean);
+  }, [data]);
 
   const tabs = [
     { id: "latest", label: "최신 리뷰" },
@@ -16,8 +38,8 @@ const FeedPage = () => {
 
   const filteredReviews =
     activeTab === "liked"
-      ? (reviewsData?.filter((review) => review.isLiked) ?? [])
-      : (reviewsData ?? []);
+      ? allReviews.filter((review) => review.isLiked)
+      : allReviews;
 
   return (
     <div className="flex justify-center min-h-screen">
@@ -43,17 +65,29 @@ const FeedPage = () => {
         <div className="w-full px-5 py-6 pb-24">
           {isReviewsLoading ? (
             <div className="py-20 text-center text-gray-500">
-              맛집 데이터를 불러오는 중... 😋
+              리뷰를 불러오는 중... 😋
+            </div>
+          ) : isError ? (
+            <div className="py-20 text-center text-gray-500">
+              에러가 발생했어요: {error?.message}
             </div>
           ) : (
             <div className="flex flex-col gap-7">
               {filteredReviews.length > 0 ? (
-                filteredReviews.map((review) => (
-                  <div key={review.id} className="flex justify-center w-full">
-                    {/* Review 컴포넌트 렌더링 */}
-                    <Review reviewData={review} />
-                  </div>
-                ))
+                <>
+                  {filteredReviews.map((review) => (
+                    <div key={review.id} className="flex justify-center w-full">
+                      <Review reviewData={review} />
+                    </div>
+                  ))}
+                  {activeTab === "latest" && (
+                    <InfiniteScrollTrigger
+                      onIntersect={fetchNextPage}
+                      hasNextPage={hasNextPage}
+                      isFetchingNextPage={isFetchingNextPage}
+                    />
+                  )}
+                </>
               ) : (
                 <div className="py-20 text-center text-gray-400">
                   {activeTab === "liked" ? (

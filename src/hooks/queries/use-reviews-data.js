@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import {
   fetchReviews,
   fetchUserReviews,
@@ -55,3 +55,15 @@ export const useReviewLikeStatus = ({ userId, visitId }) =>
     },
     enabled: !!userId && !!visitId,
   });
+
+// 리뷰 용 무한스크롤
+export const useInfiniteReviews = () => {
+  return useInfiniteQuery({
+    queryKey: ["reviews", "feed"],
+    queryFn: ({ pageParam }) => fetchReviews({ cursor: pageParam }),
+    initialPageParam: null,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? lastPage.nextCursor : undefined,
+    staleTime: 0,
+  });
+};

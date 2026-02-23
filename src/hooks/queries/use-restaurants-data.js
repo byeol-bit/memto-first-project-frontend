@@ -1,4 +1,4 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import {
   fetchRestaurants,
   searchRestaurants,
@@ -69,3 +69,16 @@ export const useRestaurantLikeStatus = ({ userId, restaurantId }) =>
     },
     enabled: !!userId && !!restaurantId,
   });
+
+// 맛집 리스트용 무한 스크롤
+export const useInfiniteRestaurants = (filters) => {
+  return useInfiniteQuery({
+    queryKey: ["restaurants", filters],
+    queryFn: ({ pageParam }) =>
+      fetchRestaurants({ cursor: pageParam, ...filters }),
+    initialPageParam: null,
+    getNextPageParam: (lastPage) =>
+      lastPage.hasNext ? lastPage.nextCursor : undefined,
+    staleTime: 1000 * 60 * 5,
+  });
+};
