@@ -148,48 +148,43 @@ const SignUpPage = () => {
   };
 
   // 5. 회원가입 요청 핸들러
-  const handleSignUp = async () => {
-    if (!nickname || !id || !password)
-      return alert("필수 정보를 입력해주세요.");
+  const handleSignUp = async (e) => {
+    e.preventDefault();
+
+    // 1. 유효성 검사 (질문자님이 선언한 변수명 id, nickname 등을 정확히 사용!)
+    if (!id) return alert("아이디를 입력해주세요.");
+    if (!isIdChecked) return alert("아이디 중복확인을 완료해주세요.");
+    if (!password) return alert("비밀번호를 입력해주세요.");
     if (password !== confirmPassword)
       return alert("비밀번호가 일치하지 않습니다.");
-    if (!isIdChecked) return alert("아이디 중복 확인을 해주세요.");
-    if (!isNicknameChecked) return alert("닉네임 중복 확인을 해주세요.");
-
-    if (selectedIdx === null) {
-      return alert("프로필 이미지를 선택해주세요!");
-    }
+    if (!nickname) return alert("닉네임을 입력해주세요.");
+    if (!isNicknameChecked) return alert("닉네임 중복확인을 완료해주세요.");
 
     try {
       const formData = new FormData();
+
       formData.append("loginId", id);
-      formData.append("password", password);
       formData.append("nickname", nickname);
-      formData.append("introduction", introduction);
+      formData.append("password", password);
+      formData.append("introduction", introduction || "");
 
-      // ⭐ [수정 포인트] 기본 이미지 선택 시 PNG 변환 과정 추가
       if (selectedIdx === "upload" && selectedFile) {
-        // A. 직접 업로드 (이미 PNG, JPG일 테니 그대로 전송)
         formData.append("image", selectedFile);
-      } else {
-        // B. 기본 이미지 -> PNG 변환 후 전송
-        try {
-          const pngFile = await createPngFileFromSvg(selectedColor);
-          formData.append("image", pngFile);
-        } catch (convertError) {
-          console.error("이미지 변환 중 오류:", convertError);
-          return alert("프로필 이미지 생성에 실패했습니다.");
-        }
+      } else if (selectedIdx !== null) {
+        const generatedPngFile = await createPngFileFromSvg(selectedColor);
+        formData.append("image", generatedPngFile);
       }
+      const response = await registerUser(formData);
 
-      await registerUser(formData);
-
-      alert(`환영합니다, ${nickname} 고수님! 로그인 페이지로 이동합니다.`);
-      navigate("/sign-in");
+      if (response.status === 201) {
+        alert("회원가입이 완료되었습니다! 로그인 페이지로 이동합니다.");
+        navigate("/sign-in");
+      }
     } catch (error) {
-      console.error(error);
-      const errMsg = error.response?.data?.message || "오류가 발생했습니다.";
-      alert("회원가입 실패: " + errMsg);
+      console.error("회원가입 에러:", error);
+      const errorMessage =
+        error.response?.data?.message || "회원가입에 실패했습니다.";
+      alert(errorMessage);
     }
   };
 
