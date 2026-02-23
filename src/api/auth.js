@@ -56,16 +56,7 @@ export const logoutUser = async () => {
 };
 
 /**
- * 6. 내 정보 조회 (마이페이지 진입 시)
- * Method: GET
- * Endpoint: /users/me (백엔드 경로 확인 필요)
- */
-export const getUserProfile = async () => {
-  return await api.get("/users/my-page");
-};
-
-/**
- * 7. 프로필 수정 (스웨거 반영: PUT /users)
+ * 6. 프로필 수정 (PUT /users)
  * Content-Type: multipart/form-data
  */
 export const updateProfile = async (formData) => {
@@ -77,7 +68,7 @@ export const updateProfile = async (formData) => {
 };
 
 /**
- * 8. 비밀번호 변경 (스웨거 반영: 현재 비번 + 새 비번)
+ * 7. 비밀번호 변경 (현재 비번 + 새 비번)
  */
 export const updatePassword = async (currentPassword, newPassword) => {
   return await api.patch("/users/password", {
@@ -87,7 +78,7 @@ export const updatePassword = async (currentPassword, newPassword) => {
 };
 
 /**
- * 9. 회원 탈퇴 (변경 없음, DELETE /users)
+ * 8. 회원 탈퇴 (DELETE /users)
  */
 export const deleteAccount = async () => {
   return await api.delete("/users");
