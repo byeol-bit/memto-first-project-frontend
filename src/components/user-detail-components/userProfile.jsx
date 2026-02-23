@@ -1,9 +1,7 @@
 import {profileImage} from '../../data/users.mock'
-import { useNavigate } from 'react-router'
 
 
-const UserProfile = ({user, isFollowing=false}) => {
-    const navigate = useNavigate()
+const UserProfile = ({user}) => {
     console.log(user)
     return(
         <div className='flex flex-col items-center texet-center px-4 pt-4'>

@@ -3,18 +3,10 @@ import FollowersList from "../components/follow/followersList"
 import FollowingsList from "../components/follow/followingsList"
 import SelectedTab from "../components/follow/selectedTab"
 
-// react-query..? useEffect..?
 const FollowPage = () => {
     const {id, type} = useParams()
-    let selectedTab = type === 'followings' ? 'followings' : 'followers'
-    // const [followings, setFollowings] = useState([])
-    // const [followers, setFollowers] = useState([])
-
-    // useEffect(() => {
-
-    // })
-
     const navigate = useNavigate()
+    let selectedTab = type === 'followings' ? 'followings' : 'followers'
 
 
     return (

@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query"
 import { createUser } from "../../api/create-user"
 import { QUERY_KEYS } from "../../lib/constants"
+import { followUser, unfollowUser } from "../../api/user.api"
 
 export function useCreateUserMutation() {
   const queryClient = useQueryClient()
@@ -17,6 +18,32 @@ export function useCreateUserMutation() {
     },
     onError: (error) => {
       window.alert(error.message)
+    }
+  })
+}
+
+export const useFollow = (userId) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => followUser(userId),
+
+    onSuccess: () => {
+      queryClient.invalidateQueries(["follow", userId])
+      queryClient.invalidateQueries(["userDetail", userId])
+    }
+  })
+}
+
+export const useUnfollow = (userId) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: () => unfollowUser(userId),
+    
+    onSuccess: () => {
+      queryClient.invalidateQueries(["follow", userId])
+      queryClient.invalidateQueries(["userDetail", userId])
     }
   })
 }

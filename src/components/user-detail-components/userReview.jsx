@@ -1,4 +1,5 @@
 import { useUserReviews } from "../../hooks/queries/use-reviews-data"
+import UserReviewCard from "./userReviewCard"
 const UserReview = ({userId}) => {
     
     const { data: reviews, isLoading, error} = useUserReviews(userId)
@@ -11,9 +12,9 @@ const UserReview = ({userId}) => {
     return(
 
         <div>
-            {reviews.length > 0?( 
+            {reviews?.length > 0?( 
                 reviews.map((review) => (
-                    <div key={review.id}>{review.review}</div>
+                    <UserReviewCard key={review.id} review={review} />
                 ))
             ):(
                 <div>작성된 리뷰가 없습니다.</div>

@@ -8,7 +8,7 @@ const FollowButton = ({isFollowing, onToggle, size='sm'}) => {
         <div 
             className ={`
                 ${sizeStyle[size]}
-                border border-gray-100 shadow-sm font-semibold rounded-lg select-none
+                border border-gray-100 shadow-sm font-semibold rounded-2xl select-none text-center
                 ${isFollowing
                     ? 'text-gray-100 bg-red-400 hover:bg-red-300'
                     : 'text-red-400 bg-white hover:bg-gray-100'

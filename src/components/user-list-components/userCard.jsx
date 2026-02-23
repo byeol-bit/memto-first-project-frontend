@@ -1,6 +1,5 @@
 
 import { useNavigate } from 'react-router'
-import FollowButton from '../user-detail-components/followButton'
 import { useContext } from 'react'
 import { DetailStateContext } from '../layout/map-layout'
 
