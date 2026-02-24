@@ -54,11 +54,12 @@ const TabSection = ({
                   <>
                     <div className="flex items-center gap-3">
                       <img
-                        src={
-                          item.profileImage ||
-                          "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
-                        }
-                        alt="프사"
+                        src={previewImage}
+                        alt="프로필"
+                        onError={(e) => {
+                          e.target.src =
+                            "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+                        }}
                         className="w-10 h-10 rounded-full border border-gray-200 object-cover"
                       />
                       <span className="font-bold text-gray-700">

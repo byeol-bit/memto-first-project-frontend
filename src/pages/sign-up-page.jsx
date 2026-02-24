@@ -46,41 +46,43 @@ const SignUpPage = () => {
     { color: "#FAE3D9", img: `data:image/svg+xml;utf8,${silhouetteIcon}` },
   ];
 
-  // --- 핸들러 함수들 ---
-
   const handleCheckId = async () => {
     if (!id) return alert("아이디를 입력해주세요.");
+
     try {
-      await checkIdDuplicate(id);
-      alert("사용 가능한 아이디입니다.");
-      setIsIdChecked(true);
-    } catch (error) {
-      if (error.response && error.response.status === 409) {
+      const response = await checkIdDuplicate(id);
+
+      if (response.data.isAvailable === true) {
+        alert("사용 가능한 아이디입니다.");
+        setIsIdChecked(true);
+      } else {
         alert("이미 사용 중인 아이디입니다.");
         setIsIdChecked(false);
-      } else {
-        console.warn("⚠️ 서버 에러 무시(테스트):", error);
-        alert("사용 가능한 아이디입니다. (테스트용 통과)");
-        setIsIdChecked(true);
       }
+    } catch (error) {
+      console.error("아이디 중복 검사 에러:", error);
+      alert("서버와 통신 중 문제가 발생했습니다.");
+      setIsIdChecked(false);
     }
   };
 
   const handleCheckNickname = async () => {
     if (!nickname) return alert("닉네임을 입력해주세요.");
+
     try {
-      await checkNicknameDuplicate(nickname);
-      alert("사용 가능한 닉네임입니다.");
-      setIsNicknameChecked(true);
-    } catch (error) {
-      if (error.response && error.response.status === 409) {
+      const response = await checkNicknameDuplicate(nickname);
+
+      if (response.data.isAvailable === true) {
+        alert("사용 가능한 닉네임입니다.");
+        setIsNicknameChecked(true);
+      } else {
         alert("이미 사용 중인 닉네임입니다.");
         setIsNicknameChecked(false);
-      } else {
-        console.warn("⚠️ 서버 에러 무시(테스트):", error);
-        alert("사용 가능한 닉네임입니다. (테스트용 통과)");
-        setIsNicknameChecked(true);
       }
+    } catch (error) {
+      console.error("닉네임 중복 검사 에러:", error);
+      alert("서버와 통신 중 문제가 발생했습니다.");
+      setIsNicknameChecked(false);
     }
   };
 
@@ -104,45 +106,39 @@ const SignUpPage = () => {
   // ⭐ [핵심 수정] SVG를 PNG 파일로 변환하는 함수 (비동기)
   const createPngFileFromSvg = (color) => {
     return new Promise((resolve, reject) => {
-      // 1. 색상이 적용된 SVG 문자열 생성
-      const coloredSvgString = rawSvgString.replace(
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff">',
-        `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff">
-        <rect width="100%" height="100%" fill="${color}" />`,
-      );
+      const svgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="500" height="500">
+        <rect width="100%" height="100%" fill="${color}" />
+        <path fill="#ffffff" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+      </svg>`;
 
-      // 2. SVG를 로드할 이미지 객체 생성
+      const blob = new Blob([svgString], {
+        type: "image/svg+xml;charset=utf-8",
+      });
+      const url = URL.createObjectURL(blob);
       const img = new Image();
-      // SVG 문자열을 Base64로 인코딩하여 이미지 소스로 설정
-      const svgBlob = new Blob([coloredSvgString], { type: "image/svg+xml" });
-      const url = URL.createObjectURL(svgBlob);
 
       img.onload = () => {
-        // 3. 캔버스(Canvas) 생성
         const canvas = document.createElement("canvas");
-        canvas.width = 500; // 해상도 설정 (500x500)
+        canvas.width = 500;
         canvas.height = 500;
         const ctx = canvas.getContext("2d");
 
-        // 4. 이미지를 캔버스에 그리기
         ctx.drawImage(img, 0, 0, 500, 500);
 
-        // 5. 캔버스를 PNG Blob으로 변환
-        canvas.toBlob((blob) => {
-          if (blob) {
-            // 6. Blob을 진짜 File 객체로 변환 (image/png)
-            const pngFile = new File([blob], "default_profile.png", {
+        canvas.toBlob((pngBlob) => {
+          if (pngBlob) {
+            const pngFile = new File([pngBlob], "default_profile.png", {
               type: "image/png",
             });
             resolve(pngFile);
           } else {
             reject(new Error("이미지 변환 실패"));
           }
-          URL.revokeObjectURL(url); // 메모리 정리
+          URL.revokeObjectURL(url);
         }, "image/png");
       };
 
-      img.onerror = (e) => reject(e);
+      img.onerror = (e) => reject(new Error("SVG 로드 실패"));
       img.src = url;
     });
   };
