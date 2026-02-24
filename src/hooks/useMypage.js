@@ -2,17 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import axios from "axios";
 import {
-  getUserProfile,
   updateProfile,
   updatePassword,
   deleteAccount,
-  logoutUser,
   checkNicknameDuplicate,
+  updateUserImage,
 } from "../api/auth";
+import { useLoginState } from "../components/loginstate";
 
 export const useMyPage = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
+
+  const { user, logout, isLoading: isAuthLoading } = useLoginState();
 
   // --- State ---
   const [userInfo, setUserInfo] = useState(null);
@@ -61,53 +63,56 @@ export const useMyPage = () => {
     },
   ];
 
-  // --- API Effects ---
+  const [imgCacheKey] = useState(new Date().getTime());
+
   useEffect(() => {
-    const fetchUserData = async () => {
-      try {
-        const res = await getUserProfile();
+    if (!isAuthLoading && !user) {
+      alert("로그인이 필요한 서비스입니다.");
+      navigate("/sign-in");
+      return;
+    }
 
-        if (res.status === 200 && res.data) {
-          setUserInfo(res.data);
-          setNicknameInput(res.data.nickname);
-          setPreviewImage(res.data.profileImage);
-          setSelectedColor("#ffffff");
+    if (user) {
+      const fetchUserData = async () => {
+        try {
+          setUserInfo(user);
+          setNicknameInput(user.nickname || "");
 
-          if (res.data.id) {
-            const [fRes, ingRes] = await Promise.all([
-              axios.get(`/follows/${res.data.id}/follower-count`),
-              axios.get(`/follows/${res.data.id}/following-count`),
-            ]);
-            setStats({
-              followerCount: fRes.data?.count || 0,
-              followingCount: ingRes.data?.count || 0,
-            });
-          }
+          setPreviewImage(
+            `http://localhost:8080/users/${user.id}/image?t=${imgCacheKey}`,
+          );
+
+          const [fRes, ingRes] = await Promise.all([
+            axios.get(`/follows/${user.id}/follower-count`),
+            axios.get(`/follows/${user.id}/following-count`),
+          ]);
+
+          setStats({
+            followerCount: fRes.data?.count || 0,
+            followingCount: ingRes.data?.count || 0,
+          });
+        } catch (e) {
+          console.error("데이터 로딩 중 에러 발생 :", e);
+        } finally {
+          setIsLoading(false);
         }
-      } catch (e) {
-        if (e.response && e.response.status === 401) {
-          alert("로그인이 필요한 서비스입니다.");
-          navigate("/sign-in");
-        }
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchUserData();
-  }, [navigate]);
+      };
+      fetchUserData();
+    }
+  }, [user, isAuthLoading, navigate, imgCacheKey]);
 
   useEffect(() => {
     const fetchTabData = async () => {
-      if (!userInfo?.id) return;
+      if (!user?.id) return;
       setIsTabLoading(true);
       try {
         let res;
         if (activeTab === "reviews")
-          res = await axios.get(`/visits?userId=${userInfo.id}`);
+          res = await axios.get(`/visits?userId=${user.id}`);
         else if (activeTab === "followers")
-          res = await axios.get(`/follows/followers/${userInfo.id}`);
+          res = await axios.get(`/follows/followers/${user.id}`);
         else if (activeTab === "followings")
-          res = await axios.get(`/follows/followings/${userInfo.id}`);
+          res = await axios.get(`/follows/followings/${user.id}`);
         setTabData(Array.isArray(res?.data) ? res.data : []);
       } catch (e) {
         setTabData([]);
@@ -116,7 +121,7 @@ export const useMyPage = () => {
       }
     };
     fetchTabData();
-  }, [activeTab, userInfo?.id]);
+  }, [activeTab, user?.id]);
 
   // --- Handlers ---
   const handleSelectDefault = (option, index) => {
@@ -136,42 +141,61 @@ export const useMyPage = () => {
     }
   };
 
-  const createSvgFile = (color) => {
-    const coloredSvgString = rawSvgString.replace(
-      'fill="#ffffff">',
-      `fill="#ffffff"><rect width="100%" height="100%" fill="${color}" />`,
-    );
-    const blob = new Blob([coloredSvgString], { type: "image/svg+xml" });
-    return new File([blob], "default_profile.svg", { type: "image/svg+xml" });
+  const createPngFileFromSvg = (color) => {
+    return new Promise((resolve, reject) => {
+      const canvas = document.createElement("canvas");
+      canvas.width = 500;
+      canvas.height = 500;
+      const ctx = canvas.getContext("2d");
+
+      ctx.fillStyle = color;
+      ctx.fillRect(0, 0, 500, 500);
+      ctx.fillStyle = "#ffffff";
+      const scale = 500 / 24;
+      ctx.scale(scale, scale);
+      const iconPath = new Path2D(
+        "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
+      );
+      ctx.fill(iconPath);
+
+      canvas.toBlob((blob) => {
+        if (blob) {
+          resolve(new File([blob], "profile.png", { type: "image/png" }));
+        } else {
+          reject(new Error("변환 실패"));
+        }
+      }, "image/png");
+    });
   };
 
   const saveProfileImage = async () => {
     if (selectedIdx === null && !selectedFile)
       return alert("이미지를 선택해주세요.");
+
     try {
       const formData = new FormData();
-      formData.append("nickname", userInfo.nickname);
-
-      // ⭐ [수정] 스웨거 명세서에 맞춰 profileImage -> image 로 이름 변경!
-      if (selectedIdx === "upload" && selectedFile)
+      if (selectedIdx === "upload" && selectedFile) {
         formData.append("image", selectedFile);
-      else formData.append("image", createSvgFile(selectedColor));
+      } else {
+        const pngFile = await createPngFileFromSvg(selectedColor);
+        formData.append("image", pngFile);
+      }
 
-      await updateProfile(formData);
-      alert("프로필 사진 변경 완료!");
+      await updateUserImage(user.id, formData);
+      alert("프로필 사진이 변경되었습니다!");
       window.location.reload();
     } catch (e) {
-      alert("오류 발생");
+      alert("이미지 업로드에 실패했습니다.");
     }
   };
 
   const handleCheckNickname = async () => {
     try {
       await checkNicknameDuplicate(nicknameInput);
-      alert("사용 가능합니다.");
+      alert("사용 가능한 닉네임입니다.");
       setIsNicknameChecked(true);
     } catch (e) {
-      alert("중복되거나 오류가 있습니다.");
+      alert("이미 사용 중이거나 오류가 발생했습니다.");
       setIsNicknameChecked(false);
     }
   };
@@ -181,29 +205,26 @@ export const useMyPage = () => {
       const formData = new FormData();
       formData.append("nickname", nicknameInput);
       await updateProfile(formData);
-      alert("닉네임 변경 완료!");
+
+      localStorage.setItem("userNickname", nicknameInput);
+      alert("닉네임이 변경되었습니다!");
       window.location.reload();
     } catch (e) {
-      alert("오류 발생");
+      alert("닉네임 변경 중 오류가 발생했습니다.");
     }
   };
 
   const handleUpdatePassword = async () => {
     if (!currentPassword) return alert("현재 비밀번호를 입력해주세요.");
     if (newPassword !== confirmPassword)
-      return alert("새 비밀번호가 일치하지 않습니다.");
+      return alert("새 비밀번호 확인이 일치하지 않습니다.");
 
     try {
       await updatePassword(currentPassword, newPassword);
-      alert("변경 완료. 다시 로그인해주세요.");
-
-      await logoutUser();
-
-      navigate("/sign-in");
+      alert("비밀번호가 변경되었습니다. 다시 로그인해 주세요.");
+      await logout();
     } catch (e) {
-      const errorMsg =
-        e.response?.data?.message || "비밀번호 변경 중 오류가 발생했습니다.";
-      alert(errorMsg);
+      alert(e.response?.data?.message || "비밀번호 변경 실패");
     }
   };
 
@@ -218,29 +239,17 @@ export const useMyPage = () => {
         followingCount: prev.followingCount - 1,
       }));
     } catch (e) {
-      alert("오류 발생");
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      await logoutUser();
-    } catch (e) {
-      console.error(e);
-    } finally {
-      alert("로그아웃 되었습니다.");
-      navigate("/sign-in");
+      alert("처리 중 오류가 발생했습니다.");
     }
   };
 
   const handleDeleteAccount = async () => {
-    if (window.confirm("정말 탈퇴하시겠습니까?")) {
+    if (window.confirm("정말 탈퇴하시겠습니까? 데이터는 복구되지 않습니다.")) {
       try {
         await deleteAccount();
-        alert("탈퇴 완료");
-        navigate("/");
+        await logout();
       } catch (e) {
-        alert("오류 발생");
+        alert("탈퇴 처리 중 오류가 발생했습니다.");
       }
     }
   };
@@ -279,7 +288,7 @@ export const useMyPage = () => {
     setConfirmPassword,
     handleUpdatePassword,
     handleUnfollow,
-    handleLogout,
+    handleLogout: logout,
     handleDeleteAccount,
     defaultOptions,
     selectedIdx,

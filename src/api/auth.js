@@ -19,9 +19,8 @@ export const registerUser = async (formData) => {
  * Method: POST
  * Endpoint: /users/login
  */
-export const loginUser = async (loginId, password) => {
-  // 백엔드가 { loginId, password }를 받는다고 가정
-  return await api.post("/users/login", { loginId, password });
+export const loginUser = async (data) => {
+  return await api.post("/users/login", data);
 };
 
 /**
@@ -82,4 +81,32 @@ export const updatePassword = async (currentPassword, newPassword) => {
  */
 export const deleteAccount = async () => {
   return await api.delete("/users");
+};
+
+/**
+ * 9. 프로필 이미지 등록/수정 (PUT /users/{id}/image)
+ */
+export const updateUserImage = async (id, formData) => {
+  return await api.put(`/users/${id}/image`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+/**
+ * 10. 프로필 이미지 URL 생성 함수 (조회용)
+ * 이 API는 axios로 호출하는 게 아니라, <img> 태그의 src에 바로 넣는 주소를 만듭니다.
+ */
+export const getUserImageUrl = (id) => {
+  if (!id) return "/default-profile.png"; // ID가 없으면 기본 이미지
+  return `${api.defaults.baseURL}/users/${id}/image`;
+};
+
+/**
+ * 11. 내 정보 조회 (GET /users/me)
+ * 로그인 직후, 또는 마이페이지 진입 시 내 정보를 가져옵니다.
+ */
+export const getMyProfile = async () => {
+  return await api.get("/users/me");
 };
