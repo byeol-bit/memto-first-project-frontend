@@ -6,7 +6,7 @@ import FeedPage from "../../pages/feed-page"
 import RestaurantDetailPage from "../../pages/restaurant-detail-page"
 import UserDetailPage from "../../pages/user-detail-page"
 import { DetailStateContext } from "./map-layout"
-import DetailPanel from "./DetailPanel"
+import DetailPanel from "./detail-panel"
 import style from "./map-layout.module.css"
 
 const ListPanel = ({ activeTab }) => {
