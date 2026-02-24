@@ -5,6 +5,7 @@ const LoginStateContext = createContext();
 export const LoginStateProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     const token = localStorage.getItem("accessToken");
     const storedUser = localStorage.getItem("user");
@@ -16,6 +17,8 @@ export const LoginStateProvider = ({ children }) => {
   }, []);
 
   const login = (token, userData) => {
+    console.log('loginToken', token)
+    console.log('userData', userData)
     localStorage.setItem("accessToken", token);
     localStorage.setItem("user", JSON.stringify(userData));
     setUser(userData);

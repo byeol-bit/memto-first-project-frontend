@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import style from "./header.module.css";
 import { Outlet, Link, useNavigate } from "react-router";
 import { useLoginState } from "../loginstate";
 import { logoutUser, getUserProfile } from "../../api/auth";
@@ -75,16 +74,22 @@ const HeaderLayout = () => {
 
   return (
     <div>
-      <header className={style.header}>
-        <div className={`${style.container} ${style.navbarContent}`}>
-          <Link to={"/"} className={style.navbarBrand}>
+      <header className="sticky top-0 z-[100] border-b border-[var(--border-color)] bg-[var(--background-color)] py-4 shadow-[var(--shadow-sm)]">
+        <div className="flex w-full items-center justify-between px-4">
+          <Link
+            to="/"
+            className="text-xl font-bold text-[var(--primary-color)] no-underline"
+          >
             Find hiddenMaster
           </Link>
 
-          <ul className={`${style.navbarMenu} ml-auto`}>
+          <ul className="ml-auto flex list-none gap-6">
             {filteredNav.map((item) => (
-              <li className={style.navbarItem} key={item.id}>
-                <Link to={item.path} className={style.navbarLink}>
+              <li key={item.id} className="flex items-center">
+                <Link
+                  to={item.path}
+                  className="rounded-lg px-4 py-2 text-[var(--text-secondary)] no-underline transition-all duration-150 hover:bg-[var(--background-light)] hover:text-[var(--primary-color)]"
+                >
                   {item.title}
                 </Link>
               </li>

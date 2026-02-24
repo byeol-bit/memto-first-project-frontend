@@ -38,6 +38,7 @@ const SignInPage = () => {
 
     try {
       const response = await loginUser(nickname, password);
+      console.log('login response', response)
 
       if (response.status === 200) {
         login("cookie-session", response.data || { nickname });
