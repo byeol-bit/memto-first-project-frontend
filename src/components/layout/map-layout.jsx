@@ -1,14 +1,15 @@
 import { useState, createContext, useMemo, useCallback } from "react"
 import style from "./map-layout.module.css"
 import { Outlet } from "react-router"
-import ListPanel from "./ListPanel"
-import SidebarTabs from "./SidebarTabs"
+import ListPanel from "./list-panel"
+import SidebarTabs from "./sidebar-tabs"
+import { MAP_LAYOUT_TABS } from "../../lib/constants"
 
 export const DetailStateContext = createContext()
 // 하나의 컨택스트라는 공간을 만들어서 Provider 안에 선언된 컴포넌트들은 모두 이 해당 컨택스트에 접근할 수 있다.
 
 const MapLayout = () => {
-  const [activeTab, setActiveTab] = useState(null)
+  const [activeTab, setActiveTab] = useState(MAP_LAYOUT_TABS.FEED)
   const [selectedUser, setSelectedUser] = useState()
   const [selectedRestaurant, setSelectedRestaurant] = useState()
   const [selectedFeed, setSelectedFeed] = useState()

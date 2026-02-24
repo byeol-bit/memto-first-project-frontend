@@ -3,6 +3,7 @@ import { useRandomUsersData } from "../../hooks/queries/use-random-user-data"
 
 const RandomUsers = ({ onClose }) => {
   const { data: users } = useRandomUsersData()
+  console.log('users', users)
 
   return (
     <div

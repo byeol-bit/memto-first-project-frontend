@@ -4,9 +4,9 @@ import { DetailStateContext } from "./map-layout"
 import style from "./map-layout.module.css"
 
 const TAB_ITEMS = [
+  { tab: MAP_LAYOUT_TABS.FEED, label: "피드" },
   { tab: MAP_LAYOUT_TABS.USERS, label: "고수", subLabel: "목록" },
   { tab: MAP_LAYOUT_TABS.RESTAURANTS, label: "맛집", subLabel: "목록" },
-  { tab: MAP_LAYOUT_TABS.FEED, label: "피드" },
 ]
 
 const SidebarTabs = () => {
