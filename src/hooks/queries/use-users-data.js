@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { fetchUsers } from "../../api/fetch-users"
 import { QUERY_KEYS } from "../../lib/constants";
-import { getFollowersCount, getFollowingCount, getUserDetail, isFollowing, searchUsers, getFollowers, getFollowings } from "../../api/user.api";
+import { getFollowersCount, getFollowingCount, getUserDetail, isFollowing, searchUsers, getFollowers, getFollowings, checkMe } from "../../api/user.api";
 
 export function useUsersData() {
   return useQuery({
@@ -66,10 +66,20 @@ export const useFollowingUsers = (userId, enabled) => {
   })
 }
 
+// 나를 팔로우 하고 있는 유저 리스트
 export const useFollowerUsers = (userId) => {
   return useQuery({
     queryKey: ["follows", "followers", userId],
     queryFn: async() => getFollowers(userId),
     enabled: !!userId
+  })
+}
+
+// 로그인한 유저가 누구인지 확인
+export const useCheckMe = () => {
+  return useQuery({
+    queryKey: ["users", "me"],
+    queryFn: async() => checkMe(),
+    retry: false,
   })
 }

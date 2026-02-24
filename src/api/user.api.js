@@ -23,7 +23,7 @@ export const searchUsers = async ({nickname, category})=> {
         params.category = category;
     }
     // console.log(params)
-    const res = await api.get('users/search', { 
+    const res = await api.get('/users/search', { 
         params,
         paramsSerializer: {
             indexes: null,
@@ -53,7 +53,7 @@ export const getFollowersCount = async (userId) => {
 
 // 팔로잉 개수 체크
 export const getFollowingCount = async (userId) => {
-    const res = await api.get(`follows/${userId}/following-count`)
+    const res = await api.get(`/follows/${userId}/following-count`)
     return res
 }
 
@@ -70,12 +70,18 @@ export const isFollowing = async (userId) => {
 
 // 팔로우
 export const followUser = async (userId) => {
-    const res = await api.post(`follows/${userId}`)
+    const res = await api.post(`/follows/${userId}`)
     return res
 }
 
 // 언팔로우
 export const unfollowUser = async (userId) => {
-    const res = await api.delete(`follows/${userId}`)
+    const res = await api.delete(`/follows/${userId}`)
+    return res
+}
+
+// 로그인한 유저 확인
+export const checkMe = async () => {
+    const res = await api.get('/users/me')
     return res
 }
