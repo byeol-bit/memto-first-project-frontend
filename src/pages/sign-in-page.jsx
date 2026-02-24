@@ -13,37 +13,18 @@ const SignInPage = () => {
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
 
-    // --- 목데이터 시작 (test / 1234) ---
-    if (nickname === "test" && password === "1234") {
-      const mockUser = {
-        nickname: "테스트유저",
-        profileImage:
-          "https://cdn.pixabay.com/photo/2023/01/28/20/23/ai-generated-7751688_1280.jpg",
-        role: "admin", // 전역 상태용 역할 추가
-      };
-      localStorage.setItem("userRole", "admin");
-      login("mock-cookie-session", mockUser);
-
-      alert(
-        "🧪 테스트 계정으로 로그인합니다! (새로고침 시 로그아웃될 수 있습니다)",
-      );
-      navigate("/");
-      return;
-    }
-    // --- 목데이터 종료 ---
-
-    if (!loginId) return alert("아이디를 입력해주세요.");
-    if (!password) return alert("비밀번호를 입력해주세요.");
+    if (!loginId) return alert("아이디를 입력해 주세요.");
+    if (!password) return alert("비밀번호를 입력해 주세요.");
 
     try {
       await login(loginId, password);
 
-      alert("로그인되었습니다! 환영합니다.");
+      alert("로그인에 성공했습니다!");
       navigate("/");
     } catch (error) {
-      console.error("Login Error:", error);
+      console.error("Login Page Error:", error);
       const msg =
-        error.response?.data?.message || "아이디 또는 비밀번호를 확인해주세요.";
+        error.response?.data?.message || "아이디 또는 비밀번호가 틀렸습니다.";
       alert(msg);
     }
   };
@@ -54,7 +35,7 @@ const SignInPage = () => {
         className="text-[#ee5a6f] text-4xl font-black mb-10 cursor-pointer hover:scale-105 transition-transform"
         onClick={() => navigate("/")}
       >
-        숨은 고수 찾기
+        숨은 고수찾기
       </h1>
 
       <div className="w-full max-w-[400px] bg-white px-8 py-10 rounded-2xl shadow-lg border border-gray-100">
