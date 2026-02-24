@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { useNavigate } from "react-router";
 import ImagesUploader from "./imagesUploader";
 
 import { useCreateReviewMutation } from "../../hooks/mutations/use-create-review-mutation";
@@ -8,6 +10,8 @@ const ReviewBottomSheet = ({ open, onClose, restaurant, onSuccess }) => {
   const [content, setContent] = useState("");
   // 이미지
   const [images, setImages] = useState([]);
+  // 툴팁
+  const [showTooltip, setShowTooltip] = useState(false);
 
   // 훅 가져오기
   const { mutate: registerReview, isLoading } = useCreateReviewMutation();
@@ -31,6 +35,7 @@ const ReviewBottomSheet = ({ open, onClose, restaurant, onSuccess }) => {
     const reviewData = {
       restaurantId: Number(targetId), // currentId를 숫자로 확실히 변환
       review: content, // content state를 'review' 필드에 담아서 전송!
+      restaurant: restaurant?.[0] ?? restaurant,
     };
 
     registerReview(reviewData, {
@@ -45,7 +50,7 @@ const ReviewBottomSheet = ({ open, onClose, restaurant, onSuccess }) => {
 
   const restaurantName = restaurant?.name;
 
-  return (
+  return createPortal(
     <>
       {/* 배경 */}
       <div onClick={onClose} className="fixed inset-0 bg-black/40 z-40" />
@@ -126,7 +131,8 @@ const ReviewBottomSheet = ({ open, onClose, restaurant, onSuccess }) => {
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 };
 
