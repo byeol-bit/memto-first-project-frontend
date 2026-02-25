@@ -1,4 +1,7 @@
+import { useEffect, useState } from "react";
+import { useLoginState } from "../components/loginstate";
 import { useMyPage } from "../hooks/useMypage";
+import { getMyProfile } from "../api/auth";
 import ProfileSection from "../components/mypage/ProfileSection";
 import TabSection from "../components/mypage/TabSection";
 import {
@@ -7,10 +10,43 @@ import {
 } from "../components/mypage/MyPageModals";
 
 const MyPage = () => {
+  const { isLoggedIn, isLoading: isAuthLoading } = useLoginState();
   const logic = useMyPage();
+  const [isVerifying, setIsVerifying] = useState(true);
 
-  if (logic.isLoading)
-    return <div className="text-center py-20">로딩 중...</div>;
+  useEffect(() => {
+    const verifySession = async () => {
+      if (isAuthLoading) return;
+      if (!isLoggedIn) {
+        logic.navigate("/sign-in", { replace: true });
+        return;
+      }
+
+      try {
+        await getMyProfile();
+        setIsVerifying(false);
+      } catch (error) {
+        if (error.response?.status === 401) {
+          logic.navigate("/sign-in", { replace: true });
+        }
+      }
+    };
+
+    verifySession();
+  }, [isLoggedIn, isAuthLoading, logic]);
+
+  if (isAuthLoading || isVerifying || logic.isLoading) {
+    return (
+      <div className="flex flex-col justify-center items-center h-screen bg-[#f8f9fa]">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#ee5a6f] mb-4"></div>
+        <p className="text-gray-600 font-bold">
+          보안 확인 및 정보 로딩 중... 🔐
+        </p>
+      </div>
+    );
+  }
+
+  if (!isLoggedIn) return null;
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] py-10 px-4 flex flex-col items-center relative">

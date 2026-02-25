@@ -8,13 +8,51 @@ export const LoginStateProvider = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const savedId = localStorage.getItem("userId");
-    const savedNickname = localStorage.getItem("userNickname");
+    const initAuth = async () => {
+      const currentPath = window.location.pathname;
+      if (currentPath === "/sign-in" || currentPath === "/sign-up") {
+        setIsLoading(false);
+        return;
+      }
+      const savedId = localStorage.getItem("userId");
+      const savedNickname = localStorage.getItem("userNickname");
 
-    if (savedId && savedNickname) {
-      setUser({ id: savedId, nickname: savedNickname });
-    }
-    setIsLoading(false);
+      if (!savedId || !savedNickname) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const res = await getMyProfile();
+        setUser({ id: res.data.id, nickname: res.data.nickname });
+      } catch (error) {
+        if (error.response?.status === 401) {
+          localStorage.clear();
+          setUser(null);
+        }
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    initAuth();
+
+    const handleStorageChange = (e) => {
+      if (
+        e.key === "logoutEvent" ||
+        (e.key === "userId" && e.newValue === null)
+      ) {
+        setUser(null);
+        alert("다른 탭에서 로그아웃되어 로그인 페이지로 이동합니다.");
+        window.location.href = "/sign-in";
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   const isMe = async () => {
@@ -52,7 +90,6 @@ export const LoginStateProvider = ({ children }) => {
   const login = async (loginId, password) => {
     try {
       const loginResponse = await loginUser({ loginId, password });
-
       const realId = loginResponse.data.id;
 
       const profileResponse = await getMyProfile();
@@ -62,10 +99,9 @@ export const LoginStateProvider = ({ children }) => {
       localStorage.setItem("userNickname", realNickname);
 
       setUser({ id: realId, nickname: realNickname });
-
       return true;
     } catch (error) {
-      console.error("로그인 및 정보 획득 실패 :", error);
+      console.error("로그인 실패 :", error);
       throw error;
     }
   };
@@ -77,7 +113,8 @@ export const LoginStateProvider = ({ children }) => {
       console.error("로그아웃 API 에러 :", error);
     } finally {
       localStorage.clear();
-      setUser(null);
+      localStorage.setItem("logoutEvent", Date.now());
+
       alert("로그아웃 되었습니다.");
       window.location.href = "/sign-in";
     }
