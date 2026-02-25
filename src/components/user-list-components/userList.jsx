@@ -6,7 +6,7 @@ const UserList = ({users, isLoading}) => {
     }
 
     if (!users?.length) {
-        return <div className="flex justify-center items-center min-h-screen overflow-hidden">검색 결과가 없습니다.</div>
+        return <div className="flex justify-center items-center py-10">검색 결과가 없습니다.</div>
     }
     return(
         <div>

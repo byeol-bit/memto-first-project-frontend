@@ -11,6 +11,7 @@ const UserCard = ({user}) => {
     const onUserDetailClick = (selectedUser) => {
         if(context?.setSelectedUser) {
             context.setSelectedUser(selectedUser)
+            context.setUserDetailView("detail")
         } else {
             navigate(`/users/${user.id}`)
         }
@@ -18,7 +19,7 @@ const UserCard = ({user}) => {
 
     return (
        <div 
-            className='bg-white rounded-2xl shadow-sm hover:shadow-md transition px-6 pb-4 cursor-pointer fle flex-col gap-4 hover:-translate-y-1' 
+            className='bg-white rounded-2xl shadow-sm hover:shadow-md transition px-6 py-4 cursor-pointer fle flex-col gap-4 hover:-translate-y-1' 
             onClick={() => onUserDetailClick(user)}
         >
             <div className='flex items-center gap-4'>

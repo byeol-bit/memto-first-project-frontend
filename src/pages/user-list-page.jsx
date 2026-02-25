@@ -51,7 +51,7 @@ const UserListPage = () => {
 					onClick={() => setSelectedTab(TABS.LIKED_USERS)}
 				/>
 			</div>
-			<div>
+			<div className="py-8">
 				{/* 고수 리스트 */}
 				{selectedTab === TABS.ALL_USERS && 
 					<div>

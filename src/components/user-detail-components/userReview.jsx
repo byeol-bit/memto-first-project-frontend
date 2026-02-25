@@ -1,4 +1,5 @@
 import { useUserReviews } from "../../hooks/queries/use-reviews-data"
+import Loading from "../loading"
 import UserReviewCard from "./userReviewCard"
 const UserReview = ({userId}) => {
     
@@ -6,7 +7,7 @@ const UserReview = ({userId}) => {
 
     console.log(reviews)
     
-    if(isLoading) return <div>리뷰 목록을 불러오고 있습니다.</div>
+    if(isLoading) return <Loading />
     if(error) return <div>리뷰 목록을 불러오는데 실패했습니다.</div>
 
     return(
@@ -17,7 +18,7 @@ const UserReview = ({userId}) => {
                     <UserReviewCard key={review.id} review={review} />
                 ))
             ):(
-                <div>작성된 리뷰가 없습니다.</div>
+                <div className="flex justify-center py-8">작성된 리뷰가 없습니다.</div>
             )}
         </div>
     )

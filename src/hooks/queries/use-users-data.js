@@ -29,38 +29,41 @@ export const useSearchUsers = ({ nickname, category }) =>
 // 팔로잉 여부 체크
 export const useIsFollowing = (userId) => {
   return useQuery({
-    queryKey: ["follow", userId],
+    queryKey: ["follows", userId, "follow-status"],
     queryFn: async() => {
       const data = await isFollowing(userId)
-      console.log('팔로잉인지 체크중', data.isFollow)
       return data.isFollow
     },
-    enabled: !!userId
+    enabled: !!userId,
+    initialData: false,
+    retry: false,
   })
 }
 
 // 팔로잉 수
 export const useCountFollowing = (userId) => {
   return useQuery({
-    queryKey: ["follows", userId, "following"],
+    queryKey: ["follows", userId, "followings", "count"],
     queryFn: async() => getFollowingCount(userId),
-    enabled: !!userId
+    enabled: !!userId,
+    initialData: 0,
   })
 }
 
 // 팔로워 수
 export const useCountFollower = (userId) => {
   return useQuery({
-    queryKey: ["follows", userId, "follower"],
+    queryKey: ["follows", userId, "followers", "count"],
     queryFn: async() => getFollowersCount(userId),
-    enabled: !!userId
+    enabled: !!userId,
+    initialData: 0,
   })
 }
 
 // 내가 팔로잉 하고 있는 유저 리스트
 export const useFollowingUsers = (userId, enabled) => {
   return useQuery({
-    queryKey: ["follows", "followings", userId],
+    queryKey: ["follows", userId, "followings", "list"],
     queryFn: async() => getFollowings(userId),
     enabled: !!userId && enabled
   })
@@ -69,7 +72,7 @@ export const useFollowingUsers = (userId, enabled) => {
 // 나를 팔로우 하고 있는 유저 리스트
 export const useFollowerUsers = (userId) => {
   return useQuery({
-    queryKey: ["follows", "followers", userId],
+    queryKey: ["follows", userId, "followers", "list"],
     queryFn: async() => getFollowers(userId),
     enabled: !!userId
   })

@@ -1,18 +1,16 @@
 import { useNavigate } from "react-router"
 import {profileImage} from '../../data/users.mock'
 import FollowButton from "../user-detail-components/followButton"
-import { useFollow, useUnfollow } from "../../hooks/mutations/use-create-user-mutation"
+import { useToggleFollow } from "../../hooks/mutations/use-create-user-mutation"
 
-const FollowUserCard = ({user, isFollowing, toggleFollow}) => {
-    const followMutation = useFollow(user.id)
-    const unfollowMutation = useUnfollow(user.id)
+const FollowUserCard = ({user, isFollowing}) => {
+    const {mutate: toggleFollow} = useToggleFollow()
       
     const handleFollowToggle = () => {
-        if(isFollowing) {
-            unfollowMutation.mutate()
-        } else {
-            followMutation.mutate()
-        }
+        toggleFollow({
+            userId: user.id,
+            isFollowing: isFollowing
+        })
     }
 
     const navigate = useNavigate()
