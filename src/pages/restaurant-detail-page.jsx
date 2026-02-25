@@ -5,7 +5,6 @@ import { useParams } from "react-router";
 import MiniMap from "../components/restaurant/miniMap";
 import Gallery from "../components/restaurant/gallery";
 import Review from "../components/review/review";
-import PlusBtn from "../components/common/plusBtn";
 import ReviewBottomSheet from "../components/review/reviewBottomSheet";
 import Like from "../components/common/like";
 import { MapPin, Phone } from "lucide-react";
@@ -51,13 +50,50 @@ const RestaurantDetailPage = () => {
 
   console.log(reviewsData);
 
-  const reviews = reviewsData ?? [];
+  const reviews = useMemo(() => {
+    const list = reviewsData ?? [];
+    if (!list.length) return [];
+
+    return list.map((raw) => {
+      if (!raw || typeof raw !== "object") return raw;
+
+      // 백엔드에서 join 결과가 { 0: {...}, 1: {...}, restaurant: {}, user: {} } 형태로 올 수 있어서
+      // 숫자 키(0, 1, 2...) 안에 있는 객체들을 한 번 평탄화해서 꺼낸다.
+      const mergedFromNumericKeys = Object.entries(raw).reduce(
+        (acc, [key, value]) => {
+          if (
+            !Number.isNaN(Number(key)) &&
+            value &&
+            typeof value === "object"
+          ) {
+            return { ...acc, ...value };
+          }
+          return acc;
+        },
+        {},
+      );
+
+      const base = { ...raw, ...mergedFromNumericKeys };
+
+      const restaurant =
+        base.restaurant && Object.keys(base.restaurant).length
+          ? base.restaurant
+          : (restaurantDetailData ?? null);
+
+      const reviewText = base.review ?? base.rev ?? base.content ?? "";
+
+      return {
+        ...base,
+        restaurant,
+        review: reviewText,
+      };
+    });
+  }, [reviewsData, restaurantDetailData]);
 
   const { data: isLikedFromApi = false } = useRestaurantLikeStatus({
     userId,
     restaurantId,
   });
-
   // 좋아요 mutation 훅들
   const { mutate: likeRestaurant } = useLikeRestaurantMutation();
   const { mutate: unlikeRestaurant } = useUnlikeRestaurantMutation();
@@ -69,6 +105,9 @@ const RestaurantDetailPage = () => {
   useEffect(() => {
     setIsLike(isLikedFromApi);
   }, [isLikedFromApi]);
+
+  // 비로그인 시에는 하트를 항상 빈 상태로 표시
+  const displayIsLike = isLoggedIn ? isLike : false;
 
   // 바텀시트 오픈 플러스 버튼
   const [openBottomSheet, setOpenBottomSheet] = useState(false);
@@ -222,7 +261,7 @@ const RestaurantDetailPage = () => {
 
             <div className="flex flex-col items-center gap-1">
               <Like
-                isLike={isLike}
+                isLike={displayIsLike}
                 onLike={onLike}
                 likeCount={likeCount}
                 className="w-8 h-8"
@@ -311,14 +350,20 @@ const RestaurantDetailPage = () => {
 
           {activeTab === "review" && (
             <div ref={reviewTopRef} className="flex flex-col gap-7">
-              {reviews.length > 0 ? (
+              {isReviewsLoading ? (
+                <div className="py-20 text-center text-gray-500">
+                  리뷰를 불러오는 중... 😋
+                </div>
+              ) : reviews.length > 0 ? (
                 reviews.map((v, index) => (
-                  <Review
+                  <div
                     key={
                       v.id != null ? `review-${v.id}` : `review-opt-${index}`
                     }
-                    reviewData={v}
-                  />
+                    className="flex justify-center w-full"
+                  >
+                    <Review reviewData={v} />
+                  </div>
                 ))
               ) : (
                 <div className="py-20 text-center text-gray-400">

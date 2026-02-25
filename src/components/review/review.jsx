@@ -105,12 +105,16 @@ const Review = ({ reviewData }) => {
   const getRegionName = (address) => {
     if (!address) return "";
     const splitAddress = address.split(" ");
-    return splitAddress[1];
+    return splitAddress[1] ?? "";
   };
 
-  if (!reviewData || !reviewData.restaurant) return null;
-  // 사용
-  const region = getRegionName(reviewData?.restaurant?.address);
+  if (!reviewData) return null;
+
+  const restaurant = reviewData.restaurant ?? {};
+  const region = getRegionName(restaurant?.address);
+  const restaurantName = restaurant?.name ?? "맛집";
+  const reviewText =
+    reviewData.review ?? reviewData.rev ?? reviewData.content ?? "";
 
   return (
     <div className="max-w-sm rounded overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300">
@@ -159,9 +163,7 @@ const Review = ({ reviewData }) => {
             <div className="w-fit bg-red-400 rounded-full px-2.5 py-0.5 text-xs text-white font-medium">
               {region}
             </div>
-            <span className="text-sm text-gray-800">
-              {reviewData?.restaurant.name}
-            </span>
+            <span className="text-sm text-gray-800">{restaurantName}</span>
           </div>
 
           {/* 좋아요 + 개수 */}
@@ -176,7 +178,7 @@ const Review = ({ reviewData }) => {
         {/* 본문 */}
         <div className="mt-3">
           <p className="text-gray-800 text-xm leading-relaxed mb-3">
-            {reviewData?.review}
+            {reviewText}
           </p>
           <span className="text-[11px] text-gray-400 flex">{displayDate}</span>
         </div>
