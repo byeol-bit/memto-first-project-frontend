@@ -8,21 +8,24 @@ const api = axios.create({
   withCredentials: true,
 });
 
+let isAlerted = false;
+
 api.interceptors.response.use(
-  (response) => {
-    return response;
-  },
+  (response) => response,
   (error) => {
-    if (error.response && error.response.status === 401) {
-      console.warn("로그인 세션이 만료되었습니다.");
+    if (error.response?.status === 401) {
+      if (!isAlerted) {
+        isAlerted = true;
+        alert("로그인 세션이 만료되었습니다. 다시 로그인해 주세요.");
+        window.location.href = "/sign-in";
 
-      localStorage.clear();
-
-      alert("로그인 세션이 만료되었습니다. 다시 로그인해 주세요.");
-      window.location.href = "/sign-in";
+        setTimeout(() => {
+          isAlerted = false;
+        }, 5000);
+      }
     }
-
     return Promise.reject(error);
   },
 );
+
 export default api;
