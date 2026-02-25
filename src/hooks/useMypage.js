@@ -254,7 +254,11 @@ export const useMyPage = () => {
     if (window.confirm("정말 탈퇴하시겠습니까? 데이터는 복구되지 않습니다.")) {
       try {
         await deleteAccount();
-        await logout();
+
+        alert("회원탈퇴가 완료되었습니다. 그동안 이용해 주셔서 감사합니다.");
+
+        localStorage.clear();
+        window.location.href = "/";
       } catch (e) {
         alert("탈퇴 처리 중 오류가 발생했습니다.");
       }

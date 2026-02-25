@@ -45,7 +45,6 @@ export const LoginStateProvider = ({ children }) => {
       console.error("로그아웃 API 에러 :", error);
     } finally {
       localStorage.clear();
-      setUser(null);
       alert("로그아웃 되었습니다.");
       window.location.href = "/sign-in";
     }
