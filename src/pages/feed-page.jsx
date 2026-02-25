@@ -1,8 +1,6 @@
 import React, { useMemo, useState } from "react";
 import Review from "../components/review/review";
 
-import { useReviews } from "../hooks/queries/use-reviews-data";
-
 import { InfiniteScrollTrigger } from "../components/common/infiniteScrollTrigger";
 
 import { useInfiniteReviews } from "../hooks/queries/use-reviews-data";
@@ -24,6 +22,7 @@ const FeedPage = () => {
   const allReviews = useMemo(() => {
     if (!data?.pages) return [];
     const list = data.pages.flatMap((page) => {
+      if (page?.list && Array.isArray(page.list)) return page.list;
       if (Array.isArray(page)) return page;
       if (page && Array.isArray(page.data)) return page.data;
       return [];

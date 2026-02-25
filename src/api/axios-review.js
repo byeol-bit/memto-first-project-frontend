@@ -22,8 +22,8 @@ export const createReview = async ({
   모든 리뷰 조회
   GET /visits
 */
-export const fetchReviews = async () => {
-  return await api.get("/visits");
+export const fetchReviews = async (params) => {
+  return await api.get("/visits", { params: params || {} });
 };
 
 /*
@@ -31,7 +31,7 @@ export const fetchReviews = async () => {
   GET /visits/:userId
 */
 export const fetchUserReviews = async (userId) => {
-  return await api.get("/visits", { params: {userId}});
+  return await api.get("/visits", { params: { userId } });
 };
 
 /*
