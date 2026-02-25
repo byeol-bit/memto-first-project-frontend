@@ -2,6 +2,7 @@ import { useState, useRef, useEffect } from "react";
 import style from "./header.module.css";
 import { Outlet, Link } from "react-router";
 import { useLoginState } from "../loginstate";
+import { getUserImageUrl } from "../../api/auth";
 
 const headerData = [
   { id: 1, title: "홈", path: "/" },
@@ -29,7 +30,7 @@ const Header = () => {
 
   const profileSrc =
     isLoggedIn && user?.id
-      ? `http://localhost:8080/users/${user.id}/image?t=${imgCacheKey}`
+      ? `${getUserImageUrl(user.id)}?t=${imgCacheKey}`
       : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
 
   const handleLogoutClick = async () => {

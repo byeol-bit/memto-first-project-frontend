@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+// 🎯 라우터 규칙: react-router에서 가져오기
 import { useNavigate } from "react-router";
 import axios from "axios";
 import {
@@ -7,6 +8,7 @@ import {
   deleteAccount,
   checkNicknameDuplicate,
   updateUserImage,
+  getUserImageUrl, // 🎯 1. 이미지 주소 생성 함수 추가
 } from "../api/auth";
 import { useLoginState } from "../components/loginstate";
 
@@ -78,9 +80,7 @@ export const useMyPage = () => {
           setUserInfo(user);
           setNicknameInput(user.nickname || "");
 
-          setPreviewImage(
-            `http://localhost:8080/users/${user.id}/image?t=${imgCacheKey}`,
-          );
+          setPreviewImage(`${getUserImageUrl(user.id)}?t=${imgCacheKey}`);
 
           const [fRes, ingRes] = await Promise.all([
             axios.get(`/follows/${user.id}/follower-count`),
@@ -123,7 +123,6 @@ export const useMyPage = () => {
     fetchTabData();
   }, [activeTab, user?.id]);
 
-  // --- Handlers ---
   const handleSelectDefault = (option, index) => {
     setPreviewImage(option.img);
     setSelectedColor(option.color);
@@ -139,6 +138,14 @@ export const useMyPage = () => {
       setSelectedColor("#ffffff");
       setSelectedIdx("upload");
     }
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingPhoto(false);
+    setPreviewImage(`${getUserImageUrl(user?.id)}?t=${imgCacheKey}`);
+    setSelectedIdx(null);
+    setSelectedFile(null);
+    setSelectedColor("#ffffff");
   };
 
   const createPngFileFromSvg = (color) => {
@@ -270,6 +277,7 @@ export const useMyPage = () => {
     handleSelectDefault,
     handleFileChange,
     saveProfileImage,
+    handleCancelEdit,
     isNicknameModalOpen,
     setIsNicknameModalOpen,
     nicknameInput,

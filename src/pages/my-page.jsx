@@ -40,6 +40,7 @@ const MyPage = () => {
           fileInputRef={logic.fileInputRef}
           handleFileChange={logic.handleFileChange}
           saveProfileImage={logic.saveProfileImage}
+          handleCancelEdit={logic.handleCancelEdit}
         />
 
         {/* 2. 탭 기능 */}
@@ -103,6 +104,7 @@ const MyPage = () => {
         confirmPassword={logic.confirmPassword}
         setConfirmPassword={logic.setConfirmPassword}
         handleUpdatePassword={logic.handleUpdatePassword}
+        handleCancelEdit={logic.handleCancelEdit}
       />
     </div>
   );
