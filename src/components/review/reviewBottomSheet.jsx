@@ -3,9 +3,19 @@ import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
 import ImagesUploader from "./imagesUploader";
 
+import { useLoginState } from "../loginstate";
+
 import { useCreateReviewMutation } from "../../hooks/mutations/use-create-review-mutation";
 
-const ReviewBottomSheet = ({ open, onClose, restaurant, onSuccess }) => {
+const ReviewBottomSheet = ({
+  open,
+  onClose,
+  restaurant,
+  onSuccess,
+  currentUser,
+}) => {
+  const { user: contextUser } = useLoginState();
+  const user = currentUser ?? contextUser;
   // 리뷰 작성란
   const [content, setContent] = useState("");
   // 이미지
@@ -24,6 +34,11 @@ const ReviewBottomSheet = ({ open, onClose, restaurant, onSuccess }) => {
       return;
     }
 
+    if (!user?.id) {
+      alert("로그인 정보를 불러올 수 없습니다. 다시 로그인해 주세요.");
+      return;
+    }
+
     const targetId = restaurant?.[0]?.id || restaurant?.id;
 
     if (!targetId) {
@@ -33,9 +48,11 @@ const ReviewBottomSheet = ({ open, onClose, restaurant, onSuccess }) => {
     }
 
     const reviewData = {
+      userId: user?.id ?? null,
       restaurantId: Number(targetId), // currentId를 숫자로 확실히 변환
       review: content, // content state를 'review' 필드에 담아서 전송!
       restaurant: restaurant?.[0] ?? restaurant,
+      user: user ? { id: user.id, nickname: user.nickname } : null,
     };
 
     registerReview(reviewData, {
