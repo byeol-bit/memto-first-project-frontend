@@ -4,12 +4,7 @@ import { QUERY_KEYS } from "../../lib/constants"
 
 export function useRandomUsersData() {
   return useQuery({
-    queryFn: async () => {
-      const res = await fetchRandomUsers()
-      if (!res) return []
-      const list = Array.isArray(res) ? res : []
-      return list.slice(0, 3)
-    },
+    queryFn: fetchRandomUsers,
     queryKey: QUERY_KEYS.user.random,
   })
 }

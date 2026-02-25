@@ -1,7 +1,7 @@
 import { useContext } from "react"
 import { MAP_LAYOUT_TABS } from "../../lib/constants"
 import { DetailStateContext } from "./map-layout"
-import DetailPanel from "./DetailPanel"
+import DetailPanel from "./detail-panel"
 import style from "./map-layout.module.css"
 
 import UserListPage from "../../pages/user-list-page"
