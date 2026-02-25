@@ -122,6 +122,7 @@ export const useLikeRestaurantMutation = () => {
       queryClient.invalidateQueries({
         queryKey: ["restaurants", variables.restaurantId, "like-status"],
       });
+      queryClient.invalidateQueries({ queryKey: ["restaurants"] });
     },
   });
 };
@@ -136,6 +137,7 @@ export const useUnlikeRestaurantMutation = () => {
       queryClient.invalidateQueries({
         queryKey: ["restaurants", variables.restaurantId, "like-status"],
       });
+      queryClient.invalidateQueries({ queryKey: ["restaurants"] });
     },
   });
 };
