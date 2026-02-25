@@ -37,7 +37,18 @@ export const createRestaurant = async ({
   모든 식당 조회
   GET /restaurants
 */
-export const fetchRestaurants = async () => {
+export const fetchRestaurants = async (params) => {
+  const rawParams = params || {};
+
+  const cleanedEntries = Object.entries(rawParams).filter(
+    ([, value]) => value != null && value !== "",
+  );
+
+  if (cleanedEntries.length > 0) {
+    const cleanedParams = Object.fromEntries(cleanedEntries);
+    return await api.get("/restaurants", { params: cleanedParams });
+  }
+
   return await api.get("/restaurants");
 };
 

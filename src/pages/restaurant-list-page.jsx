@@ -38,8 +38,9 @@ const RestaurantListPage = () => {
   const allRestaurants = useMemo(() => {
     if (!data?.pages) return [];
     const list = data.pages.flatMap((page) => {
-      if (Array.isArray(page)) return page; // 백엔드가 배열을 그대로 보낸 경우
-      if (page && Array.isArray(page.data)) return page.data; // { data: [...] } 형태인 경우
+      if (page?.list && Array.isArray(page.list)) return page.list;
+      if (Array.isArray(page)) return page;
+      if (page && Array.isArray(page.data)) return page.data;
       return [];
     });
     return list.filter(Boolean);
