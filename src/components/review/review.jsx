@@ -108,10 +108,9 @@ const Review = ({ reviewData }) => {
     return splitAddress[1];
   };
 
+  if (!reviewData || !reviewData.restaurant) return null;
   // 사용
-  const region = getRegionName(reviewData?.restaurant.address);
-
-  if (!reviewData) return null;
+  const region = getRegionName(reviewData?.restaurant?.address);
 
   return (
     <div className="max-w-sm rounded overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300">
