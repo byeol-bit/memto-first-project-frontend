@@ -15,12 +15,25 @@ export const LoginStateProvider = ({ children }) => {
       setUser({ id: savedId, nickname: savedNickname });
     }
     setIsLoading(false);
+
+    const handleStorageChange = (e) => {
+      if ((e.key === "userId" && e.newValue === null) || e.key === null) {
+        setUser(null);
+        alert("다른 탭이나 기기에서 로그아웃되어 강제 로그아웃 처리됩니다.");
+        window.location.href = "/sign-in";
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+
+    return () => {
+      window.removeEventListener("storage", handleStorageChange);
+    };
   }, []);
 
   const login = async (loginId, password) => {
     try {
       const loginResponse = await loginUser({ loginId, password });
-
       const realId = loginResponse.data.id;
 
       const profileResponse = await getMyProfile();
