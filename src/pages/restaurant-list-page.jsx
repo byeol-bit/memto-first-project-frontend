@@ -34,6 +34,8 @@ const RestaurantListPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false); // 맛집 등록 모달
   const [activeTab, setActiveTab] = useState("all"); // 탭
 
+  const displayTab = !isLoggedIn && activeTab === "liked" ? "all" : activeTab;
+
   // 여러 페이지로 나뉜 데이터를 하나의 배열로 합치기
   const allRestaurants = useMemo(() => {
     if (!data?.pages) return [];
@@ -74,7 +76,7 @@ const RestaurantListPage = () => {
       }));
 
     // [탭 필터링]
-    if (activeTab === "liked") {
+    if (displayTab === "liked") {
       list = list.filter((r) => r.isLiked);
     }
 
@@ -92,7 +94,7 @@ const RestaurantListPage = () => {
     }
 
     return list;
-  }, [allRestaurants, searchQuery, activeTab]);
+  });
 
   const handleFirstReviewClick = async () => {
     const isUser = await isMe();
@@ -106,10 +108,12 @@ const RestaurantListPage = () => {
     setIsModalOpen(true);
   };
 
-  const tabs = [
-    { id: "all", label: "모든 맛집" },
-    { id: "liked", label: "관심 목록" },
-  ];
+  const tabs = isLoggedIn
+    ? [
+        { id: "all", label: "모든 맛집" },
+        { id: "liked", label: "관심 목록" },
+      ]
+    : [{ id: "all", label: "모든 맛집" }];
 
   if (isLoading) return <div>맛집 정보를 불러오는 중입니다</div>;
   if (isError) return <div>에러가 발생했어요: {error.message}</div>;
@@ -124,7 +128,7 @@ const RestaurantListPage = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 py-4 text-sm font-bold transition-colors ${
-                activeTab === tab.id
+                displayTab === tab.id
                   ? "text-black border-b-2 border-black"
                   : "text-gray-400"
               }`}
@@ -136,7 +140,7 @@ const RestaurantListPage = () => {
 
         {/* ✅ 탭 내용 영역 */}
         <div className="w-full px-5 py-6 pb-24">
-          {activeTab === "all" && (
+          {displayTab === "all" && (
             <SearchBar
               value={keyword}
               onChange={handleKeywordChange}
@@ -157,7 +161,7 @@ const RestaurantListPage = () => {
                       key={restaurant.id}
                       className="flex justify-center w-full"
                     >
-                      {activeTab === "all" ? (
+                      {displayTab === "all" ? (
                         <RestaurantCard restaurant={restaurant} />
                       ) : (
                         // <RestaurantListCard restaurant={restaurant} />
@@ -166,7 +170,7 @@ const RestaurantListPage = () => {
                     </div>
                   ))}
                   {/* 무한 스크롤: 리스트 끝에 도달하면 다음 페이지 로드 */}
-                  {activeTab === "all" && (
+                  {displayTab === "all" && (
                     <InfiniteScrollTrigger
                       onIntersect={fetchNextPage}
                       hasNextPage={hasNextPage}
@@ -176,7 +180,7 @@ const RestaurantListPage = () => {
                 </>
               ) : (
                 <div className="py-20 text-center text-gray-400">
-                  {activeTab === "all" ? (
+                  {displayTab === "all" ? (
                     <div>
                       <p className="text-gray-500 text-lg mb-4">
                         찾으시는 맛집이 아직 없습니다 😭
