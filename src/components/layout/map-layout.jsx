@@ -1,7 +1,7 @@
 import { useState, createContext, useMemo, useCallback } from "react"
 import style from "./map-layout.module.css"
 import { Outlet } from "react-router"
-import ListPanel from "./ListPanel"
+import ListPanel from "./list-panel"
 import SidebarTabs from "./SidebarTabs"
 
 export const DetailStateContext = createContext()
