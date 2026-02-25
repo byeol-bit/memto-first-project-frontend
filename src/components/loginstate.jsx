@@ -17,6 +17,38 @@ export const LoginStateProvider = ({ children }) => {
     setIsLoading(false);
   }, []);
 
+  const isMe = async () => {
+    try {
+      const response = await getMyProfile();
+      const userData = response?.data ?? response;
+
+      console.log("[isMe] API 응답 (getMyProfile):", response);
+      console.log("[isMe] userData (저장할 원본):", userData);
+
+      if (userData?.id != null) {
+        const nextUser = {
+          ...userData,
+          id: String(userData.id),
+          nickname: userData.nickname ?? userData.userNickname ?? "",
+        };
+        console.log("[isMe] user에 저장되는 값:", nextUser);
+        setUser(nextUser);
+        return nextUser;
+      } else {
+        setUser(null);
+        return null;
+      }
+    } catch (error) {
+      const status = error.response?.status;
+      if (status === 401 || status === 403) {
+        setUser(null);
+      }
+      return null;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const login = async (loginId, password) => {
     try {
       const loginResponse = await loginUser({ loginId, password });
@@ -53,7 +85,7 @@ export const LoginStateProvider = ({ children }) => {
 
   return (
     <LoginStateContext.Provider
-      value={{ user, isLoggedIn: !!user, login, logout, isLoading }}
+      value={{ user, isLoggedIn: !!user, login, logout, isLoading, isMe }}
     >
       {children}
     </LoginStateContext.Provider>

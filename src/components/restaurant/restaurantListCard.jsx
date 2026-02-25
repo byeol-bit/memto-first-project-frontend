@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Link } from "react-router";
+import Like from "../common/like";
 
 import { useContext } from "react";
 import { DetailStateContext } from "../layout/map-layout";
@@ -9,8 +10,21 @@ const RestaurantListCard = ({ restaurant }) => {
 
   const { id, name, category, expertCount, address, thumbnail } = restaurant;
 
+  const [isLike, setIsLike] = useState(true);
+
+  const onLike = (e) => {
+    e?.stopPropagation?.();
+    setIsLike((prev) => !prev);
+  };
+
   const onRestaurantDetailClick = () => {
     context.setSelectedRestaurant(restaurant);
+  };
+
+  const getShortAddress = (address) => {
+    if (!address) return "";
+    const splitAddress = address.split(" ");
+    return splitAddress.slice(0, 3).join(" ");
   };
 
   const Res_card = (
@@ -37,7 +51,7 @@ const RestaurantListCard = ({ restaurant }) => {
 
         {/* 주소 + 고수 추천 */}
         <p className="text-gray-700 text-sm">
-          📍 {address}
+          📍 {getShortAddress(restaurant.address)}
           <br />
           <span className="inline-block mt-1 text-xs text-gray-500">
             🏆 고수 <b>{expertCount}명</b>이 인정했어요!
@@ -48,7 +62,13 @@ const RestaurantListCard = ({ restaurant }) => {
   );
 
   return (
-    <div className="block w-full mb-6">
+    <div className="block w-full mb-6 relative">
+      <div
+        className="absolute top-2 right-2 z-10"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <Like isLike={isLike} onLike={onLike} className="w-6 h-6" />
+      </div>
       {!context ? (
         /* context가 없을 때: 상세 페이지로 이동하는 Link 사용 */
         <Link to={`/restaurants/${id}`} className="block w-full">

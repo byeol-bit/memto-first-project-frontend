@@ -42,7 +42,6 @@ export const useCreateReviewMutation = () => {
     onSuccess: (newReview, variables, context) => {
       const realReview = newReview?.data ?? newReview;
 
-      // ✅ UI 구조로 normalize
       const normalizedReview = {
         ...realReview,
         review: realReview.review ?? realReview.content ?? variables.review,
@@ -50,9 +49,12 @@ export const useCreateReviewMutation = () => {
         optimistic: false,
       };
 
-      queryClient.setQueryData(context.queryKey, (old = []) => {
-        return [normalizedReview, ...old.filter((r) => !r.optimistic)];
-      });
+      if (context?.queryKey) {
+        queryClient.setQueryData(context.queryKey, (old = []) => {
+          return [normalizedReview, ...old.filter((r) => !r.optimistic)];
+        });
+        queryClient.invalidateQueries({ queryKey: context.queryKey });
+      }
     },
   });
 };

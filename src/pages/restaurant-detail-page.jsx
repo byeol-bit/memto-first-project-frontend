@@ -1,5 +1,6 @@
 import React from "react";
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 import { useParams } from "react-router";
 import MiniMap from "../components/restaurant/miniMap";
 import Gallery from "../components/restaurant/gallery";
@@ -22,6 +23,8 @@ import {
   useUnlikeRestaurantMutation,
 } from "../hooks/mutations/use-create-restaurant-mutation";
 
+import { useLoginState } from "../components/loginstate";
+
 const RestaurantDetailPage = () => {
   const context = useContext(DetailStateContext);
   const { id } = useParams();
@@ -29,6 +32,7 @@ const RestaurantDetailPage = () => {
 
   // ID 결정 로직
   const currentId = Number(context?.selectedRestaurant?.id || id);
+  const restaurantId = currentId;
 
   const {
     data: restaurantDetailData,
@@ -38,6 +42,10 @@ const RestaurantDetailPage = () => {
 
   console.log(restaurantDetailData);
 
+  const { user, isLoggedIn, isMe } = useLoginState();
+  const navigate = useNavigate();
+  const userId = user?.id ?? null;
+
   const { data: reviewsData, isLoading: isReviewsLoading } =
     useRestaurantReviews(Number(restaurantDetailData?.id));
 
@@ -45,24 +53,9 @@ const RestaurantDetailPage = () => {
 
   const reviews = reviewsData ?? [];
 
-  // userId 가져오기 : 로그인 유저 가져올 수 있을 때 삭제 예정!!
-  const userId = useMemo(() => {
-    try {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        return user?.id ?? null;
-      }
-    } catch (e) {
-      console.error("userId 파싱 실패:", e);
-    }
-    return null;
-  }, []);
-
-  const restaurantId = restaurantDetailData?.id;
   const { data: isLikedFromApi = false } = useRestaurantLikeStatus({
-    userId: userId ?? 0,
-    restaurantId: restaurantId ?? 0,
+    userId,
+    restaurantId,
   });
 
   // 좋아요 mutation 훅들
@@ -79,6 +72,8 @@ const RestaurantDetailPage = () => {
 
   // 바텀시트 오픈 플러스 버튼
   const [openBottomSheet, setOpenBottomSheet] = useState(false);
+
+  const [currentReviewUser, setCurrentReviewUser] = useState(null);
 
   // 탭
   const [activeTab, setActiveTab] = useState("home");
@@ -103,11 +98,15 @@ const RestaurantDetailPage = () => {
     ];
   }, [restaurantDetailData]);
 
-  const onLike = () => {
-    if (!userId || !restaurantId) {
+  const onLike = async () => {
+    const isUser = await isMe();
+    if (!isUser) {
       alert("로그인이 필요합니다.");
+      navigate("/sign-in");
       return;
     }
+
+    const currentUserId = isUser.id;
 
     // Optimistic 업데이트
     const newIsLike = !isLike;
@@ -117,7 +116,7 @@ const RestaurantDetailPage = () => {
     // API 호출
     if (newIsLike) {
       likeRestaurant(
-        { userId, restaurantId },
+        { userId: currentUserId, restaurantId },
         {
           onError: (error) => {
             // 실패 시 롤백
@@ -130,7 +129,7 @@ const RestaurantDetailPage = () => {
       );
     } else {
       unlikeRestaurant(
-        { userId, restaurantId },
+        { userId: currentUserId, restaurantId },
         {
           onError: (error) => {
             // 실패 시 롤백
@@ -142,6 +141,17 @@ const RestaurantDetailPage = () => {
         },
       );
     }
+  };
+
+  const handleReviewClick = async () => {
+    const isUser = await isMe();
+    if (!isUser) {
+      alert("로그인이 필요합니다.");
+      navigate("/sign-in");
+      return;
+    }
+    setCurrentReviewUser(isUser);
+    setOpenBottomSheet(true);
   };
 
   const expertsCount = useMemo(() => {
@@ -228,6 +238,29 @@ const RestaurantDetailPage = () => {
             >
               길찾기
             </button>
+            {isLoggedIn && (
+              <button
+                onClick={handleReviewClick}
+                className="flex-1 bg-red-50 py-3 rounded-xl text-red-400 font-bold text-sm"
+              >
+                리뷰 작성
+              </button>
+            )}
+            <ReviewBottomSheet
+              open={openBottomSheet}
+              onClose={() => setOpenBottomSheet(false)}
+              restaurant={restaurantDetailData}
+              currentUser={currentReviewUser}
+              onSuccess={() => {
+                setActiveTab("review");
+                setTimeout(() => {
+                  reviewTopRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }, 100);
+              }}
+            />
           </div>
         </div>
 
@@ -279,7 +312,14 @@ const RestaurantDetailPage = () => {
           {activeTab === "review" && (
             <div ref={reviewTopRef} className="flex flex-col gap-7">
               {reviews.length > 0 ? (
-                reviews.map((v) => <Review key={v.id} reviewData={v} />)
+                reviews.map((v, index) => (
+                  <Review
+                    key={
+                      v.id != null ? `review-${v.id}` : `review-opt-${index}`
+                    }
+                    reviewData={v}
+                  />
+                ))
               ) : (
                 <div className="py-20 text-center text-gray-400">
                   아직 등록된 꿀조합이 없어요. <br />첫 번째 고수가 되어보세요!
@@ -302,23 +342,6 @@ const RestaurantDetailPage = () => {
             </div>
           )}
         </div>
-
-        {/* 리뷰 작성 버튼 */}
-        <PlusBtn onClick={() => setOpenBottomSheet(true)} />
-        <ReviewBottomSheet
-          open={openBottomSheet}
-          onClose={() => setOpenBottomSheet(false)}
-          restaurant={restaurantDetailData}
-          onSuccess={() => {
-            setActiveTab("review");
-            setTimeout(() => {
-              reviewTopRef.current?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-              });
-            }, 100);
-          }}
-        />
       </div>
     </div>
   );

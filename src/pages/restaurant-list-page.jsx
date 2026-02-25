@@ -1,4 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router";
 import { Link } from "react-router";
 
 import RestaurantCard from "../components/restaurant/restaurantCard";
@@ -11,6 +12,8 @@ import { InfiniteScrollTrigger } from "../components/common/infiniteScrollTrigge
 
 import { useInfiniteRestaurants } from "../hooks/queries/use-restaurants-data";
 
+import { useLoginState } from "../components/loginstate";
+
 const RestaurantListPage = () => {
   // Hook 이용 : TanStack Query로 데이터 가져오기
   const {
@@ -22,6 +25,9 @@ const RestaurantListPage = () => {
     isError,
     error,
   } = useInfiniteRestaurants();
+
+  const { isLoggedIn, isMe } = useLoginState();
+  const navigate = useNavigate();
 
   const [keyword, setKeyword] = useState(""); // 입력 중인 글자
   const [searchQuery, setSearchQuery] = useState(""); // 검색 실행된 단어
@@ -87,6 +93,18 @@ const RestaurantListPage = () => {
     return list;
   }, [allRestaurants, searchQuery, activeTab]);
 
+  const handleFirstReviewClick = async () => {
+    const isUser = await isMe();
+    console.log(isUser);
+    if (!isUser) {
+      alert("로그인이 필요합니다.");
+      navigate("/sign-in");
+      return;
+    }
+
+    setIsModalOpen(true);
+  };
+
   const tabs = [
     { id: "all", label: "모든 맛집" },
     { id: "liked", label: "관심 목록" },
@@ -97,7 +115,7 @@ const RestaurantListPage = () => {
 
   return (
     <div className="flex justify-center min-h-screen">
-      <div className="w-full max-w-md px-4 py-8 flex flex-col items-center">
+      <div className="w-full max-w-md px-2 py-2 flex flex-col items-center">
         {/* ✅ 탭 메뉴 */}
         <div className="w-full sticky top-0 bg-white border-b border-gray-100 flex z-20">
           {tabs.map((tab) => (
@@ -139,8 +157,9 @@ const RestaurantListPage = () => {
                       className="flex justify-center w-full"
                     >
                       {activeTab === "all" ? (
-                        <RestaurantListCard restaurant={restaurant} />
+                        <RestaurantCard restaurant={restaurant} />
                       ) : (
+                        // <RestaurantListCard restaurant={restaurant} />
                         <RestaurantCard restaurant={restaurant} />
                       )}
                     </div>
@@ -161,7 +180,7 @@ const RestaurantListPage = () => {
                       <p className="text-gray-500 text-lg mb-4">
                         찾으시는 맛집이 아직 없습니다 😭
                       </p>
-                      <Button onClick={() => setIsModalOpen(true)}>
+                      <Button onClick={handleFirstReviewClick}>
                         첫 번째 리뷰 달기
                       </Button>
 
