@@ -48,13 +48,13 @@ export const getFollowings = async (userId) => {
 // 팔로워 개수 체크
 export const getFollowersCount = async (userId) => {
     const res = await api.get(`/follows/${userId}/follower-count`)
-    return res
+    return res?.count ?? 0
 }
 
 // 팔로잉 개수 체크
 export const getFollowingCount = async (userId) => {
     const res = await api.get(`/follows/${userId}/following-count`)
-    return res
+    return res?.count ?? 0
 }
 
 
