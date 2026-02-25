@@ -58,27 +58,67 @@ export const useSearchKakaoRestaurants = (q) =>
   });
 
 // 좋아요 상태
-export const useRestaurantLikeStatus = ({ userId, restaurantId }) =>
-  useQuery({
+export const useRestaurantLikeStatus = (params = {}) => {
+  const userId = params.userId;
+  const restaurantId = params.restaurantId;
+
+  return useQuery({
     queryKey: ["restaurants", restaurantId, "like-status", userId],
     queryFn: async () => {
       const res = await fetchLikeStatus({ userId, restaurantId });
-      // 응답 : { isLiked: true } 형태
-      const normalized = res?.data ?? res;
-      return normalized?.isLiked ?? false;
+      const data = res?.data ?? res;
+      return data?.isLiked ?? false;
     },
     enabled: !!userId && !!restaurantId,
   });
+};
 
 // 맛집 리스트용 무한 스크롤
-export const useInfiniteRestaurants = (filters) => {
-  return useInfiniteQuery({
-    queryKey: ["restaurants", filters],
-    queryFn: ({ pageParam }) =>
-      fetchRestaurants({ cursor: pageParam, ...filters }),
+export const useInfiniteRestaurants = (filters) =>
+  useInfiniteQuery({
+    queryKey: ["restaurants", "list", filters],
+    queryFn: async ({ pageParam }) => {
+      // 백엔드 응답 예시:
+      // { success: true, data: { ...단일 맛집... }, hasNextPage, nextCursor }
+      const res = await fetchRestaurants({
+        cursor: pageParam,
+        ...(filters || {}),
+      });
+
+      const payload = res?.data ?? res;
+
+      let list;
+      if (Array.isArray(payload)) {
+        // data 자체가 배열인 경우
+        list = payload;
+      } else if (payload && typeof payload === "object" && payload.id) {
+        // 단일 맛집 객체인 경우 → 배열로 감싸서 리스트처럼 사용
+        list = [payload];
+      } else {
+        // 기타 케이스 (혹시 모를 확장용)
+        list = payload?.content ?? payload?.data ?? payload?.restaurants ?? [];
+      }
+
+      const hasNext =
+        res?.hasNext ??
+        res?.has_next ??
+        res?.hasNextPage ??
+        res?.has_next_page ??
+        false;
+
+      const nextCursor =
+        res?.nextCursor ??
+        res?.next_cursor ??
+        res?.cursor ??
+        res?.next_page_cursor ??
+        null;
+
+      return { list, hasNext, nextCursor };
+    },
     initialPageParam: null,
     getNextPageParam: (lastPage) =>
-      lastPage.hasNext ? lastPage.nextCursor : undefined,
+      lastPage?.hasNext && lastPage?.nextCursor != null
+        ? lastPage.nextCursor
+        : undefined,
     staleTime: 1000 * 60 * 5,
   });
-};

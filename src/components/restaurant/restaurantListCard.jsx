@@ -1,21 +1,74 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import Like from "../common/like";
 
 import { useContext } from "react";
 import { DetailStateContext } from "../layout/map-layout";
 
+import { useLoginState } from "../loginstate";
+import { useRestaurantLikeStatus } from "../../hooks/queries/use-restaurants-data";
+import {
+  useLikeRestaurantMutation,
+  useUnlikeRestaurantMutation,
+} from "../../hooks/mutations/use-create-restaurant-mutation";
+
 const RestaurantListCard = ({ restaurant }) => {
   const context = useContext(DetailStateContext);
+  const navigate = useNavigate();
+  const { user, isLoggedIn, isMe } = useLoginState();
 
   const { id, name, category, expertCount, address, thumbnail } = restaurant;
+  const restaurantId = Number(id);
 
-  const [isLike, setIsLike] = useState(true);
+  const { data: isLikedFromApi = false } = useRestaurantLikeStatus({
+    userId: isLoggedIn ? user?.id : null,
+    restaurantId: restaurantId || null,
+  });
 
-  const onLike = (e) => {
+  const [isLike, setIsLike] = useState(isLikedFromApi);
+
+  useEffect(() => {
+    setIsLike(isLikedFromApi);
+  }, [isLikedFromApi]);
+
+  const { mutate: likeRestaurant } = useLikeRestaurantMutation();
+  const { mutate: unlikeRestaurant } = useUnlikeRestaurantMutation();
+
+  const onLike = async (e) => {
     e?.stopPropagation?.();
-    setIsLike((prev) => !prev);
+    const isUser = await isMe();
+    if (!isUser) {
+      alert("로그인이 필요합니다.");
+      navigate("/sign-in");
+      return;
+    }
+    const userId = isUser.id;
+    const newIsLike = !isLike;
+    setIsLike(newIsLike);
+    if (newIsLike) {
+      likeRestaurant(
+        { userId, restaurantId },
+        {
+          onError: () => {
+            setIsLike(false);
+            alert("좋아요 등록에 실패했습니다.");
+          },
+        },
+      );
+    } else {
+      unlikeRestaurant(
+        { userId, restaurantId },
+        {
+          onError: () => {
+            setIsLike(true);
+            alert("좋아요 취소에 실패했습니다.");
+          },
+        },
+      );
+    }
   };
+
+  const displayIsLike = isLoggedIn ? isLike : false;
 
   const onRestaurantDetailClick = () => {
     context.setSelectedRestaurant(restaurant);
@@ -67,7 +120,7 @@ const RestaurantListCard = ({ restaurant }) => {
         className="absolute top-2 right-2 z-10"
         onClick={(e) => e.stopPropagation()}
       >
-        <Like isLike={isLike} onLike={onLike} className="w-6 h-6" />
+        <Like isLike={displayIsLike} onLike={onLike} className="w-6 h-6" />
       </div>
       {!context ? (
         /* context가 없을 때: 상세 페이지로 이동하는 Link 사용 */
