@@ -21,7 +21,7 @@ export const useCreateReviewMutation = () => {
       const optimisticReview = {
         id: Date.now(),
         review,
-        created_at: new Date().toISOString(),
+        visitDate: new Date().toISOString(),
         likeCount: 0,
         optimistic: true,
       };
@@ -53,7 +53,6 @@ export const useCreateReviewMutation = () => {
         queryClient.setQueryData(context.queryKey, (old = []) => {
           return [normalizedReview, ...old.filter((r) => !r.optimistic)];
         });
-        queryClient.invalidateQueries({ queryKey: context.queryKey });
       }
     },
   });
