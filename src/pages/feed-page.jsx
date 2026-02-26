@@ -1,11 +1,11 @@
 import React, { useMemo, useState } from "react";
 import Review from "../components/review/review";
 
-import { useReviews } from "../hooks/queries/use-reviews-data";
-
 import { InfiniteScrollTrigger } from "../components/common/infiniteScrollTrigger";
 
 import { useInfiniteReviews } from "../hooks/queries/use-reviews-data";
+
+import { useLoginState } from "../components/loginstate";
 
 const FeedPage = () => {
   const {
@@ -18,12 +18,17 @@ const FeedPage = () => {
     error,
   } = useInfiniteReviews();
 
+  const { isLoggedIn } = useLoginState();
   const [activeTab, setActiveTab] = useState("latest");
+
+  const displayTab =
+    !isLoggedIn && activeTab === "liked" ? "latest" : activeTab;
 
   // 여러 페이지를 하나의 배열로 합치기 (axios는 response.data만 반환)
   const allReviews = useMemo(() => {
     if (!data?.pages) return [];
     const list = data.pages.flatMap((page) => {
+      if (page?.list && Array.isArray(page.list)) return page.list;
       if (Array.isArray(page)) return page;
       if (page && Array.isArray(page.data)) return page.data;
       return [];
@@ -31,13 +36,15 @@ const FeedPage = () => {
     return list.filter(Boolean);
   }, [data]);
 
-  const tabs = [
-    { id: "latest", label: "최신 리뷰" },
-    { id: "liked", label: "좋아요 한 리뷰" },
-  ];
+  const tabs = isLoggedIn
+    ? [
+        { id: "latest", label: "최신 리뷰" },
+        { id: "liked", label: "좋아요 한 리뷰" },
+      ]
+    : [{ id: "latest", label: "최신 리뷰" }];
 
   const filteredReviews =
-    activeTab === "liked"
+    displayTab === "liked"
       ? allReviews.filter((review) => review.isLiked)
       : allReviews;
 
@@ -51,7 +58,7 @@ const FeedPage = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 py-4 text-sm font-bold transition-colors ${
-                activeTab === tab.id
+                displayTab === tab.id
                   ? "text-black border-b-2 border-black"
                   : "text-gray-400"
               }`}
@@ -80,7 +87,7 @@ const FeedPage = () => {
                       <Review reviewData={review} />
                     </div>
                   ))}
-                  {activeTab === "latest" && (
+                  {displayTab === "latest" && (
                     <InfiniteScrollTrigger
                       onIntersect={fetchNextPage}
                       hasNextPage={hasNextPage}
@@ -90,7 +97,7 @@ const FeedPage = () => {
                 </>
               ) : (
                 <div className="py-20 text-center text-gray-400">
-                  {activeTab === "liked" ? (
+                  {displayTab === "liked" ? (
                     <p>
                       아직 좋아요 한 리뷰가 없어요. <br />
                       마음에 드는 리뷰에 하트를 눌러보세요! ❤️

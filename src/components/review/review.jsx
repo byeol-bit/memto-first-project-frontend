@@ -1,13 +1,6 @@
 import React, { useState, useMemo, useEffect } from "react";
 import Button from "../common/button";
 import Like from "../common/like";
-import {
-  Bookmark,
-  Calendar,
-  MessageCircle,
-  Plus,
-  MapPinHouse,
-} from "lucide-react";
 
 import { useReviewLikeStatus } from "../../hooks/queries/use-reviews-data";
 import {
@@ -15,20 +8,12 @@ import {
   useUnlikeReviewMutation,
 } from "../../hooks/mutations/use-create-review-mutation";
 
+import { useLoginState } from "../loginstate";
+import { getUserImageUrl } from "../../api/auth";
+
 const Review = ({ reviewData }) => {
-  // userId 가져오기 (localStorage에서만)
-  const userId = useMemo(() => {
-    try {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        return user?.id ?? null;
-      }
-    } catch (e) {
-      console.error("userId 파싱 실패:", e);
-    }
-    return null;
-  }, []);
+  const { user, isLoggedIn, isMe } = useLoginState();
+  const userId = user?.id ?? null;
 
   // 리뷰 ID (visitId)
   const visitId = reviewData?.id;
@@ -64,11 +49,14 @@ const Review = ({ reviewData }) => {
           day: "numeric",
         })
       : "";
-  const onLike = () => {
-    if (!userId || !visitId) {
+  const onLike = async () => {
+    const me = await isMe();
+    if (!me || !visitId) {
       alert("로그인이 필요합니다.");
       return;
     }
+
+    const currentUserId = me.id;
 
     // Optimistic 업데이트
     const newIsLike = !isLike;
@@ -77,7 +65,7 @@ const Review = ({ reviewData }) => {
 
     if (newIsLike) {
       likeReview(
-        { userId, visitId },
+        { userId: currentUserId, visitId },
         {
           onError: (error) => {
             setIsLike(!newIsLike);
@@ -89,7 +77,7 @@ const Review = ({ reviewData }) => {
       );
     } else {
       unlikeReview(
-        { userId, visitId },
+        { userId: currentUserId, visitId },
         {
           onError: (error) => {
             setIsLike(!newIsLike);
@@ -105,12 +93,24 @@ const Review = ({ reviewData }) => {
   const getRegionName = (address) => {
     if (!address) return "";
     const splitAddress = address.split(" ");
-    return splitAddress[1];
+    return splitAddress[1] ?? "";
   };
 
-  if (!reviewData || !reviewData.restaurant) return null;
-  // 사용
-  const region = getRegionName(reviewData?.restaurant?.address);
+  if (!reviewData) return null;
+
+  const restaurant = reviewData.restaurant ?? {};
+  const author = reviewData.user ?? {};
+  console.log(author);
+  const region = getRegionName(restaurant?.address);
+  const restaurantName = restaurant?.name ?? "맛집";
+  const reviewText =
+    reviewData.review ?? reviewData.rev ?? reviewData.content ?? "";
+  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+  const profileSrc = author.profile_image
+    ? author.profile_image.startsWith("http")
+      ? author.profile_image
+      : `${baseUrl.replace(/\/$/, "")}/${author.profile_image.replace(/^\//, "")}`
+    : getUserImageUrl(reviewData.user_id);
 
   return (
     <div className="max-w-sm rounded overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300">
@@ -119,19 +119,21 @@ const Review = ({ reviewData }) => {
         <div className="flex justify-between items-center mb-4">
           <div className="flex items-center">
             <img
-              className="w-10 h-10 rounded-full mr-3 object-cover"
-              src="https://v1.tailwindcss.com/img/jonathan.jpg"
-              alt="홍길동"
+              className="w-10 h-10 rounded-full mr-3 object-cover bg-gray-100"
+              src={profileSrc}
+              alt={author.nickname ?? ""}
             />
             <div className="flex flex-col">
               <div className="flex flex-col">
                 <div className="flex items-center gap-2">
                   <span className="text-gray-900 font-bold text-sm">
-                    홍길동
+                    {author.nickname ?? "알 수 없음"}
                   </span>
-                  <span className="bg-gray-100 rounded-full px-2 py-0.5 text-[10px] text-gray-500 font-medium">
-                    먹고수
-                  </span>
+                  {author.category && (
+                    <span className="bg-gray-100 rounded-full px-2 py-0.5 text-[10px] text-gray-500 font-medium">
+                      {author.category}
+                    </span>
+                  )}
                 </div>
                 <span className="text-xs text-gray-500 mt-1">
                   리뷰 39 팔로워 5
@@ -159,9 +161,7 @@ const Review = ({ reviewData }) => {
             <div className="w-fit bg-red-400 rounded-full px-2.5 py-0.5 text-xs text-white font-medium">
               {region}
             </div>
-            <span className="text-sm text-gray-800">
-              {reviewData?.restaurant.name}
-            </span>
+            <span className="text-sm text-gray-800">{restaurantName}</span>
           </div>
 
           {/* 좋아요 + 개수 */}
@@ -176,7 +176,7 @@ const Review = ({ reviewData }) => {
         {/* 본문 */}
         <div className="mt-3">
           <p className="text-gray-800 text-xm leading-relaxed mb-3">
-            {reviewData?.review}
+            {reviewText}
           </p>
           <span className="text-[11px] text-gray-400 flex">{displayDate}</span>
         </div>
