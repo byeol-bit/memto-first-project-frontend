@@ -12,7 +12,7 @@ const UserReview = ({userId}) => {
 
     return(
 
-        <div>
+        <div className="p-2">
             {reviews?.length > 0?( 
                 reviews.map((review) => (
                     <UserReviewCard key={review.id} review={review} />

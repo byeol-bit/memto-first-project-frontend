@@ -1,10 +1,12 @@
 import api from "./axios-basic";
 
 // 유저 리스트 조회
-export const getUsers = async () => {
-  const res = await api.get("/users");
-  return res;
-};
+export const getUsers = async ({page = 1, limit = 10}) => {
+    const res = await api.get('/users', {
+        params: {page, limit}
+    })
+    return res
+}
 
 // 유저 디테일 조회
 export const getUserDetail = async (id) => {
@@ -13,25 +15,25 @@ export const getUserDetail = async (id) => {
 };
 
 // 유저 검색
-export const searchUsers = async ({ nickname, category }) => {
-  const params = {};
-
-  if (nickname?.trim()) {
-    params.nickname = nickname.trim();
-  }
-  if (category && category.length > 0) {
-    params.category = category;
-  }
-  // console.log(params)
-  const res = await api.get("/users/search", {
-    params,
-    paramsSerializer: {
-      indexes: null,
-    },
-  });
-  console.log("검색결과는", res.users);
-  return res.users;
-};
+export const searchUsers = async ({nickname, category, page=1, limit=10})=> {
+    const params = {page, limit}
+    // console.log('검색 로직', nickname, category)
+    if (nickname?.trim()) {
+        params.nickname = nickname.trim()
+    }
+    if(category && category.length > 0) {
+        params.category = category;
+    }
+    // console.log(params)
+    const res = await api.get('/users/search', { 
+        params,
+        paramsSerializer: {
+            indexes: null,
+        } 
+    })
+    // console.log('검색결과는', res, res.users)
+    return res
+}
 
 // 팔로워 리스트
 export const getFollowers = async (userId) => {
