@@ -13,29 +13,64 @@ export const useCreateReviewMutation = () => {
       const review = variables.review;
 
       const queryKey = ["reviews", "restaurant", restaurantId];
+      const infiniteKey = ["reviews", "restaurant", restaurantId, "infinite"];
 
-      await queryClient.cancelQueries({ queryKey });
+      await Promise.all([
+        queryClient.cancelQueries({ queryKey }),
+        queryClient.cancelQueries({ queryKey: infiniteKey }),
+      ]);
 
       const previousData = queryClient.getQueryData(queryKey);
+      const previousInfinite = queryClient.getQueryData(infiniteKey);
 
       const optimisticReview = {
         id: Date.now(),
+        user_id: variables.userId,
         review,
+        visit_date: new Date().toISOString(),
         visitDate: new Date().toISOString(),
         likeCount: 0,
         optimistic: true,
+        user: variables.user ?? null,
       };
 
       queryClient.setQueryData(queryKey, (old = []) => {
-        return [optimisticReview, ...old];
+        return [optimisticReview, ...(old || [])];
       });
 
-      return { previousData, queryKey };
+      queryClient.setQueryData(infiniteKey, (old) => {
+        if (!old || !Array.isArray(old.pages)) {
+          return {
+            pages: [
+              { list: [optimisticReview], hasNext: false, nextCursor: null },
+            ],
+            pageParams: [null],
+          };
+        }
+
+        const firstPage = old.pages[0] || {};
+        const firstList = Array.isArray(firstPage.list) ? firstPage.list : [];
+
+        const newFirstPage = {
+          ...firstPage,
+          list: [optimisticReview, ...firstList],
+        };
+
+        return {
+          ...old,
+          pages: [newFirstPage, ...old.pages.slice(1)],
+        };
+      });
+
+      return { previousData, previousInfinite, queryKey, infiniteKey };
     },
 
     onError: (err, variables, context) => {
       if (context?.previousData) {
         queryClient.setQueryData(context.queryKey, context.previousData);
+      }
+      if (context?.previousInfinite) {
+        queryClient.setQueryData(context.infiniteKey, context.previousInfinite);
       }
     },
 
@@ -51,7 +86,29 @@ export const useCreateReviewMutation = () => {
 
       if (context?.queryKey) {
         queryClient.setQueryData(context.queryKey, (old = []) => {
-          return [normalizedReview, ...old.filter((r) => !r.optimistic)];
+          const base = Array.isArray(old) ? old : [];
+          return [normalizedReview, ...base.filter((r) => !r?.optimistic)];
+        });
+      }
+
+      if (context?.infiniteKey) {
+        queryClient.setQueryData(context.infiniteKey, (old) => {
+          if (!old || !Array.isArray(old.pages)) return old;
+
+          const newPages = old.pages.map((page, idx) => {
+            if (idx !== 0) return page;
+            const list = Array.isArray(page.list) ? page.list : [];
+            const filtered = list.filter((r) => !r?.optimistic);
+            return {
+              ...page,
+              list: [normalizedReview, ...filtered],
+            };
+          });
+
+          return {
+            ...old,
+            pages: newPages,
+          };
         });
       }
     },
@@ -67,6 +124,7 @@ export const useLikeReviewMutation = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["reviews", variables.visitId, "like-status"],
+        exact: false,
       });
     },
   });
@@ -81,6 +139,7 @@ export const useUnlikeReviewMutation = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["reviews", variables.visitId, "like-status"],
+        exact: false,
       });
     },
   });

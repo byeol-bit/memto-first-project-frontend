@@ -17,6 +17,9 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
   const [images, setImages] = useState([]);
 
   const { loading, error } = useKakaoLoader(); // ✅ 카카오 SDK 로드
+
+  const { user } = useLoginState();
+
   const { mutate: createRestaurant, isPending: isCreatingRestaurant } =
     useCreateRestaurantMutation();
   const { mutate: createReview, isPending: isCreatingReview } =
@@ -25,8 +28,6 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
   if (!open) return null;
   if (loading) return <div>카카오맵 로딩 중입니다...</div>;
   if (error) return <div>카카오맵을 불러오는 중 오류가 발생했습니다.</div>;
-
-  if (!open) return null;
 
   // Step 1에서 장소 선택 시 실행
   const handleSelectPlace = (place) => {
@@ -76,8 +77,17 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
 
         // 2단계: 첫 리뷰 등록
         const reviewData = {
+          userId: user?.id ?? null,
           restaurantId: Number(restaurantId),
           review: content,
+          user: user
+            ? {
+                id: user.id,
+                nickname: user.nickname,
+                profile_image: user.profile_image,
+                category: user.category,
+              }
+            : null,
         };
 
         createReview(reviewData, {

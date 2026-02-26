@@ -13,6 +13,7 @@ const ReviewBottomSheet = ({
   restaurant,
   onSuccess,
   currentUser,
+  restaurantIdForReviews,
 }) => {
   const { user: contextUser } = useLoginState();
   const user = currentUser ?? contextUser;
@@ -39,7 +40,18 @@ const ReviewBottomSheet = ({
       return;
     }
 
-    const targetId = restaurant?.[0]?.id || restaurant?.id;
+    const fallbackId =
+      restaurant?.[0]?.id ||
+      restaurant?.id ||
+      restaurant?.restaurant_id ||
+      restaurant?.kakao_place_id;
+
+    const targetId =
+      restaurantIdForReviews != null
+        ? Number(restaurantIdForReviews)
+        : fallbackId != null
+          ? Number(fallbackId)
+          : null;
 
     if (!targetId) {
       alert("식당 ID를 찾을 수 없습니다. 데이터를 확인해 주세요!");
@@ -49,10 +61,17 @@ const ReviewBottomSheet = ({
 
     const reviewData = {
       userId: user?.id ?? null,
-      restaurantId: Number(targetId), // currentId를 숫자로 확실히 변환
-      review: content, // content state를 'review' 필드에 담아서 전송!
+      restaurantId: Number(targetId),
+      review: content,
       restaurant: restaurant?.[0] ?? restaurant,
-      user: user ? { id: user.id, nickname: user.nickname } : null,
+      user: user
+        ? {
+            id: user.id,
+            nickname: user.nickname,
+            profile_image: user.profile_image,
+            category: user.category,
+          }
+        : null,
     };
 
     registerReview(reviewData, {
