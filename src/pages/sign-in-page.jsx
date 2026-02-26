@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router";
 import { useLoginState } from "../components/loginstate";
-import KakaoLoginButton from "../components/KakaoLoginButton";
 
 const SignInPage = () => {
   const navigate = useNavigate();
@@ -80,8 +79,6 @@ const SignInPage = () => {
             <span className="px-2 bg-white text-gray-400">또는</span>
           </div>
         </div>
-
-        <KakaoLoginButton />
 
         <div className="mt-6 text-center text-gray-500 text-sm">
           아직 계정이 없으신가요?
