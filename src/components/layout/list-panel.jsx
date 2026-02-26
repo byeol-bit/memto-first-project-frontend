@@ -12,13 +12,13 @@ import FeedPage from "../../pages/feed-page"
 import FollowPage from "../../pages/follow-page"
 
 const ListPanel = ({ activeTab }) => {
-  const { selectedUser, setSelectedUser, userDetailView, setUserDetailView,  selectedRestaurant, setSelectedRestaurant } =
+  const { selectedUser, setSelectedUser, userDetailView, setUserDetailView, selectedRestaurant, setSelectedRestaurant } =
     useContext(DetailStateContext)
   if (!activeTab) return null
 
   return (
     <>
-      <div className={style.leftSidebarDetail}>
+      <div id="list-panel" className={style.leftSidebarDetail}>
         {activeTab === MAP_LAYOUT_TABS.USERS && <UserListPage />}
         {activeTab === MAP_LAYOUT_TABS.RESTAURANTS && <RestaurantListPage />}
         {activeTab === MAP_LAYOUT_TABS.FEED && <FeedPage />}
@@ -30,7 +30,7 @@ const ListPanel = ({ activeTab }) => {
       )}
       {activeTab === MAP_LAYOUT_TABS.USERS && selectedUser && (
         <DetailPanel onClose={() => {
-          setSelectedUser(null) 
+          setSelectedUser(null)
           setUserDetailView("detail")
         }}>
           {userDetailView === "detail" && <UserDetailPage />}
