@@ -1,6 +1,6 @@
 import React from "react";
 
-const Gallery = ({ images = [] }) => {
+const Gallery = ({ images = [], onViewAll }) => {
   if (!images || images.length === 0) return null;
 
   const displayImages = images.slice(0, 5);
@@ -18,18 +18,27 @@ const Gallery = ({ images = [] }) => {
         />
       </div>
 
-      {/* 2. 나머지 이미지들 (오른쪽 격자) */}
       {displayImages.slice(1).map((imgUrl, index) => {
         const isLast = index === 3;
-
         return (
-          <div key={index} className="relative w-full h-full cursor-pointer">
+          <div
+            key={index}
+            role="button"
+            tabIndex={0}
+            onClick={isLast && hasMore ? onViewAll : undefined}
+            onKeyDown={(e) =>
+              isLast &&
+              hasMore &&
+              (e.key === "Enter" || e.key === " ") &&
+              onViewAll?.()
+            }
+            className="relative w-full h-full cursor-pointer"
+          >
             <img
               src={imgUrl}
               alt={`상세 사진 ${index}`}
               className="w-full h-full object-cover shadow-sm"
             />
-
             {isLast && hasMore && (
               <div className="absolute inset-0 bg-black/40 flex flex-col items-center justify-center text-white">
                 <span className="text-base font-bold">+{moreCount}</span>

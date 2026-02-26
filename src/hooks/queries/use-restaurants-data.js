@@ -5,6 +5,7 @@ import {
   searchKakaoRestaurants,
   fetchRestaurantKakaoId,
   fetchLikeStatus,
+  fetchRestaurantImages,
 } from "../../api/axios-restaurant";
 
 // API 응답이 배열이거나 { data } 형태일 수 있음 → 항상 배열로 정규화
@@ -72,6 +73,15 @@ export const useRestaurantLikeStatus = (params = {}) => {
     enabled: !!userId && !!restaurantId,
   });
 };
+
+// 맛집 이미지 목록 (restaurants/{id}/image)
+export const useRestaurantImages = (restaurantId) =>
+  useQuery({
+    queryKey: ["restaurants", restaurantId, "images"],
+    queryFn: () => fetchRestaurantImages(restaurantId),
+    select: (list) => (Array.isArray(list) ? list : []),
+    enabled: !!restaurantId,
+  });
 
 // 맛집 리스트용 무한 스크롤
 export const useInfiniteRestaurants = (filters) =>

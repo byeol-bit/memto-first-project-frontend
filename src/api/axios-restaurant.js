@@ -107,3 +107,12 @@ export const fetchLikeStatus = async ({ userId, restaurantId }) => {
     params: { userId, restaurantId },
   });
 };
+
+/*
+  맛집 이미지 목록 (파일 경로 전체 반환)
+  GET /restaurants/{id}/image
+*/
+export const fetchRestaurantImages = async (restaurantId) => {
+  const raw = await api.get(`/restaurants/${restaurantId}/image`);
+  return Array.isArray(raw) ? raw : (raw?.images ?? []);
+};

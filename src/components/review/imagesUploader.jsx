@@ -1,22 +1,26 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 
 function ImagesUploader({ onImagesChange }) {
   const [previews, setPreviews] = useState([]);
+  const [files, setFiles] = useState([]);
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef(null);
 
-  const handleFiles = (files) => {
-    const fileArray = Array.from(files);
-    const newPreviews = fileArray.map((file) => URL.createObjectURL(file));
+  useEffect(() => {
+    onImagesChange?.(files);
+  }, [files]);
+
+  const handleFiles = (newFiles) => {
+    const fileArray = Array.from(newFiles);
+    const newPreviews = fileArray.map((f) => URL.createObjectURL(f));
     setPreviews((prev) => [...prev, ...newPreviews]);
-    onImagesChange(fileArray);
+    setFiles((prev) => [...prev, ...fileArray]);
   };
 
   const removeImage = (index) => {
-    setPreviews((prev) => {
-      URL.revokeObjectURL(prev[index]);
-      return prev.filter((_, i) => i !== index);
-    });
+    URL.revokeObjectURL(previews[index]);
+    setPreviews((prev) => prev.filter((_, i) => i !== index));
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (

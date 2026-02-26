@@ -10,8 +10,22 @@ export const createReview = async ({
   visitDate,
   visit_date,
   review,
+  images = [],
 }) => {
   const date = visit_date ?? visitDate ?? new Date().toISOString().slice(0, 10);
+  const hasImages = Array.isArray(images) && images.length > 0;
+
+  if (hasImages) {
+    const form = new FormData();
+    form.append("userId", userId ?? "");
+    form.append("restaurantId", String(restaurantId));
+    form.append("visit_date", date);
+    form.append("review", review ?? "");
+    images.forEach((file, i) => form.append("images", file));
+    // axios가 FormData를 감지해서 boundary 포함한 Content-Type을 자동으로 세팅하도록 둔다
+    return await api.post("/visits", form);
+  }
+
   return await api.post("/visits", {
     userId,
     restaurantId,

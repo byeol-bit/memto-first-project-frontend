@@ -106,6 +106,22 @@ const Review = ({ reviewData }) => {
   const reviewText =
     reviewData.review ?? reviewData.rev ?? reviewData.content ?? "";
   const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+  const rawImages =
+    reviewData.images ??
+    reviewData.visit_images ??
+    reviewData.visitImages ??
+    [];
+  const reviewImages = Array.isArray(rawImages)
+    ? rawImages
+        .map((p) =>
+          p && typeof p === "string"
+            ? p.startsWith("http")
+              ? p
+              : `${baseUrl.replace(/\/$/, "")}/${String(p).replace(/^\//, "")}`
+            : (p?.url ?? p?.image_url ?? ""),
+        )
+        .filter(Boolean)
+    : [];
   const profileSrc = author.profile_image
     ? author.profile_image.startsWith("http")
       ? author.profile_image
@@ -147,13 +163,24 @@ const Review = ({ reviewData }) => {
           </div>
         </div>
 
-        <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 border border-gray-50">
-          <img
-            src="https://v1.tailwindcss.com/img/card-left.jpg"
-            alt="리뷰 사진"
-            className="w-full h-full object-cover"
-          />
-        </div>
+        {reviewImages.length > 0 && (
+          <div className="w-full mb-4 rounded-xl overflow-hidden border border-gray-50">
+            <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-1 -mx-1">
+              {reviewImages.map((src, i) => (
+                <div
+                  key={i}
+                  className="flex-shrink-0 w-[85%] max-w-sm aspect-video snap-center rounded-lg overflow-hidden"
+                >
+                  <img
+                    src={src}
+                    alt={`리뷰 사진 ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <div className="flex items-center justify-between w-full">
           {/* 지역 + 맛집 이름 */}

@@ -95,6 +95,7 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
           restaurantId: Number(restaurantId),
           visitDate: new Date().toISOString().slice(0, 10),
           review: content,
+          images,
           user: user
             ? {
                 id: user.id,

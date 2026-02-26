@@ -16,6 +16,7 @@ import { DetailStateContext } from "../components/layout/map-layout";
 import {
   useRestaurantDetail,
   useRestaurantLikeStatus,
+  useRestaurantImages,
 } from "../hooks/queries/use-restaurants-data";
 import { useRestaurantReviews } from "../hooks/queries/use-reviews-data";
 import {
@@ -111,6 +112,11 @@ const RestaurantDetailPage = () => {
     userId,
     restaurantId,
   });
+
+  const { data: restaurantImages = [] } = useRestaurantImages(
+    restaurantIdForReviews ?? restaurantId,
+  );
+
   // 좋아요 mutation 훅들
   const { mutate: likeRestaurant } = useLikeRestaurantMutation();
   const { mutate: unlikeRestaurant } = useUnlikeRestaurantMutation();
@@ -134,25 +140,33 @@ const RestaurantDetailPage = () => {
   // 탭
   const [activeTab, setActiveTab] = useState("home");
 
-  // 일단 아직 이미지가 없다는 가정하에
+  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+  const toFullUrl = (path) =>
+    !path
+      ? ""
+      : path.startsWith("http")
+        ? path
+        : `${baseUrl.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+
   const displayImages = useMemo(() => {
+    if (restaurantImages?.length > 0) {
+      return restaurantImages.map(toFullUrl);
+    }
     if (
       restaurantDetailData?.images &&
       restaurantDetailData.images.length > 0
     ) {
-      return restaurantDetailData.images.slice(0, 6); // 최대 6장까지만
+      return restaurantDetailData.images.map(toFullUrl).slice(0, 6);
     }
-
-    // 6장의 목업 이미지
     return [
-      "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80", // 칵테일/분위기
-      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80", // 스테이크
-      "https://images.unsplash.com/photo-1473093226795-af9932fe5856?w=800&q=80", // 파스타
-      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80", // 고기 요리
-      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80", // 샐러드
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80", // 피자
+      "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80",
+      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
+      "https://images.unsplash.com/photo-1473093226795-af9932fe5856?w=800&q=80",
+      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80",
+      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80",
+      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80",
     ];
-  }, [restaurantDetailData]);
+  }, [restaurantDetailData, restaurantImages, baseUrl]);
 
   const onLike = async () => {
     const isUser = await isMe();
@@ -255,7 +269,10 @@ const RestaurantDetailPage = () => {
     <div className="flex justify-center min-h-screen bg-white">
       <div className="w-full max-w-md flex flex-col relative">
         <div className="w-full h-55 relative">
-          <Gallery images={displayImages} layoutType="hero" />
+          <Gallery
+            images={displayImages}
+            onViewAll={() => setActiveTab("photo")}
+          />
         </div>
 
         {/* 맛집 기본 정보 */}
