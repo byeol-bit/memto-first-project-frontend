@@ -3,6 +3,7 @@ import useKakaoLoader from '../../hooks/useKakaoLoader'
 import { useState, useEffect, useContext, useMemo } from "react"
 import { DetailStateContext } from "../layout/map-layout"
 import { useUserReviews } from "../../hooks/queries/use-reviews-data"
+import { getCarDirection } from "../../api/kakao-directions"
 
 const DEFAULT_CENTER = { lat: 33.450701, lng: 126.570667 }
 const DEFAULT_ZOOM_LEVEL = 7
@@ -46,6 +47,7 @@ const Map = () => {
   // 유저 관련
   const { data: reviews } = useUserReviews(selectedUser?.id)
   const [reviewMarkers, setReviewMarkers] = useState([])
+  const [routePath, setRoutePath] = useState([]) // Kakao Mobility 도로 경로
 
   useEffect(() => {
     if (!reviews?.length) return
@@ -94,6 +96,36 @@ const Map = () => {
     }
   }, [reviews])
 
+  // 리뷰 순서대로 Kakao Mobility 경로 API로 도로 경로 조회
+  useEffect(() => {
+    if (!reviewMarkers?.length || reviewMarkers.length < 2) return
+
+    let cancelled = false
+    const positions = reviewMarkers.map((m) => m.position)
+
+    const fetchRoute = async () => {
+      const allPath = []
+      for (let i = 0; i < positions.length - 1; i++) {
+        if (cancelled) return
+        const segment = await getCarDirection(positions[i], positions[i + 1])
+        if (cancelled) return
+        if (segment.length === 0) {
+          // API 실패 시 직선 구간으로 대체 (도착점만 추가해 중복 방지)
+          if (allPath.length === 0) allPath.push(positions[i])
+          allPath.push(positions[i + 1])
+        } else {
+          if (allPath.length > 0) allPath.pop() // 이전 도착점과 중복 제거
+          allPath.push(...segment)
+        }
+      }
+      if (!cancelled) setRoutePath(allPath)
+    }
+
+    fetchRoute()
+    return () => {
+      cancelled = true
+    }
+  }, [reviewMarkers])
 
   const center = useMemo(() => {
     if (selectedRestaurant?.location) {
@@ -216,7 +248,7 @@ const Map = () => {
         ))}
         {pathPositions.length >= 2 && (
           <Polyline
-            path={pathPositions}
+            path={routePath.length >= 2 ? routePath : pathPositions}
             strokeWeight={4}
             strokeColor="#FF0000"
             strokeOpacity={0.8}
