@@ -59,17 +59,19 @@ const ReviewBottomSheet = ({
       return;
     }
 
+    const author = user ?? contextUser;
     const reviewData = {
-      userId: user?.id ?? null,
+      userId: author?.id ?? null,
       restaurantId: Number(targetId),
+      visitDate: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
       review: content,
       restaurant: restaurant?.[0] ?? restaurant,
-      user: user
+      user: author
         ? {
-            id: user.id,
-            nickname: user.nickname,
-            profile_image: user.profile_image,
-            category: user.category,
+            id: author.id,
+            nickname: author.nickname ?? contextUser?.nickname ?? "알 수 없음",
+            profile_image: author.profile_image ?? contextUser?.profile_image,
+            category: author.category ?? contextUser?.category,
           }
         : null,
     };
@@ -80,6 +82,15 @@ const ReviewBottomSheet = ({
         setImages([]);
         onSuccess?.();
         onClose();
+      },
+
+      onError: (error) => {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "리뷰 등록에 실패했습니다.";
+        console.error("리뷰 등록 실패:", error);
+        alert(message);
       },
     });
   };

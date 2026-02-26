@@ -7,6 +7,7 @@ import Gallery from "../components/restaurant/gallery";
 import Review from "../components/review/review";
 import ReviewBottomSheet from "../components/review/reviewBottomSheet";
 import Like from "../components/common/like";
+
 import { MapPin, Phone } from "lucide-react";
 
 import { useContext } from "react";
@@ -45,20 +46,30 @@ const RestaurantDetailPage = () => {
   const navigate = useNavigate();
   const userId = user?.id ?? null;
 
-  const { data: reviewsData, isLoading: isReviewsLoading } =
-    useRestaurantReviews(Number(restaurantDetailData?.id));
+  const restaurantIdForReviews = useMemo(() => {
+    if (!restaurantDetailData) return null;
 
-  console.log(reviewsData);
+    if (restaurantDetailData.id != null) return Number(restaurantDetailData.id);
+
+    if (restaurantDetailData.restaurant_id != null) {
+      return Number(restaurantDetailData.restaurant_id);
+    }
+
+    return currentId ? Number(currentId) : null;
+  }, [restaurantDetailData, currentId]);
+
+  const { data: rawReviews = [], isLoading: isReviewsLoading } =
+    useRestaurantReviews(restaurantIdForReviews);
 
   const reviews = useMemo(() => {
-    const list = reviewsData ?? [];
-    if (!list.length) return [];
+    if (!rawReviews?.length) return [];
 
-    return list.map((raw) => {
+    const targetId =
+      restaurantIdForReviews != null ? Number(restaurantIdForReviews) : null;
+
+    const mapped = rawReviews.map((raw) => {
       if (!raw || typeof raw !== "object") return raw;
 
-      // 백엔드에서 join 결과가 { 0: {...}, 1: {...}, restaurant: {}, user: {} } 형태로 올 수 있어서
-      // 숫자 키(0, 1, 2...) 안에 있는 객체들을 한 번 평탄화해서 꺼낸다.
       const mergedFromNumericKeys = Object.entries(raw).reduce(
         (acc, [key, value]) => {
           if (
@@ -88,7 +99,13 @@ const RestaurantDetailPage = () => {
         review: reviewText,
       };
     });
-  }, [reviewsData, restaurantDetailData]);
+
+    if (targetId == null) return mapped;
+    return mapped.filter((r) => {
+      const rid = r.restaurant_id ?? r.restaurant?.id;
+      return rid != null && Number(rid) === targetId;
+    });
+  }, [rawReviews, restaurantDetailData, restaurantIdForReviews]);
 
   const { data: isLikedFromApi = false } = useRestaurantLikeStatus({
     userId,
@@ -194,11 +211,20 @@ const RestaurantDetailPage = () => {
   };
 
   const expertsCount = useMemo(() => {
-    const uniqueUsers = reviews.filter(
-      (review, index, self) =>
-        index === self.findIndex((r) => r.userId === review.userId),
-    );
-    return uniqueUsers.length;
+    const getReviewUserId = (r) => {
+      const id = r.user_id ?? r.userId ?? r.user?.id;
+      return id != null ? String(id) : null;
+    };
+    const seen = new Set();
+    let count = 0;
+    for (const r of reviews) {
+      const uid = getReviewUserId(r);
+      if (uid != null && !seen.has(uid)) {
+        seen.add(uid);
+        count += 1;
+      }
+    }
+    return count;
   }, [reviews]);
 
   if (isDetailLoading) {
@@ -290,6 +316,7 @@ const RestaurantDetailPage = () => {
               onClose={() => setOpenBottomSheet(false)}
               restaurant={restaurantDetailData}
               currentUser={currentReviewUser}
+              restaurantIdForReviews={restaurantIdForReviews}
               onSuccess={() => {
                 setActiveTab("review");
                 setTimeout(() => {

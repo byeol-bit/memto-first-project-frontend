@@ -8,12 +8,14 @@ export const createReview = async ({
   userId,
   restaurantId,
   visitDate,
+  visit_date,
   review,
 }) => {
+  const date = visit_date ?? visitDate ?? new Date().toISOString().slice(0, 10);
   return await api.post("/visits", {
     userId,
     restaurantId,
-    visitDate,
+    visit_date: date,
     review,
   });
 };
