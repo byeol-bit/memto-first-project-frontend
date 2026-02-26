@@ -19,7 +19,6 @@ import SignUpPage from "./pages/sign-up-page";
 import MapLayout from "./components/layout/map-layout";
 import FollowPage from "./pages/follow-page";
 import MyPage from "./pages/my-page";
-import KakaoCallback from "./pages/KakaoCallback";
 
 function App() {
   return (
@@ -42,7 +41,6 @@ function App() {
             <Route path="/sign-in" element={<SignInPage />} />
             <Route path="/sign-up" element={<SignUpPage />} />
             <Route path="/my-page" element={<MyPage />} />
-            <Route path="/auth/kakao/callback" element={<KakaoCallback />} />
           </Route>
           <Route path="*" element={<NotFoundPage />} />
         </Routes>
