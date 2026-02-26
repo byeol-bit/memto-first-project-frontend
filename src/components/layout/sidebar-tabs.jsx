@@ -13,7 +13,7 @@ const SidebarTabs = () => {
   const { activeTab, onTabClick } = useContext(DetailStateContext)
 
   return (
-    <div className={style.leftSidebar}>
+    <div id="sidebar-tabs" className={style.leftSidebar}>
       {TAB_ITEMS.map(({ tab, label, subLabel }) => (
         <button
           key={tab}

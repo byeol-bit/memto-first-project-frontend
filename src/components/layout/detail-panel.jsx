@@ -5,7 +5,7 @@ const DetailPanel = ({ children, onClose }) => {
   const [headerScrolled, setHeaderScrolled] = useState(false)
 
   return (
-    <div className={style.leftSidebarDoubleDetail}>
+    <div id="detail-panel" className={style.leftSidebarDoubleDetail}>
       <div
         className={style.leftSidebarDoubleDetailInner}
         onScroll={(e) => setHeaderScrolled(e.target.scrollTop > 0)}
