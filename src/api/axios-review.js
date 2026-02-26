@@ -8,12 +8,14 @@ export const createReview = async ({
   userId,
   restaurantId,
   visitDate,
+  visit_date,
   review,
 }) => {
+  const date = visit_date ?? visitDate ?? new Date().toISOString().slice(0, 10);
   return await api.post("/visits", {
     userId,
     restaurantId,
-    visitDate,
+    visit_date: date,
     review,
   });
 };
@@ -22,8 +24,8 @@ export const createReview = async ({
   모든 리뷰 조회
   GET /visits
 */
-export const fetchReviews = async () => {
-  return await api.get("/visits");
+export const fetchReviews = async (params) => {
+  return await api.get("/visits", { params: params || {} });
 };
 
 /*
@@ -31,7 +33,7 @@ export const fetchReviews = async () => {
   GET /visits/:userId
 */
 export const fetchUserReviews = async (userId) => {
-  return await api.get("/visits", { params: {userId}});
+  return await api.get("/visits", { params: { userId } });
 };
 
 /*
@@ -39,7 +41,9 @@ export const fetchUserReviews = async (userId) => {
   GET /visits/:restaurantId
 */
 export const fetchRestaurantReviews = async (restaurantId) => {
-  return await api.get("/visits", { params: { restaurantId } });
+  return await api.get("/visits", {
+    params: { restaurant_id: restaurantId },
+  });
 };
 
 /*

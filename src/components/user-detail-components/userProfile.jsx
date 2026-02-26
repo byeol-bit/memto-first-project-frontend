@@ -1,14 +1,13 @@
-import {profileImage} from '../../data/users.mock'
-
+import { userImg } from "../../api/user.api"
 
 const UserProfile = ({user}) => {
     console.log(user)
     return(
         <div className='flex flex-col items-center texet-center px-4 pt-4'>
             {/* 유저 정보 */}
-            <div className='flex gap-8 rounded-full p-0.75 bg-linear-to-br from-red-400 via-blue-300 to-pink-300 shadow-md'>
+            <div className='flex gap-8 rounded-full p-0.75 shadow-md'>
             {/* 유저 이미지 */}
-                <img className='rounded-full w-20 h-20 object-cover' src={profileImage}/>
+                <img className='rounded-full w-20 h-20 object-cover' src={userImg(user.id)}/>
             </div>
 
             {/* 이름 + 태그 */}
@@ -18,7 +17,7 @@ const UserProfile = ({user}) => {
             </div>
             {/* 소개글 */}
             <div className='mt-3 text-sm text-gray-600 line-clamp-3'>
-                {user.introduction}
+                {user.introduction ? user.introduction : "작성된 소개글이 없습니다."}
             </div>
 
         </div>

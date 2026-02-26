@@ -5,9 +5,9 @@ import { useParams } from "react-router";
 import MiniMap from "../components/restaurant/miniMap";
 import Gallery from "../components/restaurant/gallery";
 import Review from "../components/review/review";
-import PlusBtn from "../components/common/plusBtn";
 import ReviewBottomSheet from "../components/review/reviewBottomSheet";
 import Like from "../components/common/like";
+
 import { MapPin, Phone } from "lucide-react";
 
 import { useContext } from "react";
@@ -46,18 +46,71 @@ const RestaurantDetailPage = () => {
   const navigate = useNavigate();
   const userId = user?.id ?? null;
 
-  const { data: reviewsData, isLoading: isReviewsLoading } =
-    useRestaurantReviews(Number(restaurantDetailData?.id));
+  const restaurantIdForReviews = useMemo(() => {
+    if (!restaurantDetailData) return null;
 
-  console.log(reviewsData);
+    if (restaurantDetailData.id != null) return Number(restaurantDetailData.id);
 
-  const reviews = reviewsData ?? [];
+    if (restaurantDetailData.restaurant_id != null) {
+      return Number(restaurantDetailData.restaurant_id);
+    }
+
+    return currentId ? Number(currentId) : null;
+  }, [restaurantDetailData, currentId]);
+
+  const { data: rawReviews = [], isLoading: isReviewsLoading } =
+    useRestaurantReviews(restaurantIdForReviews);
+
+  const reviews = useMemo(() => {
+    if (!rawReviews?.length) return [];
+
+    const targetId =
+      restaurantIdForReviews != null ? Number(restaurantIdForReviews) : null;
+
+    const mapped = rawReviews.map((raw) => {
+      if (!raw || typeof raw !== "object") return raw;
+
+      const mergedFromNumericKeys = Object.entries(raw).reduce(
+        (acc, [key, value]) => {
+          if (
+            !Number.isNaN(Number(key)) &&
+            value &&
+            typeof value === "object"
+          ) {
+            return { ...acc, ...value };
+          }
+          return acc;
+        },
+        {},
+      );
+
+      const base = { ...raw, ...mergedFromNumericKeys };
+
+      const restaurant =
+        base.restaurant && Object.keys(base.restaurant).length
+          ? base.restaurant
+          : (restaurantDetailData ?? null);
+
+      const reviewText = base.review ?? base.rev ?? base.content ?? "";
+
+      return {
+        ...base,
+        restaurant,
+        review: reviewText,
+      };
+    });
+
+    if (targetId == null) return mapped;
+    return mapped.filter((r) => {
+      const rid = r.restaurant_id ?? r.restaurant?.id;
+      return rid != null && Number(rid) === targetId;
+    });
+  }, [rawReviews, restaurantDetailData, restaurantIdForReviews]);
 
   const { data: isLikedFromApi = false } = useRestaurantLikeStatus({
     userId,
     restaurantId,
   });
-
   // 좋아요 mutation 훅들
   const { mutate: likeRestaurant } = useLikeRestaurantMutation();
   const { mutate: unlikeRestaurant } = useUnlikeRestaurantMutation();
@@ -69,6 +122,9 @@ const RestaurantDetailPage = () => {
   useEffect(() => {
     setIsLike(isLikedFromApi);
   }, [isLikedFromApi]);
+
+  // 비로그인 시에는 하트를 항상 빈 상태로 표시
+  const displayIsLike = isLoggedIn ? isLike : false;
 
   // 바텀시트 오픈 플러스 버튼
   const [openBottomSheet, setOpenBottomSheet] = useState(false);
@@ -155,11 +211,20 @@ const RestaurantDetailPage = () => {
   };
 
   const expertsCount = useMemo(() => {
-    const uniqueUsers = reviews.filter(
-      (review, index, self) =>
-        index === self.findIndex((r) => r.userId === review.userId),
-    );
-    return uniqueUsers.length;
+    const getReviewUserId = (r) => {
+      const id = r.user_id ?? r.userId ?? r.user?.id;
+      return id != null ? String(id) : null;
+    };
+    const seen = new Set();
+    let count = 0;
+    for (const r of reviews) {
+      const uid = getReviewUserId(r);
+      if (uid != null && !seen.has(uid)) {
+        seen.add(uid);
+        count += 1;
+      }
+    }
+    return count;
   }, [reviews]);
 
   if (isDetailLoading) {
@@ -222,7 +287,7 @@ const RestaurantDetailPage = () => {
 
             <div className="flex flex-col items-center gap-1">
               <Like
-                isLike={isLike}
+                isLike={displayIsLike}
                 onLike={onLike}
                 likeCount={likeCount}
                 className="w-8 h-8"
@@ -251,6 +316,7 @@ const RestaurantDetailPage = () => {
               onClose={() => setOpenBottomSheet(false)}
               restaurant={restaurantDetailData}
               currentUser={currentReviewUser}
+              restaurantIdForReviews={restaurantIdForReviews}
               onSuccess={() => {
                 setActiveTab("review");
                 setTimeout(() => {
@@ -311,14 +377,20 @@ const RestaurantDetailPage = () => {
 
           {activeTab === "review" && (
             <div ref={reviewTopRef} className="flex flex-col gap-7">
-              {reviews.length > 0 ? (
+              {isReviewsLoading ? (
+                <div className="py-20 text-center text-gray-500">
+                  리뷰를 불러오는 중... 😋
+                </div>
+              ) : reviews.length > 0 ? (
                 reviews.map((v, index) => (
-                  <Review
+                  <div
                     key={
                       v.id != null ? `review-${v.id}` : `review-opt-${index}`
                     }
-                    reviewData={v}
-                  />
+                    className="flex justify-center w-full"
+                  >
+                    <Review reviewData={v} />
+                  </div>
                 ))
               ) : (
                 <div className="py-20 text-center text-gray-400">

@@ -1,23 +1,74 @@
-import React, { useState } from "react";
-import { Link } from "react-router";
+import React, { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router";
 import Like from "../common/like";
 
 import { useContext } from "react";
 import { DetailStateContext } from "../layout/map-layout";
+import { useLoginState } from "../loginstate";
+import { useRestaurantLikeStatus } from "../../hooks/queries/use-restaurants-data";
+import {
+  useLikeRestaurantMutation,
+  useUnlikeRestaurantMutation,
+} from "../../hooks/mutations/use-create-restaurant-mutation";
 
 const RestaurantCard = ({ restaurant }) => {
   const context = useContext(DetailStateContext);
 
-  const { id, name, thumbnail, category, expertCount, address, isLiked } =
-    restaurant;
-  console.log(restaurant);
+  const navigate = useNavigate();
+  const { user, isLoggedIn, isMe } = useLoginState();
 
-  const [isLike, setIsLike] = useState(isLiked ?? false);
+  const { id, name, thumbnail, category, expertCount, address } = restaurant;
+  const restaurantId = Number(id);
 
-  const onLike = (e) => {
+  const { data: isLikedFromApi = false } = useRestaurantLikeStatus({
+    userId: isLoggedIn ? user?.id : null,
+    restaurantId: restaurantId || null,
+  });
+
+  const [isLike, setIsLike] = useState(isLikedFromApi);
+
+  useEffect(() => {
+    setIsLike(isLikedFromApi);
+  }, [isLikedFromApi]);
+
+  const { mutate: likeRestaurant } = useLikeRestaurantMutation();
+  const { mutate: unlikeRestaurant } = useUnlikeRestaurantMutation();
+
+  const onLike = async (e) => {
     e?.stopPropagation?.();
-    setIsLike((prev) => !prev);
+    const isUser = await isMe();
+    if (!isUser) {
+      alert("로그인이 필요합니다.");
+      navigate("/sign-in");
+      return;
+    }
+    const userId = isUser.id;
+    const newIsLike = !isLike;
+    setIsLike(newIsLike);
+    if (newIsLike) {
+      likeRestaurant(
+        { userId, restaurantId },
+        {
+          onError: () => {
+            setIsLike(false);
+            alert("좋아요 등록에 실패했습니다.");
+          },
+        },
+      );
+    } else {
+      unlikeRestaurant(
+        { userId, restaurantId },
+        {
+          onError: () => {
+            setIsLike(true);
+            alert("좋아요 취소에 실패했습니다.");
+          },
+        },
+      );
+    }
   };
+
+  const displayIsLike = isLoggedIn ? isLike : false;
 
   const onRestaurantDetailClick = () => {
     context.setSelectedRestaurant(restaurant);
@@ -34,7 +85,7 @@ const RestaurantCard = ({ restaurant }) => {
         <div className="flex items-center justify-between gap-2 mb-1">
           <div className="text-sm text-red-400 font-bold">{category}</div>
           <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
-            <Like isLike={isLike} onLike={onLike} className="w-6 h-6" />
+            <Like isLike={displayIsLike} onLike={onLike} className="w-6 h-6" />
           </div>
         </div>
         {/* 맛집 이름 */}

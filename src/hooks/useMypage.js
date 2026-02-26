@@ -1,14 +1,13 @@
 import { useState, useEffect, useRef } from "react";
-// 🎯 라우터 규칙: react-router에서 가져오기
 import { useNavigate } from "react-router";
-import axios from "axios";
+import api from "../api/axios";
 import {
   updateProfile,
   updatePassword,
   deleteAccount,
   checkNicknameDuplicate,
   updateUserImage,
-  getUserImageUrl, // 🎯 1. 이미지 주소 생성 함수 추가
+  getUserImageUrl,
 } from "../api/auth";
 import { useLoginState } from "../components/loginstate";
 
@@ -83,8 +82,8 @@ export const useMyPage = () => {
           setPreviewImage(`${getUserImageUrl(user.id)}?t=${imgCacheKey}`);
 
           const [fRes, ingRes] = await Promise.all([
-            axios.get(`/follows/${user.id}/follower-count`),
-            axios.get(`/follows/${user.id}/following-count`),
+            api.get(`/follows/${user.id}/follower-count`),
+            api.get(`/follows/${user.id}/following-count`),
           ]);
 
           setStats({
@@ -108,11 +107,11 @@ export const useMyPage = () => {
       try {
         let res;
         if (activeTab === "reviews")
-          res = await axios.get(`/visits?userId=${user.id}`);
+          res = await api.get(`/visits?userId=${user.id}`);
         else if (activeTab === "followers")
-          res = await axios.get(`/follows/followers/${user.id}`);
+          res = await api.get(`/follows/followers/${user.id}`);
         else if (activeTab === "followings")
-          res = await axios.get(`/follows/followings/${user.id}`);
+          res = await api.get(`/follows/followings/${user.id}`);
         setTabData(Array.isArray(res?.data) ? res.data : []);
       } catch (e) {
         setTabData([]);
@@ -238,7 +237,7 @@ export const useMyPage = () => {
   const handleUnfollow = async (targetId) => {
     if (!window.confirm("언팔로우 하시겠습니까?")) return;
     try {
-      await axios.delete(`/follows/${targetId}`);
+      await api.delete(`/follows/${targetId}`);
       alert("취소되었습니다.");
       setTabData((prev) => prev.filter((item) => item.id !== targetId));
       setStats((prev) => ({

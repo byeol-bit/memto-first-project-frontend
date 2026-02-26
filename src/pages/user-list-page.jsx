@@ -2,13 +2,14 @@ import UserList from "../components/user-list-components/userList";
 import UserTag from "../components/user-list-components/userTag";
 import TabButton from "../components/tabButton";
 import SearchBar from "../components/restaurant/searchBar";
+import {tags} from '../data/users.mock'
+import { useFollowingUsers, useInfiniteUsers } from "../hooks/queries/use-users-data";
 
-import useUserFilter from "../hooks/useUserFilter";
-import { useFollowingUsers } from "../hooks/queries/use-users-data";
-
-import { useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-// import { useLikedUsers } from "../api/user.api";
+import { useLoginState } from "../components/loginstate";
+import Button from "../components/common/button";
+import InfiniteScrollTrigger from "../components/common/infiniteScrollTrigger";
 
 const TABS = {
 	ALL_USERS: 'allUsers',
@@ -16,25 +17,45 @@ const TABS = {
 }
 
 const UserListPage = () => {
-  	const { users, keyword, setKeyword, tag, setTag, tags, isLoading } =
-	useUserFilter();
+	const [keyword, setKeyword] = useState("")
+	const [searchKeyword, setSearchKeyword] = useState("")
+	const [tag, setTag] = useState([]);
 	const [selectedTab, setSelectedTab] = useState(TABS.ALL_USERS)
     const navigate = useNavigate()
-
-	// ===추가 구현 사항===
-	// 로그인 여부 판단 후 내가 관심 갖고 있는 고수 목록 
-    const isLogin = true
-	// const { data: likedUsers = [], isLoading: likedUsersLoading, error: likedUsersError} = 
-	// useLikedUsers()
-	const { data: followingUsers = [], isLoading: followingUsersLoading} = 
-		useFollowingUsers(8)
+	const {isLoggedIn, user} = useLoginState()
 	
+	  // 디바운싱
+	useEffect(() => {
+		const timer = setTimeout(() => {
+		setSearchKeyword(keyword)
+		}, 500)
+		
+		return () => clearTimeout(timer)    
+	}, [keyword])
+	
+	const {data, fetchNextPage, hasNextPage, isFetchingNextPage, isLoading} = useInfiniteUsers({
+		nickname: searchKeyword,
+		category: tag,
+	})
+	console.log('dat는요', data)
+
+
+	const allUsers = useMemo(() => {
+		if(!data?.pages) return []
+		return data.pages.flatMap((page) => {
+			if (Array.isArray(page)) return page
+			if (page?.data) return page.data
+			return []
+		})
+	}, [data])
+
+	const { data: followingUsers = [], isLoading: followingUsersLoading} = useFollowingUsers(8)
 	const handleKeywordChange = (e) => {
 		setKeyword(e.target.value)
 	}
 
 	const handleSearch = () => {
-		setKeyword(keyword)
+		setSearchKeyword(keyword)
 	}
 
 	return (
@@ -64,20 +85,21 @@ const UserListPage = () => {
 						</form>
 
 						<UserTag tag={tag} setTag={setTag} tags={tags}/>
-						<UserList users={users} isLoading={isLoading}/>
+						<UserList users={allUsers} isLoading={isLoading}/>
+						<InfiniteScrollTrigger onIntersect={fetchNextPage} hasNextPage={hasNextPage} isFetchingNextPage={isFetchingNextPage} />
 					</div>
 				}
 				{selectedTab === TABS.LIKED_USERS && (					
-					isLogin ? (
+					isLoggedIn ? (
 						<div className="pt-4">
 							<UserList users={followingUsers}/>
 						</div>
 					):(
-						<div 
-							className="flex items-center justify-center min-h-screen overflow-hidden hover:bg-gray-100"
-							onClick={() => navigate('/sign-in')}
-						>
+						<div className="flex flex-col items-center gap-4 py-10">
 							로그인 해주세요.
+							<Button onClick={() => navigate('/sign-in')}>
+								로그인 하러가기
+							</Button>
 						</div>
 					)
 				)}
