@@ -23,7 +23,6 @@ const UserMarkerLayer = () => {
 
   useEffect(() => {
     if (!reviews?.length) {
-      setReviewMarkers([]);
       return;
     }
 
@@ -82,7 +81,6 @@ const UserMarkerLayer = () => {
   // reviewMarkers → Kakao Mobility 경로 호출 → routePath
   useEffect(() => {
     if (!reviewMarkers?.length || reviewMarkers.length < 2) {
-      setRoutePath([]);
       return;
     }
 
