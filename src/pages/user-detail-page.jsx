@@ -1,11 +1,10 @@
-import { useState, useContext, useRef, useEffect } from "react"
+import { useContext } from "react"
 
 import { DetailStateContext } from "../components/layout/map-layout"
 
 import FollowButton from "../components/follow/followButton"
 import UserProfile from "../components/user-detail-components/userProfile"
 import UserReview from "../components/user-detail-components/userReview"
-import LoginTooltip from "../components/loginTooltip"
 import Loading from "../components/loading"
 
 import { useUserDetail, useIsFollowing, useCountFollowing, useCountFollower } from "../hooks/queries/use-users-data"
@@ -17,10 +16,6 @@ const UserDetailPage = () => {
   const context = useContext(DetailStateContext)
   const navigate = useNavigate()
   const {user: loginUser, isLoggedIn} = useLoginState()
-  
-  const [showTooltip, setShowTooltip] = useState(false);
-  const [tooltipPosition, setTooltipPosition] = useState(null)
-  const tooltipTimer = useRef(null)
 
   let currentId = context?.selectedUser?.id
 
@@ -38,19 +33,9 @@ const UserDetailPage = () => {
 
   const handleFollowToggle = (e) => {
     if (!isLoggedIn) {
-      const rect = e.currentTarget.getBoundingClientRect()
-
-      setTooltipPosition({
-        top: rect.bottom + window.scrollY,
-        left: rect.left + rect.width / 2 + window.scrollX
-      })
-
-      setShowTooltip(true)
-      clearTimeout(tooltipTimer.current)
-      tooltipTimer.current = setTimeout(() => {
-        setShowTooltip(false)
-      }, 2000)
-      return
+      alert("로그인이 필요합니다.")
+      navigate('/sign-in')
+      return;
     }
     toggleFollow({
       userId: currentId,
@@ -58,18 +43,6 @@ const UserDetailPage = () => {
     })
   }
 
-  // 내가 보고 있는 페이지 기억하기..
-  const handleLoginRedirect = () => {
-    navigate("/sign-in", {
-      state: {
-        from: {
-          selectedUser: context.selectedUser,
-          userDetailView: context.userDetailView
-        }
-      }
-    })
-    return
-  }
 
   if(isLoading) return <Loading />
   if(error) return <div>유저 정보를 불러오는데 실패했습니다.</div>
@@ -113,15 +86,6 @@ const UserDetailPage = () => {
       <div className="relative flex justify-center mt-4 h-10 items-center">
         {loginUser?.id !== user?.id && (
           <FollowButton isFollowing={!!isFollowing} onToggle={handleFollowToggle}/>
-        )}
-        {showTooltip && (
-          <LoginTooltip 
-            positoin={tooltipPosition}
-            onClick={handleLoginRedirect}
-            onClose={() => setShowTooltip(false)}
-            mainText="로그인이 필요합니다"
-            buttonText="로그인"
-          />
         )}
       </div>
       <div className="flex border-b border-b-gray-200 mt-4">

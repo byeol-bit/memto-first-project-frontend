@@ -82,3 +82,8 @@ export const checkMe = async () => {
   const res = await api.get("/users/me");
   return res;
 };
+
+// 유저 이미지
+export const userImg = (userId) => {
+  return `https://hidden-master-server.fly.dev/users/${userId}/image`
+}
