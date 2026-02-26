@@ -57,7 +57,11 @@ function parsePathFromResponse(data) {
  * @returns {Promise<{ lat: number, lng: number }[]>} 경로 좌표 배열 (실패 시 빈 배열)
  */
 export async function getCarDirection(origin, destination) {
+  console.log('apiKey kakao mobility', import.meta.env.VITE_KAKAO_MOBILITY_REST_API_KEY)
+
   const apiKey = import.meta.env.VITE_KAKAO_MOBILITY_REST_API_KEY
+  console.log('apiKey', apiKey)
+
   if (!apiKey) {
     console.warn(
       'VITE_KAKAO_MOBILITY_REST_API_KEY가 없습니다. 카카오 모빌리티(developers.kakaomobility.com)에서 REST API 키를 발급한 뒤 .env에 넣어주세요.'
