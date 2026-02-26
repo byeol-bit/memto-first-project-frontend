@@ -1,8 +1,8 @@
-import { useState, useContext, useRef } from "react"
+import { useState, useContext, useRef, useEffect } from "react"
 
 import { DetailStateContext } from "../components/layout/map-layout"
 
-import FollowButton from "../components/user-detail-components/followButton"
+import FollowButton from "../components/follow/followButton"
 import UserProfile from "../components/user-detail-components/userProfile"
 import UserReview from "../components/user-detail-components/userReview"
 import LoginTooltip from "../components/loginTooltip"
@@ -10,15 +10,17 @@ import Loading from "../components/loading"
 
 import { useUserDetail, useIsFollowing, useCountFollowing, useCountFollower } from "../hooks/queries/use-users-data"
 import { useToggleFollow } from "../hooks/mutations/use-create-user-mutation"
+import { useLoginState } from "../components/loginstate"
+import { useNavigate } from "react-router"
 
 const UserDetailPage = () => {
   const context = useContext(DetailStateContext)
-
+  const navigate = useNavigate()
+  const {user: loginUser, isLoggedIn} = useLoginState()
+  
   const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState(null)
   const tooltipTimer = useRef(null)
-
-  // 로그인 여부
-  const isLogin = true
 
   let currentId = context?.selectedUser?.id
 
@@ -33,8 +35,16 @@ const UserDetailPage = () => {
 
   const { mutate: toggleFollow } = useToggleFollow()
 
-  const requireLogin = (callback) => {
-    if(!isLogin) {
+
+  const handleFollowToggle = (e) => {
+    if (!isLoggedIn) {
+      const rect = e.currentTarget.getBoundingClientRect()
+
+      setTooltipPosition({
+        top: rect.bottom + window.scrollY,
+        left: rect.left + rect.width / 2 + window.scrollX
+      })
+
       setShowTooltip(true)
       clearTimeout(tooltipTimer.current)
       tooltipTimer.current = setTimeout(() => {
@@ -42,23 +52,25 @@ const UserDetailPage = () => {
       }, 2000)
       return
     }
-    callback()
-  }
-
-  const handleFollowToggle = () => {
-    requireLogin(() => {
-      toggleFollow({
-        userId: currentId,
-        isFollowing: isFollowing
-      })
+    toggleFollow({
+      userId: currentId,
+      isFollowing: isFollowing
     })
   }
 
   // 내가 보고 있는 페이지 기억하기..
   const handleLoginRedirect = () => {
-
+    navigate("/sign-in", {
+      state: {
+        from: {
+          selectedUser: context.selectedUser,
+          userDetailView: context.userDetailView
+        }
+      }
+    })
+    return
   }
-  
+
   if(isLoading) return <Loading />
   if(error) return <div>유저 정보를 불러오는데 실패했습니다.</div>
 
@@ -98,10 +110,13 @@ const UserDetailPage = () => {
         </div>
         
       </div>
-      <div className="relative flex justify-center mt-4">
-        <FollowButton isFollowing={!!isFollowing} onToggle={handleFollowToggle}/>
+      <div className="relative flex justify-center mt-4 h-10 items-center">
+        {loginUser?.id !== user?.id && (
+          <FollowButton isFollowing={!!isFollowing} onToggle={handleFollowToggle}/>
+        )}
         {showTooltip && (
           <LoginTooltip 
+            positoin={tooltipPosition}
             onClick={handleLoginRedirect}
             onClose={() => setShowTooltip(false)}
             mainText="로그인이 필요합니다"

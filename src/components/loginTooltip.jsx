@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react"
-
-const LoginTooltip = ({onClick, onClose, mainText="", buttonText=""}) => {
+const LoginTooltip = ({position, onClick, onClose, mainText="", buttonText=""}) => {
     const tooltipRef = useRef(null)
 
     useEffect(() => {
@@ -16,10 +15,12 @@ const LoginTooltip = ({onClick, onClose, mainText="", buttonText=""}) => {
             document.removeEventListener("mousedown", handleClickOutside)
         }
     }, [onClose])
+
     return (
         <div
             ref={tooltipRef} 
-            className="absolute translate-y-5 top-1/2  bg-black text-white text-xs px-3 py-2 rounded-lg shadow-lg flex items-center gap-2"
+            style={{position: "fixed", top:position?.top, left:position?.left, transform: "translateX(-50%)"}}
+            className="bg-black text-white text-xs px-3 py-2 rounded-lg shadow-lg flex items-center gap-2"
         >
             <button 
                 onClick={onClose}

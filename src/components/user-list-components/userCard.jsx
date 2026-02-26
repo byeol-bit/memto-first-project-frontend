@@ -35,7 +35,7 @@ const UserCard = ({user}) => {
                     </div>
 
                     <div className='text-xs text-gray-400'>
-                        리뷰 <b className='text-red-400'>{user.reviews}</b>
+                        리뷰 <b className='text-red-400'>{user.visitCount}</b>
                     </div>
                 </div>
             </div>

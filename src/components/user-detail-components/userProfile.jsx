@@ -18,7 +18,7 @@ const UserProfile = ({user}) => {
             </div>
             {/* 소개글 */}
             <div className='mt-3 text-sm text-gray-600 line-clamp-3'>
-                {user.introduction}
+                {user.introduction ? user.introduction : "작성된 소개글이 없습니다."}
             </div>
 
         </div>

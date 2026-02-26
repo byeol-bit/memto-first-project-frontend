@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { fetchUsers } from "../../api/fetch-users"
 import { QUERY_KEYS } from "../../lib/constants";
-import { getFollowersCount, getFollowingCount, getUserDetail, isFollowing, searchUsers, getFollowers, getFollowings, checkMe } from "../../api/user.api";
+import { getUsers, getFollowersCount, getFollowingCount, getUserDetail, isFollowing, searchUsers, getFollowers, getFollowings, checkMe } from "../../api/user.api";
 
 export function useUsersData() {
   return useQuery({
@@ -18,13 +18,42 @@ export const useUserDetail = (userId) => {
 }
 
 // 검색한 유저 호출
-export const useSearchUsers = ({ nickname, category }) =>
+export const useSearchUsers = ({ nickname, category }, options = {}) =>
   useQuery({
-    queryKey: ["users", "search", nickname, category],
+    queryKey: ["users", "search", nickname, ...category],
     queryFn: () => searchUsers({ nickname, category }),
     keepPreviousData: true,
     enabled: !!nickname || category.length > 0,
-  });
+    ...options
+});
+
+// 유저 리스트용 무한 스크롤
+export const useInfiniteUsers = ({nickname, category, limit = 10}) => {
+  return useInfiniteQuery({
+    queryKey: ["users", nickname, category],
+    queryFn: async({pageParam = 1}) => {
+      if(nickname || category?.length > 0) {
+        return searchUsers({
+          page: pageParam,
+          limit,
+          nickname,
+          category
+        })
+      }
+      return getUsers({
+        page: pageParam,
+        limit,
+      })
+    },
+    getNextPageParam: (lastPage, pages) => {
+      if(lastPage.length === 10) {
+        return pages.length + 1;
+      }
+      return undefined
+      // console.log('lastPage 체크', lastPage, pages)
+    }
+  })
+}
 
 // 팔로잉 여부 체크
 export const useIsFollowing = (userId) => {
