@@ -268,7 +268,7 @@ const SignUpPage = () => {
             <button
               onClick={handleCheckId}
               className={`px-4 rounded-lg text-sm font-bold transition-colors shadow-sm whitespace-nowrap 
-                ${isIdChecked ? "bg-green-500 text-white" : "bg-gray-700 text-white hover:bg-gray-800"}`}
+                ${isIdChecked ? "bg-[#ee5a6f] text-white" : "bg-gray-700 text-white hover:bg-gray-800"}`}
             >
               {isIdChecked ? "확인됨" : "중복확인"}
             </button>
@@ -317,7 +317,7 @@ const SignUpPage = () => {
             <button
               onClick={handleCheckNickname}
               className={`px-4 rounded-lg text-sm font-bold transition-colors shadow-sm whitespace-nowrap 
-                ${isNicknameChecked ? "bg-green-500 text-white" : "bg-gray-700 text-white hover:bg-gray-800"}`}
+                ${isNicknameChecked ? "bg-[#ee5a6f] text-white" : "bg-gray-700 text-white hover:bg-gray-800"}`}
             >
               {isNicknameChecked ? "확인됨" : "중복확인"}
             </button>
