@@ -16,7 +16,6 @@ const TabSection = ({
 
   return (
     <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
-      {/* 탭 헤더 */}
       <div className="flex border-b border-gray-200">
         {["reviews", "followers", "followings"].map((tab) => (
           <button
@@ -37,8 +36,7 @@ const TabSection = ({
         ))}
       </div>
 
-      {/* 고정 높이 컨텐츠 영역 */}
-      <div className="p-4 bg-gray-50/50 h-[600px] overflow-y-auto">
+      <div className="p-4 bg-gray-50/50 h-[360px] overflow-y-auto">
         {activeTab === "reviews" ? (
           isReviewLoading ? (
             <Loading />
