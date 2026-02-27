@@ -14,10 +14,8 @@ import { useLoginState } from "../components/loginstate";
 export const useMyPage = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef(null);
-
   const { user, logout, isLoading: isAuthLoading } = useLoginState();
 
-  // --- State ---
   const [userInfo, setUserInfo] = useState(null);
   const [stats, setStats] = useState({ followerCount: 0, followingCount: 0 });
   const [isLoading, setIsLoading] = useState(true);
@@ -26,14 +24,12 @@ export const useMyPage = () => {
   const [tabData, setTabData] = useState([]);
   const [isTabLoading, setIsTabLoading] = useState(false);
 
-  // 사진 수정
   const [isEditingPhoto, setIsEditingPhoto] = useState(false);
   const [previewImage, setPreviewImage] = useState(null);
   const [selectedFile, setSelectedFile] = useState(null);
   const [selectedColor, setSelectedColor] = useState("#ffffff");
   const [selectedIdx, setSelectedIdx] = useState(null);
 
-  // 모달 상태
   const [isNicknameModalOpen, setIsNicknameModalOpen] = useState(false);
   const [nicknameInput, setNicknameInput] = useState("");
   const [isNicknameChecked, setIsNicknameChecked] = useState(false);
@@ -68,7 +64,6 @@ export const useMyPage = () => {
 
   useEffect(() => {
     if (!isAuthLoading && !user) {
-      alert("로그인이 필요한 서비스입니다.");
       navigate("/sign-in");
       return;
     }
@@ -78,7 +73,6 @@ export const useMyPage = () => {
         try {
           setUserInfo(user);
           setNicknameInput(user.nickname || "");
-
           setPreviewImage(`${getUserImageUrl(user.id)}?t=${imgCacheKey}`);
 
           const [fRes, ingRes] = await Promise.all([
@@ -91,7 +85,7 @@ export const useMyPage = () => {
             followingCount: ingRes.data?.count || 0,
           });
         } catch (e) {
-          console.error("데이터 로딩 중 에러 발생 :", e);
+          console.error(e);
         } finally {
           setIsLoading(false);
         }
@@ -102,16 +96,16 @@ export const useMyPage = () => {
 
   useEffect(() => {
     const fetchTabData = async () => {
-      if (!user?.id) return;
+      if (!user?.id || activeTab === "reviews") return;
+
       setIsTabLoading(true);
       try {
         let res;
-        if (activeTab === "reviews")
-          res = await api.get(`/visits?userId=${user.id}`);
-        else if (activeTab === "followers")
+        if (activeTab === "followers") {
           res = await api.get(`/follows/followers/${user.id}`);
-        else if (activeTab === "followings")
+        } else if (activeTab === "followings") {
           res = await api.get(`/follows/followings/${user.id}`);
+        }
         setTabData(Array.isArray(res?.data) ? res.data : []);
       } catch (e) {
         setTabData([]);
@@ -153,7 +147,6 @@ export const useMyPage = () => {
       canvas.width = 500;
       canvas.height = 500;
       const ctx = canvas.getContext("2d");
-
       ctx.fillStyle = color;
       ctx.fillRect(0, 0, 500, 500);
       ctx.fillStyle = "#ffffff";
@@ -163,21 +156,16 @@ export const useMyPage = () => {
         "M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z",
       );
       ctx.fill(iconPath);
-
       canvas.toBlob((blob) => {
-        if (blob) {
+        if (blob)
           resolve(new File([blob], "profile.png", { type: "image/png" }));
-        } else {
-          reject(new Error("변환 실패"));
-        }
+        else reject(new Error("Error"));
       }, "image/png");
     });
   };
 
   const saveProfileImage = async () => {
-    if (selectedIdx === null && !selectedFile)
-      return alert("이미지를 선택해주세요.");
-
+    if (selectedIdx === null && !selectedFile) return;
     try {
       const formData = new FormData();
       if (selectedIdx === "upload" && selectedFile) {
@@ -186,22 +174,18 @@ export const useMyPage = () => {
         const pngFile = await createPngFileFromSvg(selectedColor);
         formData.append("image", pngFile);
       }
-
       await updateUserImage(user.id, formData);
-      alert("프로필 사진이 변경되었습니다!");
       window.location.reload();
     } catch (e) {
-      alert("이미지 업로드에 실패했습니다.");
+      console.error(e);
     }
   };
 
   const handleCheckNickname = async () => {
     try {
       await checkNicknameDuplicate(nicknameInput);
-      alert("사용 가능한 닉네임입니다.");
       setIsNicknameChecked(true);
     } catch (e) {
-      alert("이미 사용 중이거나 오류가 발생했습니다.");
       setIsNicknameChecked(false);
     }
   };
@@ -211,26 +195,19 @@ export const useMyPage = () => {
       const formData = new FormData();
       formData.append("nickname", nicknameInput);
       await updateProfile(formData);
-
-      localStorage.setItem("userNickname", nicknameInput);
-      alert("닉네임이 변경되었습니다!");
       window.location.reload();
     } catch (e) {
-      alert("닉네임 변경 중 오류가 발생했습니다.");
+      console.error(e);
     }
   };
 
   const handleUpdatePassword = async () => {
-    if (!currentPassword) return alert("현재 비밀번호를 입력해주세요.");
-    if (newPassword !== confirmPassword)
-      return alert("새 비밀번호 확인이 일치하지 않습니다.");
-
+    if (newPassword !== confirmPassword) return;
     try {
       await updatePassword(currentPassword, newPassword);
-      alert("비밀번호가 변경되었습니다. 다시 로그인해 주세요.");
       await logout();
     } catch (e) {
-      alert(e.response?.data?.message || "비밀번호 변경 실패");
+      console.error(e);
     }
   };
 
@@ -238,20 +215,17 @@ export const useMyPage = () => {
     try {
       if (isCurrentlyFollowing) {
         await api.delete(`/follows/${targetId}`);
-
         setStats((prev) => ({
           ...prev,
           followingCount: prev.followingCount - 1,
         }));
       } else {
         await api.post(`/follows/${targetId}`);
-
         setStats((prev) => ({
           ...prev,
           followingCount: prev.followingCount + 1,
         }));
       }
-
       setTabData((prev) =>
         prev.map((item) =>
           item.id === targetId
@@ -260,20 +234,18 @@ export const useMyPage = () => {
         ),
       );
     } catch (e) {
-      alert("팔로우 처리 중 오류가 발생했습니다.");
+      console.error(e);
     }
   };
+
   const handleDeleteAccount = async () => {
-    if (window.confirm("정말 탈퇴하시겠습니까? 데이터는 복구되지 않습니다.")) {
+    if (window.confirm("정말 탈퇴하시겠습니까?")) {
       try {
         await deleteAccount();
-
-        alert("회원탈퇴가 완료되었습니다. 그동안 이용해 주셔서 감사합니다.");
-
         localStorage.clear();
         window.location.href = "/";
       } catch (e) {
-        alert("탈퇴 처리 중 오류가 발생했습니다.");
+        console.error(e);
       }
     }
   };
