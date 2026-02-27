@@ -1,6 +1,23 @@
+import React from "react";
+import Like from "../common/like";
+
 const MyPageReviewCard = ({ reviewData }) => {
   if (!reviewData) return null;
   const restaurant = reviewData.restaurant || {};
+
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("ko-KR", {
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+  };
+
+  const displayDate = formatDate(
+    reviewData.visit_date || reviewData.created_at,
+  );
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -27,10 +44,13 @@ const MyPageReviewCard = ({ reviewData }) => {
           {reviewData.review || reviewData.content}
         </p>
         <div className="mt-3 flex justify-between items-center text-[11px] text-gray-400">
-          <span>{reviewData.visit_date || reviewData.created_at}</span>
-          <span className="font-bold text-gray-500">
-            ❤️ {reviewData.likeCount || 0}
-          </span>
+          <span>{displayDate}</span>
+          <div className="flex items-center gap-1.5 cursor-pointer">
+            <Like isLike={reviewData.isLiked} />
+            <span className="font-bold text-gray-500">
+              {reviewData.likeCount || 0}
+            </span>
+          </div>
         </div>
       </div>
     </div>
