@@ -1,9 +1,13 @@
+import UserReview from "../user-detail-components/userReview";
+import FollowButton from "../follow/followButton"; // 🎯 팀원분이 만든 주황색 버튼 소환!
+
 const TabSection = ({
   activeTab,
   setActiveTab,
   isTabLoading,
   tabData,
-  handleUnfollow,
+  handleToggleFollow,
+  userId,
 }) => {
   return (
     <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[400px]">
@@ -24,70 +28,68 @@ const TabSection = ({
           </button>
         ))}
       </div>
+
       <div className="p-4">
-        {isTabLoading ? (
-          <div className="text-center py-10 text-gray-400">
-            데이터 로딩 중...
+        {activeTab === "reviews" ? (
+          <div className="pt-2">
+            <UserReview userId={userId} />
           </div>
-        ) : Array.isArray(tabData) && tabData.length > 0 ? (
-          <ul className="space-y-3">
-            {tabData.map((item, index) => (
-              <li
-                key={item.id || index}
-                className="p-4 border border-gray-100 rounded-xl bg-white hover:shadow-sm transition-shadow flex justify-between items-center"
-              >
-                {activeTab === "reviews" ? (
-                  <div className="w-full">
-                    <div className="flex justify-between items-start mb-1">
-                      <span className="font-bold text-gray-800">
-                        {item.restaurant?.name || "식당명 없음"}
-                      </span>
-                      <span className="text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded">
-                        {item.visit_date}
-                      </span>
-                    </div>
-                    <p className="text-gray-600 text-sm line-clamp-2">
-                      {item.review}
-                    </p>
-                  </div>
-                ) : (
-                  <>
-                    <div className="flex items-center gap-3">
-                      <img
-                        src={
-                          "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
-                        }
-                        alt="프로필"
-                        onError={(e) => {
-                          e.target.src =
-                            "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
-                        }}
-                        className="w-10 h-10 rounded-full border border-gray-200 object-cover"
-                      />
-                      <span className="font-bold text-gray-700">
-                        {item.nickname}
-                      </span>
-                    </div>
-                    {activeTab === "followings" && (
-                      <button
-                        onClick={() => handleUnfollow(item.id)}
-                        className="text-xs text-gray-400 border border-gray-200 px-2 py-1 rounded hover:text-red-500 hover:border-red-200 transition-colors"
-                      >
-                        언팔로우
-                      </button>
-                    )}
-                  </>
-                )}
-              </li>
-            ))}
-          </ul>
         ) : (
-          <div className="text-center py-16 text-gray-300">
-            기록이 없습니다.
-          </div>
+          <>
+            {isTabLoading ? (
+              <div className="text-center py-10 text-gray-400">
+                데이터 로딩 중...
+              </div>
+            ) : Array.isArray(tabData) && tabData.length > 0 ? (
+              <ul className="space-y-3">
+                {tabData.map((item, index) => {
+                  const currentIsFollowing = !item.isCanceled;
+
+                  return (
+                    <li
+                      key={item.id || index}
+                      className="p-4 border border-gray-100 rounded-xl bg-white hover:shadow-sm transition-shadow flex justify-between items-center"
+                    >
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={
+                            item.profileImage ||
+                            "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png"
+                          }
+                          alt="프로필"
+                          onError={(e) => {
+                            e.target.src =
+                              "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+                          }}
+                          className="w-10 h-10 rounded-full border border-gray-200 object-cover"
+                        />
+                        <span className="font-bold text-gray-700">
+                          {item.nickname}
+                        </span>
+                      </div>
+
+                      {activeTab === "followings" && (
+                        <FollowButton
+                          isFollowing={currentIsFollowing}
+                          onToggle={() =>
+                            handleToggleFollow(item.id, currentIsFollowing)
+                          }
+                        />
+                      )}
+                    </li>
+                  );
+                })}
+              </ul>
+            ) : (
+              <div className="text-center py-16 text-gray-300">
+                기록이 없습니다.
+              </div>
+            )}
+          </>
         )}
       </div>
     </section>
   );
 };
+
 export default TabSection;

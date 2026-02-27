@@ -234,21 +234,35 @@ export const useMyPage = () => {
     }
   };
 
-  const handleUnfollow = async (targetId) => {
-    if (!window.confirm("언팔로우 하시겠습니까?")) return;
+  const handleToggleFollow = async (targetId, isCurrentlyFollowing) => {
     try {
-      await api.delete(`/follows/${targetId}`);
-      alert("취소되었습니다.");
-      setTabData((prev) => prev.filter((item) => item.id !== targetId));
-      setStats((prev) => ({
-        ...prev,
-        followingCount: prev.followingCount - 1,
-      }));
+      if (isCurrentlyFollowing) {
+        await api.delete(`/follows/${targetId}`);
+
+        setStats((prev) => ({
+          ...prev,
+          followingCount: prev.followingCount - 1,
+        }));
+      } else {
+        await api.post(`/follows/${targetId}`);
+
+        setStats((prev) => ({
+          ...prev,
+          followingCount: prev.followingCount + 1,
+        }));
+      }
+
+      setTabData((prev) =>
+        prev.map((item) =>
+          item.id === targetId
+            ? { ...item, isCanceled: isCurrentlyFollowing }
+            : item,
+        ),
+      );
     } catch (e) {
-      alert("처리 중 오류가 발생했습니다.");
+      alert("팔로우 처리 중 오류가 발생했습니다.");
     }
   };
-
   const handleDeleteAccount = async () => {
     if (window.confirm("정말 탈퇴하시겠습니까? 데이터는 복구되지 않습니다.")) {
       try {
@@ -298,7 +312,7 @@ export const useMyPage = () => {
     confirmPassword,
     setConfirmPassword,
     handleUpdatePassword,
-    handleUnfollow,
+    handleToggleFollow,
     handleLogout: logout,
     handleDeleteAccount,
     defaultOptions,
