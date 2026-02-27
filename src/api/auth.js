@@ -110,3 +110,12 @@ export const getUserImageUrl = (id) => {
 export const getMyProfile = async () => {
   return await api.get("/users/me");
 };
+
+/**
+ * 12. 리뷰(방문) 이미지 획득
+ * Method: GET
+ * Endpoint: /visits/{id}/image
+ */
+export const getVisitImage = async (visitId) => {
+  return await api.get(`/visits/${visitId}/image`);
+};
