@@ -1,7 +1,8 @@
 import MyPageReviewCard from "./MyPageReviewCard";
 import FollowButton from "../follow/followButton";
-import { useUserReviews } from "../../hooks/queries/use-reviews-data";
 import Loading from "../loading";
+import { useUserReviews } from "../../hooks/queries/use-reviews-data";
+import { getUserImageUrl } from "../../api/auth";
 
 const TabSection = ({
   activeTab,
@@ -14,7 +15,8 @@ const TabSection = ({
   const { data: reviews, isLoading: isReviewLoading } = useUserReviews(userId);
 
   return (
-    <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden min-h-[400px]">
+    <section className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col">
+      {/* 탭 헤더 */}
       <div className="flex border-b border-gray-200">
         {["reviews", "followers", "followings"].map((tab) => (
           <button
@@ -35,7 +37,8 @@ const TabSection = ({
         ))}
       </div>
 
-      <div className="p-4 bg-gray-50/50">
+      {/* 고정 높이 컨텐츠 영역 */}
+      <div className="p-4 bg-gray-50/50 h-[600px] overflow-y-auto">
         {activeTab === "reviews" ? (
           isReviewLoading ? (
             <Loading />
@@ -50,31 +53,32 @@ const TabSection = ({
           <Loading />
         ) : (
           <ul className="space-y-3">
-            {tabData.map((item) => (
-              <li
-                key={item.id}
-                className="p-4 border border-gray-100 rounded-xl bg-white flex justify-between items-center"
-              >
-                <div className="flex items-center gap-3">
-                  <img
-                    src={item.profileImage || "기본이미지"}
-                    className="w-10 h-10 rounded-full object-cover"
-                    alt="profile"
-                  />
-                  <span className="font-bold text-gray-700">
-                    {item.nickname}
-                  </span>
-                </div>
-                {activeTab === "followings" && (
-                  <FollowButton
-                    isFollowing={!item.isCanceled}
-                    onToggle={() =>
-                      handleToggleFollow(item.id, !item.isCanceled)
-                    }
-                  />
-                )}
-              </li>
-            ))}
+            {tabData.map((item) => {
+              const isFollowing = !item.isCanceled;
+              return (
+                <li
+                  key={item.id}
+                  className="p-4 border border-gray-100 rounded-xl bg-white flex justify-between items-center"
+                >
+                  <div className="flex items-center gap-3">
+                    <img
+                      src={getUserImageUrl(item.id || item.user_id)}
+                      className="w-11 h-11 rounded-full object-cover border border-gray-100"
+                      alt="profile"
+                    />
+                    <span className="font-bold text-gray-700">
+                      {item.nickname || item.user?.nickname}
+                    </span>
+                  </div>
+                  {activeTab === "followings" && (
+                    <FollowButton
+                      isFollowing={isFollowing}
+                      onToggle={() => handleToggleFollow(item.id, isFollowing)}
+                    />
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
