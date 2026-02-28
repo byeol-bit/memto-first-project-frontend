@@ -8,6 +8,7 @@ import {
   fetchUserReviews,
   fetchRestaurantReviews,
   fetchReviewLikeStatus,
+  fetchReviewImages,
 } from "../../api/axios-review";
 
 const normalizeList = (res) =>
@@ -74,6 +75,15 @@ export const useReviewLikeStatus = ({ userId, visitId }) => {
   });
 };
 
+// 리뷰 이미지 목록
+export const useReviewImages = (visitId) =>
+  useQuery({
+    queryKey: ["reviews", visitId, "images"],
+    queryFn: () => fetchReviewImages(visitId),
+    select: (images) => (Array.isArray(images) ? images : []),
+    enabled: !!visitId,
+  });
+
 // 무한스크롤 응답 정규화
 const normalizeInfiniteResponse = (res) => {
   const payload = res?.data ?? res;
@@ -137,7 +147,10 @@ export const useInfiniteRestaurantReviews = (restaurantId) =>
   useInfiniteQuery({
     queryKey: ["reviews", "restaurant", restaurantId, "infinite"],
     queryFn: async ({ pageParam }) => {
-      const res = await fetchReviews({ cursor: pageParam, restaurantId });
+      const res = await fetchReviews({
+        cursor: pageParam,
+        restaurant_id: restaurantId,
+      });
       return normalizeInfiniteResponse(res);
     },
     initialPageParam: null,

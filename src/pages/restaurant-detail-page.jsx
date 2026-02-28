@@ -18,7 +18,9 @@ import {
   useRestaurantLikeStatus,
   useRestaurantImages,
 } from "../hooks/queries/use-restaurants-data";
-import { useRestaurantReviews } from "../hooks/queries/use-reviews-data";
+import { useInfiniteRestaurantReviews } from "../hooks/queries/use-reviews-data";
+import { InfiniteScrollTrigger } from "../components/common/infiniteScrollTrigger";
+
 import {
   useLikeRestaurantMutation,
   useUnlikeRestaurantMutation,
@@ -59,8 +61,20 @@ const RestaurantDetailPage = () => {
     return currentId ? Number(currentId) : null;
   }, [restaurantDetailData, currentId]);
 
-  const { data: rawReviews = [], isLoading: isReviewsLoading } =
-    useRestaurantReviews(restaurantIdForReviews);
+  const {
+    data: reviewsData,
+    isLoading: isReviewsLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteRestaurantReviews(restaurantIdForReviews);
+
+  const rawReviews = useMemo(() => {
+    if (!reviewsData?.pages?.length) return [];
+    return reviewsData.pages
+      .flatMap((page) => page?.list ?? [])
+      .filter(Boolean);
+  }, [reviewsData]);
 
   const reviews = useMemo(() => {
     if (!rawReviews?.length) return [];
@@ -399,16 +413,23 @@ const RestaurantDetailPage = () => {
                   리뷰를 불러오는 중... 😋
                 </div>
               ) : reviews.length > 0 ? (
-                reviews.map((v, index) => (
-                  <div
-                    key={
-                      v.id != null ? `review-${v.id}` : `review-opt-${index}`
-                    }
-                    className="flex justify-center w-full"
-                  >
-                    <Review reviewData={v} />
-                  </div>
-                ))
+                <>
+                  {reviews.map((v, index) => (
+                    <div
+                      key={
+                        v.id != null ? `review-${v.id}` : `review-opt-${index}`
+                      }
+                      className="flex justify-center w-full"
+                    >
+                      <Review reviewData={v} />
+                    </div>
+                  ))}
+                  <InfiniteScrollTrigger
+                    onIntersect={fetchNextPage}
+                    hasNextPage={hasNextPage ?? false}
+                    isFetchingNextPage={isFetchingNextPage ?? false}
+                  />
+                </>
               ) : (
                 <div className="py-20 text-center text-gray-400">
                   아직 등록된 꿀조합이 없어요. <br />첫 번째 고수가 되어보세요!
