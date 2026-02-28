@@ -68,6 +68,11 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
       return;
     }
 
+    if (!images || images.length === 0) {
+      alert("첫 리뷰 인증샷을 최소 1장 올려주세요! (5장까지 업로드 가능)");
+      return;
+    }
+
     // 1단계: 맛집 등록
     const restaurantData = {
       name: selectedPlace.place_name,
