@@ -5,6 +5,7 @@ import {
   searchKakaoRestaurants,
   fetchRestaurantKakaoId,
   fetchLikeStatus,
+  fetchLikedRestaurants,
   fetchRestaurantImages,
 } from "../../api/axios-restaurant";
 
@@ -73,6 +74,51 @@ export const useRestaurantLikeStatus = (params = {}) => {
     enabled: !!userId && !!restaurantId,
   });
 };
+
+// 내가 좋아요한 맛집 목록 (관심 목록 탭용) — GET /restaurants/liked?userId=
+export const useLikedRestaurants = (userId) =>
+  useQuery({
+    queryKey: ["restaurants", "liked", userId],
+    queryFn: async () => {
+      const res = await fetchLikedRestaurants(userId);
+      const raw = res?.data ?? res;
+      const list = Array.isArray(raw) ? raw : (raw?.list ?? raw?.data ?? []);
+      return list.filter(Boolean);
+    },
+    enabled: !!userId,
+    retry: false,
+  });
+
+// fallback: GET /restaurants/liked 가 500 등으로 실패할 때, 이미 불러온 목록에 대해 좋아요 상태 확인 API로 필터
+export const useLikedRestaurantsFallback = (userId, restaurantList) =>
+  useQuery({
+    queryKey: [
+      "restaurants",
+      "liked-fallback",
+      userId,
+      restaurantList?.length ?? 0,
+      restaurantList
+        ?.map((r) => r?.id)
+        .filter(Boolean)
+        .join(",") ?? "",
+    ],
+    queryFn: async () => {
+      if (!userId || !restaurantList?.length) return [];
+      const results = await Promise.all(
+        restaurantList.map((r) =>
+          fetchLikeStatus({ userId, restaurantId: r.id })
+            .then((res) => {
+              const isLiked = (res?.data ?? res)?.isLiked ?? false;
+              return isLiked ? { ...r, isLiked: true } : null;
+            })
+            .catch(() => null),
+        ),
+      );
+      return results.filter(Boolean);
+    },
+    enabled:
+      !!userId && !!restaurantList?.length && restaurantList.length <= 100,
+  });
 
 // 맛집 이미지 목록 (restaurants/{id}/image)
 export const useRestaurantImages = (restaurantId) =>

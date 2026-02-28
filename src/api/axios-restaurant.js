@@ -109,6 +109,17 @@ export const fetchLikeStatus = async ({ userId, restaurantId }) => {
 };
 
 /*
+  내가 좋아요한 맛집 목록
+  GET /restaurants/liked?userId=
+*/
+export const fetchLikedRestaurants = async (userId) => {
+  const res = await api.get("/restaurants/liked", {
+    params: { userId },
+  });
+  return res;
+};
+
+/*
   맛집 이미지 목록 (파일 경로 전체 반환)
   GET /restaurants/{id}/image
 */

@@ -9,7 +9,11 @@ import RegisterRestaurantModal from "../components/restaurant/registerRestaurant
 
 import { InfiniteScrollTrigger } from "../components/common/infiniteScrollTrigger";
 
-import { useInfiniteRestaurants } from "../hooks/queries/use-restaurants-data";
+import {
+  useInfiniteRestaurants,
+  useLikedRestaurants,
+  useLikedRestaurantsFallback,
+} from "../hooks/queries/use-restaurants-data";
 
 import { useLoginState } from "../components/loginstate";
 
@@ -22,11 +26,6 @@ const RestaurantListPage = () => {
   const [isModalOpen, setIsModalOpen] = useState(false); // 맛집 등록 모달
   const [activeTab, setActiveTab] = useState("all"); // 탭
 
-  const listFilters = useMemo(
-    () => (isLoggedIn && user?.id ? { userId: user.id } : undefined),
-    [isLoggedIn, user],
-  );
-
   const {
     data,
     fetchNextPage,
@@ -35,7 +34,7 @@ const RestaurantListPage = () => {
     isLoading,
     isError,
     error,
-  } = useInfiniteRestaurants(listFilters);
+  } = useInfiniteRestaurants();
 
   // 여러 페이지로 나뉜 데이터를 하나의 배열로 합치기
   const allRestaurants = useMemo(() => {
@@ -48,6 +47,19 @@ const RestaurantListPage = () => {
     });
     return list.filter(Boolean);
   }, [data]);
+
+  const userId = isLoggedIn ? user?.id : null;
+  const {
+    data: likedRestaurants = [],
+    isLoading: isLikedLoading,
+    isError: isLikedError,
+  } = useLikedRestaurants(userId);
+
+  const { data: likedFallback = [], isLoading: isLikedFallbackLoading } =
+    useLikedRestaurantsFallback(
+      isLikedError ? userId : null,
+      isLikedError ? allRestaurants : [],
+    );
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -76,12 +88,6 @@ const RestaurantListPage = () => {
           "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80",
       }));
 
-    // [탭 필터링]
-    if (activeTab === "liked") {
-      list = list.filter((r) => r.isLiked);
-    }
-
-    // [검색어 필터링]
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       list = list.filter((r) => {
@@ -95,7 +101,22 @@ const RestaurantListPage = () => {
     }
 
     return list;
-  });
+  }, [allRestaurants, searchQuery]);
+
+  // 관심 목록
+  const likedListRaw = isLikedError ? likedFallback : likedRestaurants;
+  const likedListWithThumbnail = useMemo(
+    () =>
+      (likedListRaw ?? []).map((r) => ({
+        ...r,
+        thumbnail:
+          r.thumbnail ||
+          "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80",
+      })),
+    [likedListRaw],
+  );
+  const isLikedListLoading =
+    isLikedLoading || (isLikedError && isLikedFallbackLoading);
 
   const handleFirstReviewClick = async () => {
     const isUser = await isMe();
@@ -158,7 +179,31 @@ const RestaurantListPage = () => {
                   placeholder="어떤 맛집을 찾으시나요?"
                 />
               )}
-              {isLoading ? (
+              {activeTab === "liked" ? (
+                isLikedListLoading ? (
+                  <div className="py-20 text-center text-gray-500">
+                    관심 목록을 불러오는 중... 😋
+                  </div>
+                ) : likedListWithThumbnail.length > 0 ? (
+                  <div className="flex flex-col gap-2">
+                    {likedListWithThumbnail.map((restaurant) => (
+                      <div
+                        key={restaurant.id}
+                        className="flex justify-center w-full"
+                      >
+                        <RestaurantListCard restaurant={restaurant} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-20 text-center text-gray-400">
+                    <p>
+                      아직 좋아요 한 맛집이 없어요. <br />
+                      마음에 드는 맛집에 하트를 눌러보세요! ❤️
+                    </p>
+                  </div>
+                )
+              ) : isLoading ? (
                 <div className="py-20 text-center text-gray-500">
                   맛집 데이터를 불러오는 중... 😋
                 </div>
@@ -171,45 +216,27 @@ const RestaurantListPage = () => {
                           key={restaurant.id}
                           className="flex justify-center w-full"
                         >
-                          {activeTab === "all" ? (
-                            <RestaurantCard restaurant={restaurant} />
-                          ) : (
-                            <RestaurantListCard restaurant={restaurant} />
-                          )}
+                          <RestaurantCard restaurant={restaurant} />
                         </div>
                       ))}
-                      {/* 무한 스크롤: 리스트 끝에 도달하면 다음 페이지 로드 */}
-                      {activeTab === "all" && (
-                        <InfiniteScrollTrigger
-                          onIntersect={fetchNextPage}
-                          hasNextPage={hasNextPage}
-                          isFetchingNextPage={isFetchingNextPage}
-                        />
-                      )}
+                      <InfiniteScrollTrigger
+                        onIntersect={fetchNextPage}
+                        hasNextPage={hasNextPage}
+                        isFetchingNextPage={isFetchingNextPage}
+                      />
                     </>
                   ) : (
                     <div className="py-20 text-center text-gray-400">
-                      {activeTab === "all" ? (
-                        <div>
-                          <p className="text-gray-500 text-lg mb-4">
-                            찾으시는 맛집이 아직 없습니다 😭
-                          </p>
-                          <Button onClick={handleFirstReviewClick}>
-                            첫 번째 리뷰 달기
-                          </Button>
-
-                          {/* 모달 컴포넌트 배치 */}
-                          <RegisterRestaurantModal
-                            open={isModalOpen}
-                            onClose={() => setIsModalOpen(false)}
-                          />
-                        </div>
-                      ) : (
-                        <p>
-                          아직 좋아요 한 맛집이 없어요. <br />
-                          마음에 드는 맛집에 하트를 눌러보세요! ❤️
-                        </p>
-                      )}
+                      <p className="text-gray-500 text-lg mb-4">
+                        찾으시는 맛집이 아직 없습니다 😭
+                      </p>
+                      <Button onClick={handleFirstReviewClick}>
+                        첫 번째 리뷰 달기
+                      </Button>
+                      <RegisterRestaurantModal
+                        open={isModalOpen}
+                        onClose={() => setIsModalOpen(false)}
+                      />
                     </div>
                   )}
                 </div>
