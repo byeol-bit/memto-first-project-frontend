@@ -63,7 +63,7 @@ const FollowUserCard = ({ user, isFollowing }) => {
                 </span>
               </span>
               <span>
-                팔로워 <span classname="font-medium">{followerCount}</span>
+                팔로워 <span className="font-medium">{followerCount}</span>
               </span>
             </div>
           </div>
