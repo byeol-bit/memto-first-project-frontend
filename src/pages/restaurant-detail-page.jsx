@@ -18,9 +18,11 @@ import {
   useRestaurantLikeStatus,
   useRestaurantImages,
 } from "../hooks/queries/use-restaurants-data";
-import { useInfiniteRestaurantReviews } from "../hooks/queries/use-reviews-data";
+import {
+  useInfiniteRestaurantReviews,
+  useRestaurantReviewImages,
+} from "../hooks/queries/use-reviews-data";
 import { InfiniteScrollTrigger } from "../components/common/infiniteScrollTrigger";
-
 import {
   useLikeRestaurantMutation,
   useUnlikeRestaurantMutation,
@@ -42,8 +44,6 @@ const RestaurantDetailPage = () => {
     isLoading: isDetailLoading,
     isError: isDetailError,
   } = useRestaurantDetail(currentId);
-
-  console.log(restaurantDetailData);
 
   const { user, isLoggedIn, isMe } = useLoginState();
   const navigate = useNavigate();
@@ -127,9 +127,32 @@ const RestaurantDetailPage = () => {
     restaurantId,
   });
 
-  const { data: restaurantImages = [] } = useRestaurantImages(
-    restaurantIdForReviews ?? restaurantId,
+  // 맛집 이미지
+  const restaurantIdForImages =
+    restaurantDetailData?.id ??
+    restaurantDetailData?.restaurant_id ??
+    restaurantIdForReviews ??
+    restaurantId;
+
+  const {
+    data: restaurantImages = [],
+    isLoading: isRestaurantImagesLoading,
+    isPending: isRestaurantImagesPending,
+  } = useRestaurantImages(restaurantIdForImages);
+
+  // 리뷰(visits) 이미지: GET /visits/{id}/image — 리뷰에 올라온 사진들을 갤러리에 사용
+  const visitIds = useMemo(
+    () =>
+      (reviews ?? [])
+        .map((r) => r.id ?? r.visit_id ?? r.visitId)
+        .filter((id) => id != null),
+    [reviews],
   );
+  const {
+    data: reviewImagesFromVisits = [],
+    isLoading: isReviewImagesLoading,
+    isPending: isReviewImagesPending,
+  } = useRestaurantReviewImages(visitIds);
 
   // 좋아요 mutation 훅들
   const { mutate: likeRestaurant } = useLikeRestaurantMutation();
@@ -162,7 +185,22 @@ const RestaurantDetailPage = () => {
         ? path
         : `${baseUrl.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
 
+  // DB 이미지 대기/로딩 중이면 스켈레톤 (v5는 isPending까지 봐야 함)
+  const imagesAreLoading =
+    (restaurantIdForImages != null &&
+      (isRestaurantImagesLoading || isRestaurantImagesPending)) ||
+    (visitIds.length > 0 && (isReviewImagesLoading || isReviewImagesPending));
+
   const displayImages = useMemo(() => {
+    // 1) 리뷰에 올라온 사진 우선 (이미 풀 URL일 수 있음)
+    if (reviewImagesFromVisits?.length > 0) {
+      return reviewImagesFromVisits.map((url) =>
+        typeof url === "string" && url.startsWith("http")
+          ? url
+          : toFullUrl(url),
+      );
+    }
+    // 2) 맛집 직접 이미지 (백엔드 테스트로 넣은 사진 등)
     if (restaurantImages?.length > 0) {
       return restaurantImages.map(toFullUrl);
     }
@@ -172,15 +210,17 @@ const RestaurantDetailPage = () => {
     ) {
       return restaurantDetailData.images.map(toFullUrl).slice(0, 6);
     }
-    return [
-      "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80",
-      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80",
-      "https://images.unsplash.com/photo-1473093226795-af9932fe5856?w=800&q=80",
-      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80",
-      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80",
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80",
-    ];
-  }, [restaurantDetailData, restaurantImages, baseUrl]);
+    // 3) 이미지 소스 로딩 중이면 빈 배열 → 상단에서 스켈레톤 표시
+    if (imagesAreLoading) return [];
+    // 4) 로딩 끝났는데 없을 때만 데모
+    return [];
+  }, [
+    reviewImagesFromVisits,
+    restaurantImages,
+    restaurantDetailData,
+    baseUrl,
+    imagesAreLoading,
+  ]);
 
   const onLike = async () => {
     const isUser = await isMe();
@@ -283,10 +323,14 @@ const RestaurantDetailPage = () => {
     <div className="flex justify-center min-h-screen bg-white">
       <div className="w-full max-w-md flex flex-col relative">
         <div className="w-full h-55 relative">
-          <Gallery
-            images={displayImages}
-            onViewAll={() => setActiveTab("photo")}
-          />
+          {displayImages.length === 0 && imagesAreLoading ? (
+            <div className="w-full h-48 sm:h-56 bg-gray-100 animate-pulse rounded-xl" />
+          ) : displayImages.length > 0 ? (
+            <Gallery
+              images={displayImages}
+              onViewAll={() => setActiveTab("photo")}
+            />
+          ) : null}
         </div>
 
         {/* 맛집 기본 정보 */}

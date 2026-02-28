@@ -91,5 +91,8 @@ export const fetchReviewLikeStatus = async ({ userId, visitId }) => {
 export const fetchReviewImages = async (visitId) => {
   const res = await api.get(`/visits/${visitId}/image`);
   const payload = res?.data ?? res;
-  return Array.isArray(payload?.images) ? payload.images : [];
+  const list = payload?.images ?? [];
+  return Array.isArray(list)
+    ? list.filter((url) => url != null && String(url).trim())
+    : [];
 };

@@ -125,5 +125,8 @@ export const fetchLikedRestaurants = async (userId) => {
 */
 export const fetchRestaurantImages = async (restaurantId) => {
   const raw = await api.get(`/restaurants/${restaurantId}/image`);
-  return Array.isArray(raw) ? raw : (raw?.images ?? []);
+  const list = Array.isArray(raw) ? raw : (raw?.images ?? raw?.data ?? []);
+  return Array.isArray(list)
+    ? list.filter((url) => url != null && String(url).trim())
+    : [];
 };

@@ -120,11 +120,17 @@ export const useLikedRestaurantsFallback = (userId, restaurantList) =>
       !!userId && !!restaurantList?.length && restaurantList.length <= 100,
   });
 
-// 맛집 이미지 목록 (restaurants/{id}/image)
+// 맛집 이미지 목록 — GET /restaurants/{id}/image
 export const useRestaurantImages = (restaurantId) =>
   useQuery({
     queryKey: ["restaurants", restaurantId, "images"],
-    queryFn: () => fetchRestaurantImages(restaurantId),
+    queryFn: async () => {
+      try {
+        return await fetchRestaurantImages(restaurantId);
+      } catch {
+        return [];
+      }
+    },
     select: (list) => (Array.isArray(list) ? list : []),
     enabled: !!restaurantId,
   });
