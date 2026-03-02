@@ -6,7 +6,7 @@ import { getUserImageUrl } from "../../api/auth";
 
 const headerData = [
   { id: 1, title: "홈", path: "/" },
-  { id: 6, title: "지도", path: "/map" },
+  { id: 2, title: "지도", path: "/map" },
 ];
 
 const Header = () => {
@@ -82,7 +82,7 @@ const Header = () => {
                     />
                     <div className="flex flex-col">
                       <span className="font-bold text-gray-800 text-base">
-                        {user?.nickname || "고수님"}
+                        {user?.nickname}
                       </span>
                       <Link
                         to="/my-page"
