@@ -185,14 +185,12 @@ const RestaurantDetailPage = () => {
         ? path
         : `${baseUrl.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
 
-  // DB 이미지 대기/로딩 중이면 스켈레톤 (v5는 isPending까지 봐야 함)
   const imagesAreLoading =
     (restaurantIdForImages != null &&
       (isRestaurantImagesLoading || isRestaurantImagesPending)) ||
     (visitIds.length > 0 && (isReviewImagesLoading || isReviewImagesPending));
 
   const displayImages = useMemo(() => {
-    // 1) 리뷰에 올라온 사진 우선 (이미 풀 URL일 수 있음)
     if (reviewImagesFromVisits?.length > 0) {
       return reviewImagesFromVisits.map((url) =>
         typeof url === "string" && url.startsWith("http")
@@ -200,7 +198,7 @@ const RestaurantDetailPage = () => {
           : toFullUrl(url),
       );
     }
-    // 2) 맛집 직접 이미지 (백엔드 테스트로 넣은 사진 등)
+
     if (restaurantImages?.length > 0) {
       return restaurantImages.map(toFullUrl);
     }
@@ -210,9 +208,9 @@ const RestaurantDetailPage = () => {
     ) {
       return restaurantDetailData.images.map(toFullUrl).slice(0, 6);
     }
-    // 3) 이미지 소스 로딩 중이면 빈 배열 → 상단에서 스켈레톤 표시
+
     if (imagesAreLoading) return [];
-    // 4) 로딩 끝났는데 없을 때만 데모
+
     return [];
   }, [
     reviewImagesFromVisits,

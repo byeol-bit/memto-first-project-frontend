@@ -13,6 +13,7 @@ import {
   useInfiniteRestaurants,
   useLikedRestaurants,
   useLikedRestaurantsFallback,
+  useRestaurantThumbnails,
 } from "../hooks/queries/use-restaurants-data";
 
 import { useLoginState } from "../components/loginstate";
@@ -61,6 +62,35 @@ const RestaurantListPage = () => {
       isLikedError ? allRestaurants : [],
     );
 
+  const allRestaurantIds = useMemo(() => {
+    const fromAll = (allRestaurants ?? []).map(
+      (r) => r?.id ?? r?.restaurant_id,
+    );
+    const likedRaw = isLikedError ? likedFallback : likedRestaurants;
+    const fromLiked = (likedRaw ?? []).map((r) => r?.id ?? r?.restaurant_id);
+    const set = new Set([
+      ...fromAll.filter((id) => id != null && !Number.isNaN(Number(id))),
+      ...fromLiked.filter((id) => id != null && !Number.isNaN(Number(id))),
+    ]);
+    return [...set];
+  }, [allRestaurants, likedRestaurants, likedFallback, isLikedError]);
+
+  const {
+    data: thumbnailMap = {},
+    isLoading: isThumbnailsLoading,
+    isPending: isThumbnailsPending,
+  } = useRestaurantThumbnails(allRestaurantIds);
+
+  const thumbnailsReady = !isThumbnailsLoading && !isThumbnailsPending;
+
+  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+  const toFullUrl = (path) =>
+    !path
+      ? ""
+      : typeof path === "string" && path.startsWith("http")
+        ? path
+        : `${baseUrl.replace(/\/$/, "")}/${String(path).replace(/^\//, "")}`;
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setSearchQuery(keyword);
@@ -77,16 +107,22 @@ const RestaurantListPage = () => {
   // 검색 버튼 누르거나 엔터 쳤을 때 실행
   const handleSearch = () => setSearchQuery(keyword);
 
-  // 필터링 로직 (allRestaurants를 기준으로 검색/좋아요 필터링)
   const filteredRestaurants = useMemo(() => {
     let list = allRestaurants
       .filter((r) => r != null)
-      .map((r) => ({
-        ...r,
-        thumbnail:
-          r.thumbnail ||
-          "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80",
-      }));
+      .map((r) => {
+        const rid = r?.id ?? r?.restaurant_id;
+        const fromApi = thumbnailMap[rid];
+        const fromDetailImages =
+          r?.images && r.images.length > 0 ? r.images[0] : null;
+        const thumbnail = thumbnailsReady
+          ? toFullUrl(fromApi) ||
+            toFullUrl(fromDetailImages) ||
+            (r.thumbnail ? toFullUrl(r.thumbnail) : null) ||
+            null
+          : null;
+        return { ...r, thumbnail };
+      });
 
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
@@ -101,19 +137,26 @@ const RestaurantListPage = () => {
     }
 
     return list;
-  }, [allRestaurants, searchQuery]);
+  }, [allRestaurants, searchQuery, thumbnailMap, baseUrl, thumbnailsReady]);
 
-  // 관심 목록
+  // 관심 목록 (썸네일 우선순위: API → restaurant.images[0] → 기존 thumbnail → 기본 이미지)
   const likedListRaw = isLikedError ? likedFallback : likedRestaurants;
   const likedListWithThumbnail = useMemo(
     () =>
-      (likedListRaw ?? []).map((r) => ({
-        ...r,
-        thumbnail:
-          r.thumbnail ||
-          "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80",
-      })),
-    [likedListRaw],
+      (likedListRaw ?? []).map((r) => {
+        const rid = r?.id ?? r?.restaurant_id;
+        const fromApi = thumbnailMap[rid];
+        const fromDetailImages =
+          r?.images && r.images.length > 0 ? r.images[0] : null;
+        const thumbnail = thumbnailsReady
+          ? toFullUrl(fromApi) ||
+            toFullUrl(fromDetailImages) ||
+            (r.thumbnail ? toFullUrl(r.thumbnail) : null) ||
+            null
+          : null;
+        return { ...r, thumbnail };
+      }),
+    [likedListRaw, thumbnailMap, baseUrl, thumbnailsReady],
   );
   const isLikedListLoading =
     isLikedLoading || (isLikedError && isLikedFallbackLoading);
