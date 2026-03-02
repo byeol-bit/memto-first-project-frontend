@@ -6,12 +6,7 @@ import { getUserImageUrl } from "../../api/auth";
 
 const headerData = [
   { id: 1, title: "홈", path: "/" },
-  { id: 2, title: "Doc", path: "/design-system" },
-  { id: 3, title: "피드", path: "/feed" },
-  { id: 4, title: "고수 목록", path: "/users" },
-  { id: 5, title: "맛집 목록", path: "/restaurants" },
   { id: 6, title: "지도", path: "/map" },
-  { id: 7, title: "API", path: "/api-test" },
 ];
 
 const Header = () => {
@@ -21,12 +16,6 @@ const Header = () => {
   const modalRef = useRef(null);
 
   const [imgCacheKey] = useState(new Date().getTime());
-
-  const filteredNav = headerData.filter((item) => {
-    const role = user?.role || localStorage.getItem("userRole");
-    if (role === "admin") return true;
-    return item.title === "홈" || item.title === "지도";
-  });
 
   const profileSrc =
     isLoggedIn && user?.id
@@ -57,7 +46,7 @@ const Header = () => {
           </Link>
 
           <ul className={`${style.navbarMenu} ml-auto`}>
-            {filteredNav.map((item) => (
+            {headerData.map((item) => (
               <li className={style.navbarItem} key={item.id}>
                 <Link to={item.path} className={style.navbarLink}>
                   {item.title}
