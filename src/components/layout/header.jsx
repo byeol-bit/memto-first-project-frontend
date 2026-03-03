@@ -1,62 +1,30 @@
 import { useState, useRef, useEffect } from "react";
-import { Outlet, Link, useNavigate } from "react-router";
+import style from "./header.module.css";
+import { Outlet, Link } from "react-router";
 import { useLoginState } from "../loginstate";
-import { logoutUser, getUserProfile } from "../../api/auth";
+import { getUserImageUrl } from "../../api/auth";
 
 const headerData = [
   { id: 1, title: "홈", path: "/" },
-  { id: 2, title: "Doc", path: "/design-system" },
-  { id: 3, title: "피드", path: "/feed" },
-  { id: 4, title: "고수 목록", path: "/users" },
-  { id: 5, title: "맛집 목록", path: "/restaurants" },
-  { id: 6, title: "지도", path: "/map" },
-  { id: 7, title: "API", path: "/api-test" },
+  { id: 2, title: "지도", path: "/map" },
 ];
 
-const HeaderLayout = () => {
-  const { isLoggedIn, user, login, logout } = useLoginState();
-  const navigate = useNavigate();
+const Header = () => {
+  const { isLoggedIn, user, logout } = useLoginState();
 
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const modalRef = useRef(null);
 
-  const filteredNav = headerData.filter((item) => {
-    const role = localStorage.getItem("userRole");
+  const [imgCacheKey] = useState(new Date().getTime());
 
-    if (role === "admin") return true;
-
-    return item.title === "홈" || item.title === "지도";
-  });
-
-  useEffect(() => {
-    const fetchLatestUserInfo = async () => {
-      const token = localStorage.getItem("accessToken");
-      if (token === "mock-token-test-1234") return;
-
-      if (isLoggedIn) {
-        try {
-          const response = await getUserProfile();
-          if (token) login(token, response.data);
-        } catch (error) {
-          console.error("헤더 프로필 갱신 실패:", error);
-        }
-      }
-    };
-    fetchLatestUserInfo();
-  }, [isLoggedIn]);
+  const profileSrc =
+    isLoggedIn && user?.id
+      ? `${getUserImageUrl(user.id)}?t=${imgCacheKey}`
+      : "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
 
   const handleLogoutClick = async () => {
-    try {
-      await logoutUser();
-    } catch (error) {
-      console.error("로그아웃 실패:", error);
-    } finally {
-      localStorage.removeItem("userRole"); // ⭐ 로그아웃 시 권한 삭제
-      logout();
-      setIsProfileOpen(false);
-      alert("로그아웃 되었습니다.");
-      navigate("/sign-in");
-    }
+    await logout();
+    setIsProfileOpen(false);
   };
 
   useEffect(() => {
@@ -69,9 +37,6 @@ const HeaderLayout = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const defaultProfileImg =
-    "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
-
   return (
     <div>
       <header className="sticky top-0 z-[100] border-b border-[var(--border-color)] bg-[var(--background-color)] py-4 shadow-[var(--shadow-sm)]">
@@ -83,13 +48,10 @@ const HeaderLayout = () => {
             Find hiddenMaster
           </Link>
 
-          <ul className="ml-auto flex list-none gap-6">
-            {filteredNav.map((item) => (
-              <li key={item.id} className="flex items-center">
-                <Link
-                  to={item.path}
-                  className="rounded-lg px-4 py-2 text-[var(--text-secondary)] no-underline transition-all duration-150 hover:bg-[var(--background-light)] hover:text-[var(--primary-color)]"
-                >
+          <ul className={`${style.navbarMenu} ml-auto`}>
+            {headerData.map((item) => (
+              <li className={style.navbarItem} key={item.id}>
+                <Link to={item.path} className={style.navbarLink}>https://github.com/byeol-bit/memto-first-project-frontend/pull/63/conflict?name=src%252Fcomponents%252Floginstate.jsx&ancestor_oid=111fcba58cd4be308f16f7f7b8f780d5bf62dae3&base_oid=5f05704439dad3c86322b5d42af0bd81c048e3c6&head_oid=d69a5009e52d106d4005d024d666110125b85d00
                   {item.title}
                 </Link>
               </li>
@@ -100,22 +62,30 @@ const HeaderLayout = () => {
             {isLoggedIn ? (
               <div className="relative">
                 <img
-                  src={user?.profileImage || defaultProfileImg}
+                  src={profileSrc}
                   alt="프로필"
                   className="w-10 h-10 rounded-full object-cover cursor-pointer border border-gray-200 hover:scale-105 transition-transform bg-white"
                   onClick={() => setIsProfileOpen(!isProfileOpen)}
+                  onError={(e) => {
+                    e.target.src =
+                      "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+                  }}
                 />
 
                 {isProfileOpen && (
                   <div className="absolute top-12 right-0 w-[300px] bg-white border border-gray-200 rounded-xl shadow-xl p-5 flex items-center gap-4 z-50 animate-fade-in-down">
                     <img
-                      src={user?.profileImage || defaultProfileImg}
+                      src={profileSrc}
                       className="w-12 h-12 rounded-full object-cover border border-gray-100 bg-white"
                       alt="프로필"
+                      onError={(e) => {
+                        e.target.src =
+                          "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+                      }}
                     />
                     <div className="flex flex-col">
                       <span className="font-bold text-gray-800 text-base">
-                        {user?.nickname || "고수"}
+                        {user?.nickname}
                       </span>
                       <Link
                         to="/my-page"
@@ -150,4 +120,4 @@ const HeaderLayout = () => {
   );
 };
 
-export default HeaderLayout;
+export default Header;

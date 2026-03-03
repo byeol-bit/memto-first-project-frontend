@@ -37,7 +37,18 @@ export const createRestaurant = async ({
   모든 식당 조회
   GET /restaurants
 */
-export const fetchRestaurants = async () => {
+export const fetchRestaurants = async (params) => {
+  const rawParams = params || {};
+
+  const cleanedEntries = Object.entries(rawParams).filter(
+    ([, value]) => value != null && value !== "",
+  );
+
+  if (cleanedEntries.length > 0) {
+    const cleanedParams = Object.fromEntries(cleanedEntries);
+    return await api.get("/restaurants", { params: cleanedParams });
+  }
+
   return await api.get("/restaurants");
 };
 
@@ -95,4 +106,27 @@ export const fetchLikeStatus = async ({ userId, restaurantId }) => {
   return await api.get("/restaurants/likes/status", {
     params: { userId, restaurantId },
   });
+};
+
+/*
+  내가 좋아요한 맛집 목록
+  GET /restaurants/liked?userId=
+*/
+export const fetchLikedRestaurants = async (userId) => {
+  const res = await api.get("/restaurants/liked", {
+    params: { userId },
+  });
+  return res;
+};
+
+/*
+  맛집 이미지 목록 (파일 경로 전체 반환)
+  GET /restaurants/{id}/image
+*/
+export const fetchRestaurantImages = async (restaurantId) => {
+  const raw = await api.get(`/restaurants/${restaurantId}/image`);
+  const list = Array.isArray(raw) ? raw : (raw?.images ?? raw?.data ?? []);
+  return Array.isArray(list)
+    ? list.filter((url) => url != null && String(url).trim())
+    : [];
 };

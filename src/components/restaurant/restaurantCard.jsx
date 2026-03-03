@@ -6,8 +6,8 @@ import { DetailStateContext } from "../layout/map-layout";
 
 const RestaurantCard = ({ restaurant }) => {
   const context = useContext(DetailStateContext);
-
-  const { id, name, thumbnail, category, expertCount, address } = restaurant;
+  console.log("레스토랑 : ", restaurant);
+  const { id, name, category, thumbnail, expertCount, address } = restaurant;
 
   const onRestaurantDetailClick = () => {
     context.setSelectedRestaurant(restaurant);
@@ -16,13 +16,18 @@ const RestaurantCard = ({ restaurant }) => {
   const Res_card = (
     <div className="max-w-sm rounded overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300">
       {/* 썸네일 */}
-      <img className="w-full h-40 object-cover" src={thumbnail} alt={name} />
+      {thumbnail ? (
+        <img className="w-full h-40 object-cover" src={thumbnail} alt={name} />
+      ) : (
+        <div className="w-full h-40 bg-gray-100 shrink-0" aria-hidden />
+      )}
 
       {/* 내용 */}
       <div className="px-8 pt-6 pb-5">
         {/* 맛집 카테고리 */}
-        <div className="text-sm text-red-400 font-bold mb-1">{category}</div>
-
+        <div className="flex items-center justify-between gap-2 mb-1">
+          <div className="text-sm text-red-400 font-bold">{category}</div>
+        </div>
         {/* 맛집 이름 */}
         <div className="font-bold text-xl mb-2 text-gray-900">{name}</div>
 
@@ -39,17 +44,9 @@ const RestaurantCard = ({ restaurant }) => {
 
   return (
     <div className="block w-full mb-6">
-      {!context ? (
-        /* context가 없을 때: 상세 페이지로 이동하는 Link 사용 */
-        <Link to={`/restaurants/${id}`} className="block w-full">
-          {Res_card}
-        </Link>
-      ) : (
-        /* context가 있을 때: 클릭 시 상태만 변경하는 div 사용 */
-        <div onClick={onRestaurantDetailClick} className="cursor-pointer">
-          {Res_card}
-        </div>
-      )}
+      <div onClick={onRestaurantDetailClick} className="cursor-pointer">
+        {Res_card}
+      </div>
     </div>
   );
 };

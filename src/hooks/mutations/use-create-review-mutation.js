@@ -8,51 +8,21 @@ export const useCreateReviewMutation = () => {
   return useMutation({
     mutationFn: createReview,
 
-    onMutate: async (variables) => {
+    onSuccess: (_, variables) => {
       const restaurantId = Number(variables.restaurantId);
-      const review = variables.review;
-
-      const queryKey = ["reviews", "restaurant", restaurantId];
-
-      await queryClient.cancelQueries({ queryKey });
-
-      const previousData = queryClient.getQueryData(queryKey);
-
-      const optimisticReview = {
-        id: Date.now(),
-        review,
-        created_at: new Date().toISOString(),
-        likeCount: 0,
-        optimistic: true,
-      };
-
-      queryClient.setQueryData(queryKey, (old = []) => {
-        return [optimisticReview, ...old];
+      queryClient.invalidateQueries({
+        queryKey: ["reviews", "restaurant", restaurantId],
       });
-
-      return { previousData, queryKey };
-    },
-
-    onError: (err, variables, context) => {
-      if (context?.previousData) {
-        queryClient.setQueryData(context.queryKey, context.previousData);
-      }
-    },
-
-    onSuccess: (newReview, variables, context) => {
-      const realReview = newReview?.data ?? newReview;
-
-      // ✅ UI 구조로 normalize
-      const normalizedReview = {
-        ...realReview,
-        review: realReview.review ?? realReview.content ?? variables.review,
-        likeCount: realReview.likeCount ?? 0,
-        optimistic: false,
-      };
-
-      queryClient.setQueryData(context.queryKey, (old = []) => {
-        return [normalizedReview, ...old.filter((r) => !r.optimistic)];
+      queryClient.invalidateQueries({
+        queryKey: ["reviews", "restaurant", restaurantId, "infinite"],
       });
+      queryClient.invalidateQueries({
+        queryKey: ["reviews", "restaurant-gallery-images"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["restaurants", restaurantId, "images"],
+      });
+      queryClient.invalidateQueries({ queryKey: ["restaurants"] });
     },
   });
 };
@@ -66,6 +36,7 @@ export const useLikeReviewMutation = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["reviews", variables.visitId, "like-status"],
+        exact: false,
       });
     },
   });
@@ -80,6 +51,7 @@ export const useUnlikeReviewMutation = () => {
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["reviews", variables.visitId, "like-status"],
+        exact: false,
       });
     },
   });

@@ -13,6 +13,7 @@ const MapLayout = () => {
   const [selectedUser, setSelectedUser] = useState()
   const [selectedRestaurant, setSelectedRestaurant] = useState()
   const [selectedFeed, setSelectedFeed] = useState()
+  const [userDetailView, setUserDetailView] = useState("detail")
 
   const handleTabClick = useCallback((tab) => {
     setActiveTab((prev) => (prev === tab ? null : tab))
@@ -59,12 +60,15 @@ const MapLayout = () => {
       setSelectedRestaurant: handleSelectRestaurant,
       selectedFeed,
       setSelectedFeed: handleSelectFeed,
+      userDetailView,
+      setUserDetailView
     }),
     [
       activeTab,
       selectedUser,
       selectedRestaurant,
       selectedFeed,
+      userDetailView,
       handleTabClick,
       handleSelectUser,
       handleSelectRestaurant,

@@ -8,22 +8,32 @@ export const createReview = async ({
   userId,
   restaurantId,
   visitDate,
+  visit_date,
   review,
+  images = [],
 }) => {
-  return await api.post("/visits", {
-    userId,
-    restaurantId,
-    visitDate,
-    review,
-  });
+  const date = visit_date ?? visitDate ?? new Date().toISOString().slice(0, 10);
+  const form = new FormData();
+  if (userId != null) form.append("userId", String(userId));
+  if (restaurantId != null) form.append("restaurantId", String(restaurantId));
+  form.append("visit_date", date);
+  if (review != null) form.append("review", review);
+
+  if (Array.isArray(images)) {
+    images.forEach((file) => {
+      if (file) form.append("image", file);
+    });
+  }
+
+  return await api.post("/visits", form);
 };
 
 /*
   모든 리뷰 조회
   GET /visits
 */
-export const fetchReviews = async () => {
-  return await api.get("/visits");
+export const fetchReviews = async (params) => {
+  return await api.get("/visits", { params: params || {} });
 };
 
 /*
@@ -31,7 +41,7 @@ export const fetchReviews = async () => {
   GET /visits/:userId
 */
 export const fetchUserReviews = async (userId) => {
-  return await api.get("/visits", { params: {userId}});
+  return await api.get("/visits", { params: { userId } });
 };
 
 /*
@@ -39,7 +49,9 @@ export const fetchUserReviews = async (userId) => {
   GET /visits/:restaurantId
 */
 export const fetchRestaurantReviews = async (restaurantId) => {
-  return await api.get("/visits", { params: { restaurantId } });
+  return await api.get("/visits", {
+    params: { restaurant_id: restaurantId },
+  });
 };
 
 /*
@@ -68,4 +80,19 @@ export const fetchReviewLikeStatus = async ({ userId, visitId }) => {
   return await api.get("/visits/likes/status", {
     params: { userId, visitId },
   });
+};
+
+/*
+  리뷰 이미지 목록
+  GET /visits/{id}/image
+  응답 예시:
+  { success: true, images: ["https://.../a.webp", "..."] }
+*/
+export const fetchReviewImages = async (visitId) => {
+  const res = await api.get(`/visits/${visitId}/image`);
+  const payload = res?.data ?? res;
+  const list = payload?.images ?? [];
+  return Array.isArray(list)
+    ? list.filter((url) => url != null && String(url).trim())
+    : [];
 };

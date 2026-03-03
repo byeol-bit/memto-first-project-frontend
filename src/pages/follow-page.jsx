@@ -1,35 +1,41 @@
-import { useNavigate, useParams } from "react-router"
 import FollowersList from "../components/follow/followersList"
 import FollowingsList from "../components/follow/followingsList"
-import SelectedTab from "../components/follow/selectedTab"
+import TabButton from "../components/tabButton"
+import { useContext } from "react"
+import { DetailStateContext } from "../components/layout/map-layout"
 
 const FollowPage = () => {
-    const {id, type} = useParams()
-    const navigate = useNavigate()
-    let selectedTab = type === 'followings' ? 'followings' : 'followers'
+    const {selectedUser, userDetailView, setUserDetailView} = useContext(DetailStateContext)
+    if(!selectedUser) return null
 
+    const userId = selectedUser.id
 
     return (
 
         <div>
-            {/* 상단 선택 탭바 */}
-            <div className='flex border-t border-gray-100 items-stretch'> 
-
-                <SelectedTab 
-                    tabs={[
-                        { label: '팔로워', value: 'followers'},
-                        { label: '팔로잉', value: 'followings'}
-                    ]}
-                    active={selectedTab}
-                    onChange={(tab) => navigate(`/users/${id}/${tab}`)}
+            <div className="flex items-center bg-gray-50 px-4 py-3">
+                <button
+                    onClick={() => setUserDetailView("detail")}
+                    className="text-xl font-medium text-gray-400 hover:text-black"
+                >
+                    ←
+                </button>
+            </div>
+            <div className="pt-4 flex">
+                <TabButton
+                    label="팔로워"
+                    active={userDetailView === "followers"}
+                    onClick={() => setUserDetailView("followers")}
                 />
-            </div>   
-
-            <div className='max-w-7xl mx-auto px-6'>
-    
-            {/* 선택된 탭에 따라 다른 컴포넌트 출력 */}
-                {type === 'followers' && <FollowersList userId={id}/>}
-                {type === 'followings' && <FollowingsList userId={id} />}
+                <TabButton
+                    label="팔로잉"
+                    active={userDetailView === "followings"}
+                    onClick={() => setUserDetailView("followings")}
+                />
+            </div>
+            <div>
+                {userDetailView === "followers" && (<FollowersList userId={userId} />)}
+                {userDetailView === "followings" && (<FollowingsList userId={userId} />)}
             </div>
         </div>
     )

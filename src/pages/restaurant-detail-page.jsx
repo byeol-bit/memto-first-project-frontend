@@ -1,12 +1,14 @@
 import React from "react";
 import { useState, useMemo, useEffect, useRef } from "react";
+import { useNavigate } from "react-router";
 import { useParams } from "react-router";
 import MiniMap from "../components/restaurant/miniMap";
 import Gallery from "../components/restaurant/gallery";
+import ImageViewerModal from "../components/restaurant/imageViewerModal";
 import Review from "../components/review/review";
-import PlusBtn from "../components/common/plusBtn";
 import ReviewBottomSheet from "../components/review/reviewBottomSheet";
 import Like from "../components/common/like";
+
 import { MapPin, Phone } from "lucide-react";
 
 import { useContext } from "react";
@@ -15,20 +17,29 @@ import { DetailStateContext } from "../components/layout/map-layout";
 import {
   useRestaurantDetail,
   useRestaurantLikeStatus,
+  useRestaurantImages,
 } from "../hooks/queries/use-restaurants-data";
-import { useRestaurantReviews } from "../hooks/queries/use-reviews-data";
+import {
+  useInfiniteRestaurantReviews,
+  useRestaurantReviewImages,
+} from "../hooks/queries/use-reviews-data";
+import { InfiniteScrollTrigger } from "../components/common/infiniteScrollTrigger";
 import {
   useLikeRestaurantMutation,
   useUnlikeRestaurantMutation,
 } from "../hooks/mutations/use-create-restaurant-mutation";
 
+import { useLoginState } from "../components/loginstate";
+
 const RestaurantDetailPage = () => {
   const context = useContext(DetailStateContext);
   const { id } = useParams();
   const reviewTopRef = useRef(null);
+  const photoTopRef = useRef(null);
 
   // ID 결정 로직
   const currentId = Number(context?.selectedRestaurant?.id || id);
+  const restaurantId = currentId;
 
   const {
     data: restaurantDetailData,
@@ -36,34 +47,114 @@ const RestaurantDetailPage = () => {
     isError: isDetailError,
   } = useRestaurantDetail(currentId);
 
-  console.log(restaurantDetailData);
+  const { user, isLoggedIn, isMe } = useLoginState();
+  const navigate = useNavigate();
+  const userId = user?.id ?? null;
 
-  const { data: reviewsData, isLoading: isReviewsLoading } =
-    useRestaurantReviews(Number(restaurantDetailData?.id));
+  const restaurantIdForReviews = useMemo(() => {
+    if (!restaurantDetailData) return null;
 
-  console.log(reviewsData);
+    if (restaurantDetailData.id != null) return Number(restaurantDetailData.id);
 
-  const reviews = reviewsData ?? [];
-
-  // userId 가져오기 : 로그인 유저 가져올 수 있을 때 삭제 예정!!
-  const userId = useMemo(() => {
-    try {
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        return user?.id ?? null;
-      }
-    } catch (e) {
-      console.error("userId 파싱 실패:", e);
+    if (restaurantDetailData.restaurant_id != null) {
+      return Number(restaurantDetailData.restaurant_id);
     }
-    return null;
-  }, []);
 
-  const restaurantId = restaurantDetailData?.id;
+    return currentId ? Number(currentId) : null;
+  }, [restaurantDetailData, currentId]);
+
+  const {
+    data: reviewsData,
+    isLoading: isReviewsLoading,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteRestaurantReviews(restaurantIdForReviews);
+
+  const rawReviews = useMemo(() => {
+    if (!reviewsData?.pages?.length) return [];
+    return reviewsData.pages
+      .flatMap((page) => page?.list ?? [])
+      .filter(Boolean);
+  }, [reviewsData]);
+
+  const reviews = useMemo(() => {
+    if (!rawReviews?.length) return [];
+
+    const targetId =
+      restaurantIdForReviews != null ? Number(restaurantIdForReviews) : null;
+
+    const mapped = rawReviews.map((raw) => {
+      if (!raw || typeof raw !== "object") return raw;
+
+      const mergedFromNumericKeys = Object.entries(raw).reduce(
+        (acc, [key, value]) => {
+          if (
+            !Number.isNaN(Number(key)) &&
+            value &&
+            typeof value === "object"
+          ) {
+            return { ...acc, ...value };
+          }
+          return acc;
+        },
+        {},
+      );
+
+      const base = { ...raw, ...mergedFromNumericKeys };
+
+      const restaurant =
+        base.restaurant && Object.keys(base.restaurant).length
+          ? base.restaurant
+          : (restaurantDetailData ?? null);
+
+      const reviewText = base.review ?? base.rev ?? base.content ?? "";
+
+      return {
+        ...base,
+        restaurant,
+        review: reviewText,
+      };
+    });
+
+    if (targetId == null) return mapped;
+    return mapped.filter((r) => {
+      const rid = r.restaurant_id ?? r.restaurant?.id;
+      return rid != null && Number(rid) === targetId;
+    });
+  }, [rawReviews, restaurantDetailData, restaurantIdForReviews]);
+
   const { data: isLikedFromApi = false } = useRestaurantLikeStatus({
-    userId: userId ?? 0,
-    restaurantId: restaurantId ?? 0,
+    userId,
+    restaurantId,
   });
+
+  // 맛집 이미지
+  const restaurantIdForImages =
+    restaurantDetailData?.id ??
+    restaurantDetailData?.restaurant_id ??
+    restaurantIdForReviews ??
+    restaurantId;
+
+  const {
+    data: restaurantImages = [],
+    isLoading: isRestaurantImagesLoading,
+    isPending: isRestaurantImagesPending,
+  } = useRestaurantImages(restaurantIdForImages);
+
+  // 리뷰(visits) 이미지: GET /visits/{id}/image — 리뷰에 올라온 사진들을 갤러리에 사용
+  const visitIds = useMemo(
+    () =>
+      (reviews ?? [])
+        .map((r) => r.id ?? r.visit_id ?? r.visitId)
+        .filter((id) => id != null),
+    [reviews],
+  );
+  const {
+    data: reviewImagesFromVisits = [],
+    isLoading: isReviewImagesLoading,
+    isPending: isReviewImagesPending,
+  } = useRestaurantReviewImages(visitIds);
 
   // 좋아요 mutation 훅들
   const { mutate: likeRestaurant } = useLikeRestaurantMutation();
@@ -77,37 +168,114 @@ const RestaurantDetailPage = () => {
     setIsLike(isLikedFromApi);
   }, [isLikedFromApi]);
 
+  // 비로그인 시에는 하트를 항상 빈 상태로 표시
+  const displayIsLike = isLoggedIn ? isLike : false;
+
   // 바텀시트 오픈 플러스 버튼
   const [openBottomSheet, setOpenBottomSheet] = useState(false);
 
+  const [currentReviewUser, setCurrentReviewUser] = useState(null);
+
   // 탭
   const [activeTab, setActiveTab] = useState("home");
+  const [selectedPhotoUrl, setSelectedPhotoUrl] = useState(null);
+  const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
+  const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
 
-  // 일단 아직 이미지가 없다는 가정하에
+  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+  const toFullUrl = (path) =>
+    !path
+      ? ""
+      : path.startsWith("http")
+        ? path
+        : `${baseUrl.replace(/\/$/, "")}/${path.replace(/^\//, "")}`;
+
+  const imagesAreLoading =
+    (restaurantIdForImages != null &&
+      (isRestaurantImagesLoading || isRestaurantImagesPending)) ||
+    (visitIds.length > 0 && (isReviewImagesLoading || isReviewImagesPending));
+
   const displayImages = useMemo(() => {
+    if (reviewImagesFromVisits?.length > 0) {
+      return reviewImagesFromVisits.map((url) =>
+        typeof url === "string" && url.startsWith("http")
+          ? url
+          : toFullUrl(url),
+      );
+    }
+
+    if (restaurantImages?.length > 0) {
+      return restaurantImages.map(toFullUrl);
+    }
     if (
       restaurantDetailData?.images &&
       restaurantDetailData.images.length > 0
     ) {
-      return restaurantDetailData.images.slice(0, 6); // 최대 6장까지만
+      return restaurantDetailData.images.map(toFullUrl).slice(0, 6);
     }
 
-    // 6장의 목업 이미지
-    return [
-      "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80", // 칵테일/분위기
-      "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=800&q=80", // 스테이크
-      "https://images.unsplash.com/photo-1473093226795-af9932fe5856?w=800&q=80", // 파스타
-      "https://images.unsplash.com/photo-1555939594-58d7cb561ad1?w=800&q=80", // 고기 요리
-      "https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=800&q=80", // 샐러드
-      "https://images.unsplash.com/photo-1565299624946-b28f40a0ae38?w=800&q=80", // 피자
-    ];
-  }, [restaurantDetailData]);
+    if (imagesAreLoading) return [];
 
-  const onLike = () => {
-    if (!userId || !restaurantId) {
+    return [];
+  }, [
+    reviewImagesFromVisits,
+    restaurantImages,
+    restaurantDetailData,
+    baseUrl,
+    imagesAreLoading,
+  ]);
+
+  const orderedImages = useMemo(() => {
+    if (!displayImages?.length) return [];
+    if (!selectedPhotoUrl) return displayImages;
+    const idx = displayImages.indexOf(selectedPhotoUrl);
+    if (idx < 0) return displayImages;
+    return [
+      selectedPhotoUrl,
+      ...displayImages.slice(0, idx),
+      ...displayImages.slice(idx + 1),
+    ];
+  }, [displayImages, selectedPhotoUrl]);
+
+  const scrollToPhotoSection = () => {
+    setTimeout(() => {
+      photoTopRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
+  };
+
+  const handleGalleryImageClick = (url) => {
+    if (url) setSelectedPhotoUrl(url);
+    setActiveTab("photo");
+    scrollToPhotoSection();
+  };
+
+  const openPhotoViewer = (index) => {
+    setPhotoViewerIndex(index);
+    setPhotoViewerOpen(true);
+  };
+
+  const goToReviewTab = () => {
+    setActiveTab("review");
+    setTimeout(() => {
+      reviewTopRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  };
+
+  const onLike = async () => {
+    const isUser = await isMe();
+    if (!isUser) {
       alert("로그인이 필요합니다.");
+      navigate("/sign-in");
       return;
     }
+
+    const currentUserId = isUser.id;
 
     // Optimistic 업데이트
     const newIsLike = !isLike;
@@ -117,7 +285,7 @@ const RestaurantDetailPage = () => {
     // API 호출
     if (newIsLike) {
       likeRestaurant(
-        { userId, restaurantId },
+        { userId: currentUserId, restaurantId },
         {
           onError: (error) => {
             // 실패 시 롤백
@@ -130,7 +298,7 @@ const RestaurantDetailPage = () => {
       );
     } else {
       unlikeRestaurant(
-        { userId, restaurantId },
+        { userId: currentUserId, restaurantId },
         {
           onError: (error) => {
             // 실패 시 롤백
@@ -144,12 +312,32 @@ const RestaurantDetailPage = () => {
     }
   };
 
+  const handleReviewClick = async () => {
+    const isUser = await isMe();
+    if (!isUser) {
+      alert("로그인이 필요합니다.");
+      navigate("/sign-in");
+      return;
+    }
+    setCurrentReviewUser(isUser);
+    setOpenBottomSheet(true);
+  };
+
   const expertsCount = useMemo(() => {
-    const uniqueUsers = reviews.filter(
-      (review, index, self) =>
-        index === self.findIndex((r) => r.userId === review.userId),
-    );
-    return uniqueUsers.length;
+    const getReviewUserId = (r) => {
+      const id = r.user_id ?? r.userId ?? r.user?.id;
+      return id != null ? String(id) : null;
+    };
+    const seen = new Set();
+    let count = 0;
+    for (const r of reviews) {
+      const uid = getReviewUserId(r);
+      if (uid != null && !seen.has(uid)) {
+        seen.add(uid);
+        count += 1;
+      }
+    }
+    return count;
   }, [reviews]);
 
   if (isDetailLoading) {
@@ -180,7 +368,18 @@ const RestaurantDetailPage = () => {
     <div className="flex justify-center min-h-screen bg-white">
       <div className="w-full max-w-md flex flex-col relative">
         <div className="w-full h-55 relative">
-          <Gallery images={displayImages} layoutType="hero" />
+          {displayImages.length === 0 && imagesAreLoading ? (
+            <div className="w-full h-48 sm:h-56 bg-gray-100 animate-pulse rounded-xl" />
+          ) : displayImages.length > 0 ? (
+            <Gallery
+              images={displayImages}
+              onViewAll={() => {
+                setActiveTab("photo");
+                scrollToPhotoSection();
+              }}
+              onImageClick={(url) => handleGalleryImageClick(url)}
+            />
+          ) : null}
         </div>
 
         {/* 맛집 기본 정보 */}
@@ -212,7 +411,7 @@ const RestaurantDetailPage = () => {
 
             <div className="flex flex-col items-center gap-1">
               <Like
-                isLike={isLike}
+                isLike={displayIsLike}
                 onLike={onLike}
                 likeCount={likeCount}
                 className="w-8 h-8"
@@ -228,6 +427,30 @@ const RestaurantDetailPage = () => {
             >
               길찾기
             </button>
+            {isLoggedIn && (
+              <button
+                onClick={handleReviewClick}
+                className="flex-1 bg-red-50 py-3 rounded-xl text-red-400 font-bold text-sm"
+              >
+                리뷰 작성
+              </button>
+            )}
+            <ReviewBottomSheet
+              open={openBottomSheet}
+              onClose={() => setOpenBottomSheet(false)}
+              restaurant={restaurantDetailData}
+              currentUser={currentReviewUser}
+              restaurantIdForReviews={restaurantIdForReviews}
+              onSuccess={() => {
+                setActiveTab("review");
+                setTimeout(() => {
+                  reviewTopRef.current?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                  });
+                }, 100);
+              }}
+            />
           </div>
         </div>
 
@@ -278,8 +501,28 @@ const RestaurantDetailPage = () => {
 
           {activeTab === "review" && (
             <div ref={reviewTopRef} className="flex flex-col gap-7">
-              {reviews.length > 0 ? (
-                reviews.map((v) => <Review key={v.id} reviewData={v} />)
+              {isReviewsLoading ? (
+                <div className="py-20 text-center text-gray-500">
+                  리뷰를 불러오는 중... 😋
+                </div>
+              ) : reviews.length > 0 ? (
+                <>
+                  {reviews.map((v, index) => (
+                    <div
+                      key={
+                        v.id != null ? `review-${v.id}` : `review-opt-${index}`
+                      }
+                      className="flex justify-center w-full"
+                    >
+                      <Review reviewData={v} />
+                    </div>
+                  ))}
+                  <InfiniteScrollTrigger
+                    onIntersect={fetchNextPage}
+                    hasNextPage={hasNextPage ?? false}
+                    isFetchingNextPage={isFetchingNextPage ?? false}
+                  />
+                </>
               ) : (
                 <div className="py-20 text-center text-gray-400">
                   아직 등록된 꿀조합이 없어요. <br />첫 번째 고수가 되어보세요!
@@ -290,34 +533,32 @@ const RestaurantDetailPage = () => {
           )}
 
           {activeTab === "photo" && (
-            <div className="grid grid-cols-3 gap-1">
-              {displayImages.map((img, i) => (
-                <img
+            <div ref={photoTopRef} className="grid grid-cols-3 gap-1">
+              {orderedImages.map((img, i) => (
+                <button
+                  type="button"
                   key={i}
-                  src={img}
-                  className="aspect-square object-cover"
-                  alt="맛집 사진"
-                />
+                  onClick={() => openPhotoViewer(i)}
+                  className="aspect-square overflow-hidden rounded-none focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-gray-400"
+                >
+                  <img
+                    src={img}
+                    className="w-full h-full object-cover"
+                    alt="맛집 사진"
+                  />
+                </button>
               ))}
             </div>
           )}
         </div>
 
-        {/* 리뷰 작성 버튼 */}
-        <PlusBtn onClick={() => setOpenBottomSheet(true)} />
-        <ReviewBottomSheet
-          open={openBottomSheet}
-          onClose={() => setOpenBottomSheet(false)}
-          restaurant={restaurantDetailData}
-          onSuccess={() => {
-            setActiveTab("review");
-            setTimeout(() => {
-              reviewTopRef.current?.scrollIntoView({
-                behavior: "smooth",
-                block: "start",
-              });
-            }, 100);
-          }}
+        <ImageViewerModal
+          open={photoViewerOpen}
+          onClose={() => setPhotoViewerOpen(false)}
+          images={orderedImages}
+          currentIndex={photoViewerIndex}
+          onIndexChange={setPhotoViewerIndex}
+          onGoToReviews={goToReviewTab}
         />
       </div>
     </div>

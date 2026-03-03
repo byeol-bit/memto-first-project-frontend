@@ -1,13 +1,28 @@
-import React, { useState } from "react";
+import React, { useState, useContext, useEffect } from "react";
+import { createPortal } from "react-dom";
+import { useNavigate } from "react-router";
 import ImagesUploader from "./imagesUploader";
+
+import { useLoginState } from "../loginstate";
 
 import { useCreateReviewMutation } from "../../hooks/mutations/use-create-review-mutation";
 
-const ReviewBottomSheet = ({ open, onClose, restaurant, onSuccess }) => {
+const ReviewBottomSheet = ({
+  open,
+  onClose,
+  restaurant,
+  onSuccess,
+  currentUser,
+  restaurantIdForReviews,
+}) => {
+  const { user: contextUser } = useLoginState();
+  const user = currentUser ?? contextUser;
   // 리뷰 작성란
   const [content, setContent] = useState("");
   // 이미지
   const [images, setImages] = useState([]);
+  // 툴팁
+  const [showTooltip, setShowTooltip] = useState(false);
 
   // 훅 가져오기
   const { mutate: registerReview, isLoading } = useCreateReviewMutation();
@@ -20,7 +35,23 @@ const ReviewBottomSheet = ({ open, onClose, restaurant, onSuccess }) => {
       return;
     }
 
-    const targetId = restaurant?.[0]?.id || restaurant?.id;
+    if (!user?.id) {
+      alert("로그인 정보를 불러올 수 없습니다. 다시 로그인해 주세요.");
+      return;
+    }
+
+    const fallbackId =
+      restaurant?.[0]?.id ||
+      restaurant?.id ||
+      restaurant?.restaurant_id ||
+      restaurant?.kakao_place_id;
+
+    const targetId =
+      restaurantIdForReviews != null
+        ? Number(restaurantIdForReviews)
+        : fallbackId != null
+          ? Number(fallbackId)
+          : null;
 
     if (!targetId) {
       alert("식당 ID를 찾을 수 없습니다. 데이터를 확인해 주세요!");
@@ -28,9 +59,22 @@ const ReviewBottomSheet = ({ open, onClose, restaurant, onSuccess }) => {
       return;
     }
 
+    const author = user ?? contextUser;
     const reviewData = {
-      restaurantId: Number(targetId), // currentId를 숫자로 확실히 변환
-      review: content, // content state를 'review' 필드에 담아서 전송!
+      userId: author?.id ?? null,
+      restaurantId: Number(targetId),
+      visitDate: new Date().toISOString().slice(0, 10),
+      review: content,
+      images,
+      restaurant: restaurant?.[0] ?? restaurant,
+      user: author
+        ? {
+            id: author.id,
+            nickname: author.nickname ?? contextUser?.nickname ?? "알 수 없음",
+            profile_image: author.profile_image ?? contextUser?.profile_image,
+            category: author.category ?? contextUser?.category,
+          }
+        : null,
     };
 
     registerReview(reviewData, {
@@ -40,12 +84,21 @@ const ReviewBottomSheet = ({ open, onClose, restaurant, onSuccess }) => {
         onSuccess?.();
         onClose();
       },
+
+      onError: (error) => {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "리뷰 등록에 실패했습니다.";
+        console.error("리뷰 등록 실패:", error);
+        alert(message);
+      },
     });
   };
 
   const restaurantName = restaurant?.name;
 
-  return (
+  return createPortal(
     <>
       {/* 배경 */}
       <div onClick={onClose} className="fixed inset-0 bg-black/40 z-40" />
@@ -126,7 +179,8 @@ const ReviewBottomSheet = ({ open, onClose, restaurant, onSuccess }) => {
           </div>
         </div>
       </div>
-    </>
+    </>,
+    document.body,
   );
 };
 

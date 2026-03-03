@@ -16,7 +16,7 @@ const FollowButton = ({isFollowing, onToggle, size='sm'}) => {
             `}
             onClick={(e) => {
                 e.stopPropagation()
-                onToggle()
+                onToggle(e)
             }}
         >
             {isFollowing ? '팔로잉' : '팔로우'} 

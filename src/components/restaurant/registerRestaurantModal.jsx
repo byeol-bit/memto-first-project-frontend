@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
+import { createPortal } from "react-dom";
+import { useNavigate } from "react-router";
 import ImagesUploader from "../review/imagesUploader";
 import KakaoSearchSection from "./kakaoSearch";
 import useKakaoLoader from "../../hooks/useKakaoLoader";
@@ -6,10 +8,15 @@ import Button from "../common/button";
 import { X } from "lucide-react";
 import { useLoginState } from "../loginstate";
 
+import { DetailStateContext } from "../layout/map-layout";
+import { MAP_LAYOUT_TABS } from "../../lib/constants";
+
 import { useCreateRestaurantMutation } from "../../hooks/mutations/use-create-restaurant-mutation";
 import { useCreateReviewMutation } from "../../hooks/mutations/use-create-review-mutation";
 
 const RegisterRestaurantModal = ({ open, onClose }) => {
+  const navigate = useNavigate();
+  const mapContext = useContext(DetailStateContext);
   const [step, setStep] = useState(1); // 1: 검색, 2: 작성
   const [selectedPlace, setSelectedPlace] = useState(null); // 카카오에서 선택된 장소
 
@@ -17,16 +24,24 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
   const [images, setImages] = useState([]);
 
   const { loading, error } = useKakaoLoader(); // ✅ 카카오 SDK 로드
+
+  const { user } = useLoginState();
+
   const { mutate: createRestaurant, isPending: isCreatingRestaurant } =
     useCreateRestaurantMutation();
   const { mutate: createReview, isPending: isCreatingReview } =
     useCreateReviewMutation();
 
   if (!open) return null;
-  if (loading) return <div>카카오맵 로딩 중입니다...</div>;
+  if (loading) {
+    return createPortal(
+      <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/20">
+        <span className="text-gray-700">카카오맵 로딩 중입니다...</span>
+      </div>,
+      document.body,
+    );
+  }
   if (error) return <div>카카오맵을 불러오는 중 오류가 발생했습니다.</div>;
-
-  if (!open) return null;
 
   // Step 1에서 장소 선택 시 실행
   const handleSelectPlace = (place) => {
@@ -53,6 +68,11 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
       return;
     }
 
+    if (!images || images.length === 0) {
+      alert("첫 리뷰 인증샷을 최소 1장 올려주세요! (5장까지 업로드 가능)");
+      return;
+    }
+
     // 1단계: 맛집 등록
     const restaurantData = {
       name: selectedPlace.place_name,
@@ -76,19 +96,53 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
 
         // 2단계: 첫 리뷰 등록
         const reviewData = {
+          userId: user?.id ?? null,
           restaurantId: Number(restaurantId),
+          visitDate: new Date().toISOString().slice(0, 10),
           review: content,
+          images,
+          user: user
+            ? {
+                id: user.id,
+                nickname: user.nickname,
+                profile_image: user.profile_image,
+                category: user.category,
+              }
+            : null,
         };
 
         createReview(reviewData, {
           onSuccess: () => {
-            // 성공 시 모달 닫기 및 초기화
             setContent("");
             setImages([]);
             setSelectedPlace(null);
             setStep(1);
             onClose();
-            alert("맛집과 리뷰가 등록되었습니다! 🎉");
+
+            const lat =
+              createdRestaurant?.latitude != null
+                ? Number(createdRestaurant.latitude)
+                : 0;
+            const lon =
+              createdRestaurant?.longitude != null
+                ? Number(createdRestaurant.longitude)
+                : 0;
+            const restaurantForDetail = {
+              ...createdRestaurant,
+              id: restaurantId,
+              location: { lat, lon },
+            };
+
+            if (mapContext?.setSelectedRestaurant) {
+              mapContext.setSelectedRestaurant(restaurantForDetail);
+              if (mapContext.setActiveTab) {
+                mapContext.setActiveTab(MAP_LAYOUT_TABS.RESTAURANTS);
+              }
+              alert("맛집과 리뷰가 등록되었습니다 🎉");
+            } else {
+              navigate(`/restaurants/${restaurantId}`);
+              alert("맛집과 리뷰가 등록되었습니다 🎉");
+            }
           },
           onError: (error) => {
             console.error("리뷰 등록 실패:", error);
@@ -103,8 +157,8 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
     });
   };
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 mt-18">
+  return createPortal(
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 mt-18">
       <div
         onClick={onClose}
         className="absolute inset-0 bg-black/60 backdrop-blur-sm"
@@ -195,7 +249,8 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
           </div>
         )}
       </div>
-    </div>
+    </div>,
+    document.body,
   );
 };
 

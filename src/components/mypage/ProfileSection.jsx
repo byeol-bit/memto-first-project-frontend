@@ -11,21 +11,25 @@ const ProfileSection = ({
   fileInputRef,
   handleFileChange,
   saveProfileImage,
+  handleCancelEdit,
 }) => {
   return (
     <section className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
       <div className="flex items-center gap-6">
-        <div className="relative group">
+        <div className="relative">
           <div
-            className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-50 shadow-sm cursor-pointer bg-white"
+            className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-50 shadow-sm bg-white"
             style={{ backgroundColor: selectedColor }}
-            onClick={() => setIsEditingPhoto(!isEditingPhoto)}
           >
             {previewImage ? (
               <img
                 src={previewImage}
                 alt="프로필"
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  e.target.src =
+                    "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+                }}
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-4xl bg-gray-100">
@@ -33,19 +37,13 @@ const ProfileSection = ({
               </div>
             )}
           </div>
-          <button
-            onClick={() => setIsEditingPhoto(!isEditingPhoto)}
-            className="absolute bottom-0 right-0 bg-white border border-gray-200 rounded-full p-1.5 shadow-md hover:bg-gray-50 transition-colors"
-          >
-            📷
-          </button>
         </div>
 
         <div className="flex-1">
           <h2 className="text-2xl font-bold text-gray-800 mb-2">
             {userInfo?.nickname}
           </h2>
-          <div className="flex gap-4 text-sm">
+          <div className="flex gap-4 text-sm mb-4">
             <div className="flex flex-col">
               <span className="font-bold text-gray-800 text-lg">
                 {stats.followerCount}
@@ -60,6 +58,15 @@ const ProfileSection = ({
               <span className="text-gray-400">팔로잉</span>
             </div>
           </div>
+
+          {!isEditingPhoto && (
+            <button
+              onClick={() => setIsEditingPhoto(true)}
+              className="px-4 py-2 text-sm font-bold text-[#ee5a6f] bg-red-50 border border-red-100 rounded-lg hover:bg-red-100 transition-colors"
+            >
+              프로필 사진 변경하기
+            </button>
+          )}
         </div>
       </div>
 
@@ -98,14 +105,14 @@ const ProfileSection = ({
             </div>
             <div className="flex gap-2">
               <button
-                onClick={() => setIsEditingPhoto(false)}
-                className="flex-1 py-2 bg-gray-200 rounded-lg text-sm font-bold text-gray-600"
+                onClick={handleCancelEdit}
+                className="flex-1 py-2 bg-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-300 transition-colors"
               >
                 취소
               </button>
               <button
                 onClick={saveProfileImage}
-                className="flex-1 py-2 bg-[#ee5a6f] rounded-lg text-sm font-bold text-white"
+                className="flex-1 py-2 bg-[#ee5a6f] rounded-lg text-sm font-bold text-white hover:bg-[#d6455b] transition-colors"
               >
                 사진 저장
               </button>

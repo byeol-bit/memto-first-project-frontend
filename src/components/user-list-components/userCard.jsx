@@ -2,6 +2,7 @@
 import { useNavigate } from 'react-router'
 import { useContext } from 'react'
 import { DetailStateContext } from '../layout/map-layout'
+import { userImg } from '../../api/user.api'
 
 const UserCard = ({user}) => {
     console.log(user)
@@ -11,30 +12,37 @@ const UserCard = ({user}) => {
     const onUserDetailClick = (selectedUser) => {
         if(context?.setSelectedUser) {
             context.setSelectedUser(selectedUser)
+            context.setUserDetailView("detail")
         } else {
             navigate(`/users/${user.id}`)
         }
     }
+    console.log('이미지체크', user.id, userImg, userImg(user.id))
 
     return (
        <div 
-            className='bg-white rounded-2xl shadow-sm hover:shadow-md transition px-6 pb-4 cursor-pointer fle flex-col gap-4 hover:-translate-y-1' 
+            className='bg-white rounded-2xl shadow-sm hover:shadow-md transition px-6 py-4 cursor-pointer fle flex-col gap-4 hover:-translate-y-1' 
             onClick={() => onUserDetailClick(user)}
         >
             <div className='flex items-center gap-4'>
                 <img 
-                    className="rounded-full w-12 h-12 object-cover shrink-0" 
+                    className="rounded-full w-12 h-12 object-cover shrink-0 shadow-md" 
                     alt={user.nickname}
-                    src={user.profile_image}/>
+                    src={userImg(user.id)}
+                />
 
                 <div className='flex flex-col gap-1 min-w-0'>
                     <div className='flex items-cetner gap-2'>
                         <span className='font-semibold text-gray-900 truncate'>{user.nickname}</span>
                         <span className='px-2 py-0.5 border border-red-400 rounded-full text-xs text-red-400 w-fit'>{user.category}</span>
                     </div>
-
-                    <div className='text-xs text-gray-400'>
-                        리뷰 <b className='text-red-400'>{user.reviews}</b>
+                    <div className='flex items-center gap-2'>
+                        <span className='text-xs text-gray-400'>
+                            리뷰 <b className='text-red-400'>{user.visitCount}</b>
+                        </span>
+                        <span className='text-xs text-gray-400'>
+                            방문맛집 <b className='text-red-400'>{user.restaurantCount}</b>
+                        </span>
                     </div>
                 </div>
             </div>

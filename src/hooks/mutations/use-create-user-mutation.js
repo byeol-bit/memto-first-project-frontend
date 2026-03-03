@@ -22,28 +22,30 @@ export function useCreateUserMutation() {
   })
 }
 
-export const useFollow = (userId) => {
+export const useToggleFollow = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: () => followUser(userId),
-
-    onSuccess: () => {
-      queryClient.invalidateQueries(["follow", userId])
-      queryClient.invalidateQueries(["userDetail", userId])
-    }
-  })
-}
-
-export const useUnfollow = (userId) => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: () => unfollowUser(userId),
+    mutationFn: async ({ userId, isFollowing }) => {
+      return isFollowing
+        ? unfollowUser(userId)
+        : followUser(userId)
+    },
     
-    onSuccess: () => {
-      queryClient.invalidateQueries(["follow", userId])
-      queryClient.invalidateQueries(["userDetail", userId])
-    }
+    onMutate: async ({userId, isFollowing}) => {
+      await queryClient.cancelQueries({queryKey: ["follows", userId]})
+
+      queryClient.setQueryData(["follows", userId, "follow-status"], !isFollowing)
+      queryClient.setQueryData(["follows", userId, "followers", "count"], (old = 0) => isFollowing ? old - 1 : old + 1)
+    },
+
+    onError: (_, {userId}, context) => {
+      queryClient.setQueryData(["follows", userId, "follow-status"], context?.prevFollow)
+      queryClient.setQueryData(["follows", userId, "followers", "count"], context?.prevFollowCount)
+    },
+
+    onSettled: () => {
+      queryClient.invalidateQueries({queryKey: ["follows"]})
+    },
   })
 }
