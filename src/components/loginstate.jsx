@@ -9,11 +9,6 @@ export const LoginStateProvider = ({ children }) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const currentPath = window.location.pathname;
-      if (currentPath === "/sign-in" || currentPath === "/sign-up") {
-        setIsLoading(false);
-        return;
-      }
       const savedId = localStorage.getItem("userId");
       const savedNickname = localStorage.getItem("userNickname");
 

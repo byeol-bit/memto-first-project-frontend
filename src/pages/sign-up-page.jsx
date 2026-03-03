@@ -1,4 +1,5 @@
-import React from "react";
+import { useEffect } from "react";
+import { useLoginState } from "../components/loginstate";
 import { useSignUp, defaultOptions } from "../hooks/useSignUp";
 
 const SignUpPage = () => {
@@ -28,6 +29,13 @@ const SignUpPage = () => {
     handleFileChange,
     handleSignUp,
   } = useSignUp();
+  const { isLoggedIn } = useLoginState();
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      navigate("/map", { replace: true });
+    }
+  }, [isLoggedIn, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-[#f8f9fa] py-10 px-4">
