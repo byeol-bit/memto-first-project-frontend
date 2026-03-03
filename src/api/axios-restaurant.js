@@ -124,9 +124,21 @@ export const fetchLikedRestaurants = async (userId) => {
   GET /restaurants/{id}/image
 */
 export const fetchRestaurantImages = async (restaurantId) => {
-  const raw = await api.get(`/restaurants/${restaurantId}/image`);
-  const list = Array.isArray(raw) ? raw : (raw?.images ?? raw?.data ?? []);
-  return Array.isArray(list)
-    ? list.filter((url) => url != null && String(url).trim())
-    : [];
+  try {
+    const res = await api.get(`/restaurants/${restaurantId}/image`);
+    const payload = res?.data ?? res;
+    const list = Array.isArray(payload)
+      ? payload
+      : payload?.images ?? payload?.data ?? [];
+
+    return Array.isArray(list)
+      ? list.filter((url) => url != null && String(url).trim())
+      : [];
+  } catch (error) {
+    // 이미지가 없어서 404가 나는 경우를 정상 케이스로 처리
+    if (error?.response?.status !== 404) {
+      console.error("맛집 이미지 조회 실패:", error);
+    }
+    return [];
+  }
 };
