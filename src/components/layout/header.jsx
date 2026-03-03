@@ -1,5 +1,4 @@
 import { useState, useRef, useEffect } from "react";
-import style from "./header.module.css";
 import { Outlet, Link } from "react-router";
 import { useLoginState } from "../loginstate";
 import { getUserImageUrl } from "../../api/auth";
