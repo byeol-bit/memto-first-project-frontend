@@ -23,12 +23,16 @@ const ListPanel = ({ activeTab }) => {
         {activeTab === MAP_LAYOUT_TABS.RESTAURANTS && <RestaurantListPage />}
         {activeTab === MAP_LAYOUT_TABS.FEED && <FeedPage />}
       </div>
-      {activeTab === MAP_LAYOUT_TABS.RESTAURANTS && selectedRestaurant && (
+      {(activeTab === MAP_LAYOUT_TABS.RESTAURANTS ||
+        activeTab === MAP_LAYOUT_TABS.FEED) &&
+        selectedRestaurant && (
         <DetailPanel onClose={() => setSelectedRestaurant(null)}>
           <RestaurantDetailPage />
         </DetailPanel>
       )}
-      {activeTab === MAP_LAYOUT_TABS.USERS && selectedUser && (
+      {(activeTab === MAP_LAYOUT_TABS.USERS ||
+        activeTab === MAP_LAYOUT_TABS.FEED) &&
+        selectedUser && (
         <DetailPanel onClose={() => {
           setSelectedUser(null)
           setUserDetailView("detail")

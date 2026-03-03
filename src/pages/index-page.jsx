@@ -19,7 +19,7 @@ const IndexPage = () => {
           <span className="text-gray-800">한 번에 끝내보세요</span>
         </h1>
         <button
-          onClick={() => navigate("/sign-in")}
+          onClick={() => navigate("/map")}
           className="mt-6 px-8 py-4 bg-[#ee5a6f] text-white text-lg font-bold rounded-xl shadow-lg hover:bg-[#d6455b] transition-all hover:-translate-y-0.5"
         >
           설레는 맛집 탐방 시작하기

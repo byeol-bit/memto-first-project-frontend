@@ -92,7 +92,7 @@ const UserDetailPage = () => {
         <div className="text-center flex-1 py-4 text-sm font-medium border-t-2 border-red-400 text-red-400">리뷰</div>
       </div>
       <div>
-        <UserReview userId={currentId}/>
+        <UserReview key={currentId} userId={currentId}/>
       </div>
     </div> 
   )

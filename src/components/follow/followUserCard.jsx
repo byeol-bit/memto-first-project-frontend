@@ -35,7 +35,7 @@ const FollowUserCard = ({ user }) => {
     context.setSelectedUser(selectedUser);
     context.setUserDetailView("detail");
   };
-  console.log(user, userImg(user.id), userImg);
+  // console.log(user, userImg(user.id), userImg);
   return (
   <div
     className="max-w-4xl mx-auto px-3 py-3 border-y border-gray-100 hover:bg-gray-50 cursor-pointer"
@@ -68,14 +68,16 @@ const FollowUserCard = ({ user }) => {
         </div>
       </div>
 
-      {user?.id !== isMe?.id && (
-        <div className="shrink-0 whitespace-nowrap">
+      <div className="shrink-0 whitespace-nowrap w-15">
+
+        {user?.id !== isMe?.id && (
           <FollowButton
             isFollowing={isFollow}
             onToggle={handleFollowToggle}
           />
-        </div>
-      )}
+        )}
+      </div>
+      
     </div>
   </div>
 );

@@ -186,3 +186,25 @@ export const useInfiniteRestaurantReviews = (restaurantId) =>
       !Number.isNaN(Number(restaurantId)),
     staleTime: 0,
   });
+
+  // 유저 리뷰 무한스크롤
+export const useInfiniteUserReviews = (userId) =>
+  useInfiniteQuery({
+    queryKey: ["reviews", "user", userId, "infinite"],
+    queryFn: async ({ pageParam }) => {
+      console.log('유저........', userId, pageParam)
+      const res = await fetchReviews({
+        cursor: pageParam, 
+        userId: userId
+      });
+      return normalizeInfiniteResponse(res);
+    },
+    initialPageParam: null,
+    getNextPageParam: (lastPage) => {
+      console.log("페이지네이션", lastPage);
+      return lastPage?.hasNext ? lastPage.nextCursor : undefined
+      // return lastPage?.hasNext && lastPage?.nextCursor ? lastPage.nextCursor : undefined
+    },
+    enabled: userId !== null && userId !== undefined && !Number.isNaN(Number(userId)),
+    staleTime: 0,
+  });

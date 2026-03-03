@@ -63,8 +63,11 @@ export const useIsFollowing = (userId, isLoggedIn) => {
       try{
         const data = await isFollowing(userId)
         return data.isFollow
-      } catch {
-        return false
+      } catch (error){
+        if(error.response?.status === 400){
+          return false
+        }
+        throw error
       }
     },
     enabled: !!userId && !!isLoggedIn,
