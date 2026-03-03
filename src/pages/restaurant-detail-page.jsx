@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { useParams } from "react-router";
 import MiniMap from "../components/restaurant/miniMap";
 import Gallery from "../components/restaurant/gallery";
+import ImageViewerModal from "../components/restaurant/imageViewerModal";
 import Review from "../components/review/review";
 import ReviewBottomSheet from "../components/review/reviewBottomSheet";
 import Like from "../components/common/like";
@@ -34,6 +35,7 @@ const RestaurantDetailPage = () => {
   const context = useContext(DetailStateContext);
   const { id } = useParams();
   const reviewTopRef = useRef(null);
+  const photoTopRef = useRef(null);
 
   // ID 결정 로직
   const currentId = Number(context?.selectedRestaurant?.id || id);
@@ -176,6 +178,9 @@ const RestaurantDetailPage = () => {
 
   // 탭
   const [activeTab, setActiveTab] = useState("home");
+  const [selectedPhotoUrl, setSelectedPhotoUrl] = useState(null);
+  const [photoViewerOpen, setPhotoViewerOpen] = useState(false);
+  const [photoViewerIndex, setPhotoViewerIndex] = useState(0);
 
   const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
   const toFullUrl = (path) =>
@@ -219,6 +224,48 @@ const RestaurantDetailPage = () => {
     baseUrl,
     imagesAreLoading,
   ]);
+
+  const orderedImages = useMemo(() => {
+    if (!displayImages?.length) return [];
+    if (!selectedPhotoUrl) return displayImages;
+    const idx = displayImages.indexOf(selectedPhotoUrl);
+    if (idx < 0) return displayImages;
+    return [
+      selectedPhotoUrl,
+      ...displayImages.slice(0, idx),
+      ...displayImages.slice(idx + 1),
+    ];
+  }, [displayImages, selectedPhotoUrl]);
+
+  const scrollToPhotoSection = () => {
+    setTimeout(() => {
+      photoTopRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 50);
+  };
+
+  const handleGalleryImageClick = (url) => {
+    if (url) setSelectedPhotoUrl(url);
+    setActiveTab("photo");
+    scrollToPhotoSection();
+  };
+
+  const openPhotoViewer = (index) => {
+    setPhotoViewerIndex(index);
+    setPhotoViewerOpen(true);
+  };
+
+  const goToReviewTab = () => {
+    setActiveTab("review");
+    setTimeout(() => {
+      reviewTopRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    }, 100);
+  };
 
   const onLike = async () => {
     const isUser = await isMe();
@@ -326,7 +373,11 @@ const RestaurantDetailPage = () => {
           ) : displayImages.length > 0 ? (
             <Gallery
               images={displayImages}
-              onViewAll={() => setActiveTab("photo")}
+              onViewAll={() => {
+                setActiveTab("photo");
+                scrollToPhotoSection();
+              }}
+              onImageClick={(url) => handleGalleryImageClick(url)}
             />
           ) : null}
         </div>
@@ -482,18 +533,33 @@ const RestaurantDetailPage = () => {
           )}
 
           {activeTab === "photo" && (
-            <div className="grid grid-cols-3 gap-1">
-              {displayImages.map((img, i) => (
-                <img
+            <div ref={photoTopRef} className="grid grid-cols-3 gap-1">
+              {orderedImages.map((img, i) => (
+                <button
+                  type="button"
                   key={i}
-                  src={img}
-                  className="aspect-square object-cover"
-                  alt="맛집 사진"
-                />
+                  onClick={() => openPhotoViewer(i)}
+                  className="aspect-square overflow-hidden rounded-none focus:outline-none focus:ring-2 focus:ring-offset-0 focus:ring-gray-400"
+                >
+                  <img
+                    src={img}
+                    className="w-full h-full object-cover"
+                    alt="맛집 사진"
+                  />
+                </button>
               ))}
             </div>
           )}
         </div>
+
+        <ImageViewerModal
+          open={photoViewerOpen}
+          onClose={() => setPhotoViewerOpen(false)}
+          images={orderedImages}
+          currentIndex={photoViewerIndex}
+          onIndexChange={setPhotoViewerIndex}
+          onGoToReviews={goToReviewTab}
+        />
       </div>
     </div>
   );
