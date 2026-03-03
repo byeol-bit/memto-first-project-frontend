@@ -17,6 +17,7 @@ const Header = () => {
 
   const [imgCacheKey] = useState(new Date().getTime());
 
+
   const profileSrc =
     isLoggedIn && user?.id
       ? `${getUserImageUrl(user.id)}?t=${imgCacheKey}`
