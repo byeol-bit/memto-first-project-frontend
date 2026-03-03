@@ -6,21 +6,26 @@ const MyPageReviewCard = ({ reviewData }) => {
 
   if (!reviewData) return null;
 
-  const restaurant = reviewData.restaurant;
+  const restaurant = reviewData.restaurant || {};
   const visitId = reviewData.id;
 
   useEffect(() => {
-    const loadReviewImage = async () => {
-      const baseUrl = "https://hidden-master-server.fly.dev";
+    const baseUrl = "https://hidden-master-server.fly.dev";
 
+    const loadReviewImage = async () => {
       try {
         if (visitId) {
           const res = await getVisitImage(visitId);
-
           const data = res.data;
-          const path = data?.images?.[0];
 
-          path && setImageUrl(new URL(path, baseUrl).href);
+          const path = data?.images?.[0] || data?.imageUrl || data;
+
+          if (path && typeof path === "string") {
+            const fullUrl = path.startsWith("http")
+              ? path
+              : new URL(path, baseUrl).href;
+            setImageUrl(fullUrl);
+          }
         }
       } catch (e) {
         console.error(`리뷰(${visitId}) 이미지 로드 실패:`, e);
@@ -47,19 +52,23 @@ const MyPageReviewCard = ({ reviewData }) => {
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
       <div className="p-4 border-b border-gray-50">
+        <h3 className="font-bold text-gray-900 text-lg truncate mb-1.5">
+          {restaurant.name || reviewData.restaurant_name}
+        </h3>
+
         <div className="flex items-center gap-2">
-          <h3 className="font-bold text-gray-900 text-lg">
-            {restaurant.name || reviewData.restaurant_name || "맛집"}
-          </h3>
-          <span className="text-[10px] bg-red-50 text-[#ee5a6f] px-2 py-0.5 rounded-full font-bold">
-            {restaurant.category || "식당"}
+          <span className="flex-shrink-0 text-[10px] bg-red-50 text-[#ee5a6f] px-2 py-0.5 rounded-full font-bold">
+            {restaurant.category}
           </span>
+
+          <span className="text-gray-300 text-[10px]">|</span>
+
+          <p className="text-xs text-gray-400 truncate">{restaurant.address}</p>
         </div>
-        <p className="text-xs text-gray-400 mt-0.5">{restaurant.address}</p>
       </div>
 
       <div className="p-4">
-        <div className="w-full aspect-video bg-gray-50 rounded-xl mb-3 overflow-hidden border border-gray-100 flex items-center justify-center">
+        <div className="w-full aspect-video bg-gray-50 rounded-xl mb-3 overflow-hidden border border-gray-100 flex items-center justify-center relative">
           {imageUrl ? (
             <img
               src={imageUrl}
