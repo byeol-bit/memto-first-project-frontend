@@ -85,11 +85,6 @@ const SignUpPage = () => {
               +
             </button>
           </div>
-          {selectedIdx === null && (
-            <p className="text-xs text-[#ee5a6f] mt-2 font-bold animate-pulse">
-              프로필 이미지를 선택해주세요!
-            </p>
-          )}
         </div>
 
         {/* 입력 폼 영역 */}
