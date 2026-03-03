@@ -56,14 +56,18 @@ export const useInfiniteUsers = ({nickname, category, limit = 10}) => {
 }
 
 // 팔로잉 여부 체크
-export const useIsFollowing = (userId) => {
+export const useIsFollowing = (userId, isLoggedIn) => {
   return useQuery({
     queryKey: ["follows", userId, "follow-status"],
     queryFn: async() => {
-      const data = await isFollowing(userId)
-      return data.isFollow
+      try{
+        const data = await isFollowing(userId)
+        return data.isFollow
+      } catch {
+        return false
+      }
     },
-    enabled: !!userId,
+    enabled: !!userId && !!isLoggedIn,
     initialData: false,
     retry: false,
   })
@@ -98,6 +102,31 @@ export const useFollowingUsers = (userId, enabled) => {
   })
 }
 
+// 팔로잉 유저 무한 스크롤
+export const useInfiniteFollowingUsers = ({userId, limit = 10}) => {
+  // console.log("무한스크롤 테스트", userId, limit)
+  return useInfiniteQuery({
+    queryKey: ["follows", userId, "followings", "list", limit],
+    enabled: !!userId,
+    queryFn: async({pageParam = 1}) => {
+      return getFollowings({
+        userId: userId,
+        page: pageParam,
+        limit: limit
+      })
+    },
+    getNextPageParam: (lastPage, pages) => {
+      if(lastPage.length === 10) {
+        return pages.length + 1;
+      }
+      return undefined
+    } 
+  })
+
+}
+
+
+
 // 나를 팔로우 하고 있는 유저 리스트
 export const useFollowerUsers = (userId) => {
   return useQuery({
@@ -106,6 +135,30 @@ export const useFollowerUsers = (userId) => {
     enabled: !!userId
   })
 }
+
+// 팔로워 유저 무한 스크롤
+export const useInfiniteFollowerUsers = ({userId, limit = 10}) => {
+  // console.log("무한스크롤 테스트", userId, limit)
+  return useInfiniteQuery({
+    queryKey: ["follows", userId, "followers", "list", limit],
+    enabled: !!userId,
+    queryFn: async({pageParam = 1}) => {
+      return getFollowers({
+        userId: userId,
+        page: pageParam,
+        limit: limit
+      })
+    },
+    getNextPageParam: (lastPage, pages) => {
+      if(lastPage.length === 10) {
+        return pages.length + 1;
+      }
+      return undefined
+    } 
+  })
+
+}
+
 
 // 로그인한 유저가 누구인지 확인
 export const useCheckMe = () => {

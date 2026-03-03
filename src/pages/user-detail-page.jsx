@@ -24,7 +24,7 @@ const UserDetailPage = () => {
   }
 
   const { data: user, isLoading, error} = useUserDetail(currentId)
-  const { data: isFollowing } = useIsFollowing(currentId)
+  const { data: isFollowing } = useIsFollowing(currentId, isLoggedIn)
   const { data: followingsCount } = useCountFollowing(currentId)
   const { data: followersCount } = useCountFollower(currentId)
 
@@ -85,7 +85,7 @@ const UserDetailPage = () => {
       </div>
       <div className="relative flex justify-center mt-4 h-10 items-center">
         {loginUser?.id !== user?.id && (
-          <FollowButton isFollowing={!!isFollowing} onToggle={handleFollowToggle}/>
+          <FollowButton isFollowing={!!isFollowing} onToggle={handleFollowToggle} size="md"/>
         )}
       </div>
       <div className="flex border-b border-b-gray-200 mt-4">

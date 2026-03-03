@@ -3,7 +3,7 @@ import UserTag from "../components/user-list-components/userTag";
 import TabButton from "../components/tabButton";
 import SearchBar from "../components/restaurant/searchBar";
 import {tags} from '../data/users.mock'
-import { useFollowingUsers, useInfiniteUsers } from "../hooks/queries/use-users-data";
+import { useFollowingUsers, useInfiniteFollowingUsers, useInfiniteUsers } from "../hooks/queries/use-users-data";
 
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router";
@@ -23,6 +23,7 @@ const UserListPage = () => {
 	const [selectedTab, setSelectedTab] = useState(TABS.ALL_USERS)
     const navigate = useNavigate()
 	const {isLoggedIn, user} = useLoginState()
+	const myId = isLoggedIn ? user?.id : null;
 	
 	  // 디바운싱
 	useEffect(() => {
@@ -37,7 +38,6 @@ const UserListPage = () => {
 		nickname: searchKeyword,
 		category: tag,
 	})
-	console.log('dat는요', data)
 
 
 	const allUsers = useMemo(() => {
@@ -49,7 +49,19 @@ const UserListPage = () => {
 		})
 	}, [data])
 
-	const { data: followingUsers = [], isLoading: followingUsersLoading} = useFollowingUsers(8)
+	const {data: followingUsers, fetchNextPage: fetchNextFollowing, hasNextPage: hasNextFollowing, isFetchingNextPage: isFetchingFollowing} 
+		= useInfiniteFollowingUsers({userId: myId? myId : null, limit: 10});
+
+	const allFollowingUsers = useMemo(() => {
+		if(!followingUsers?.pages) return []
+		return followingUsers.pages.flatMap((page) => {
+			if(Array.isArray(page)) return page
+			if(page?.data) return page.data
+			return []
+		})
+	}, [followingUsers])
+
+
 	const handleKeywordChange = (e) => {
 		setKeyword(e.target.value)
 	}
@@ -85,14 +97,15 @@ const UserListPage = () => {
 						</form>
 
 						<UserTag tag={tag} setTag={setTag} tags={tags}/>
-						<UserList users={allUsers} isLoading={isLoading}/>
+						<UserList users={allUsers} isLoading={isLoading} type="all"/>
 						<InfiniteScrollTrigger onIntersect={fetchNextPage} hasNextPage={hasNextPage} isFetchingNextPage={isFetchingNextPage} />
 					</div>
 				}
 				{selectedTab === TABS.LIKED_USERS && (					
 					isLoggedIn ? (
 						<div className="pt-4">
-							<UserList users={followingUsers}/>
+							<UserList users={allFollowingUsers} type="following"/>
+							<InfiniteScrollTrigger onIntersect={fetchNextFollowing} hasNextPage={hasNextFollowing} isFetchingNextPage={isFetchingFollowing} />
 						</div>
 					):(
 						<div className="flex flex-col items-center gap-4 py-10">
