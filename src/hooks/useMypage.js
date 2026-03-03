@@ -187,6 +187,7 @@ export const useMyPage = () => {
       setIsNicknameChecked(true);
     } catch (e) {
       setIsNicknameChecked(false);
+      alert("이미 사용 중인 닉네임입니다.");
     }
   };
 
@@ -202,12 +203,32 @@ export const useMyPage = () => {
   };
 
   const handleUpdatePassword = async () => {
-    if (newPassword !== confirmPassword) return;
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      alert("모든 내용을 입력해 주세요.");
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      alert("새 비밀번호가 서로 일치하지 않습니다.");
+      return;
+    }
+
     try {
-      await updatePassword(currentPassword, newPassword);
+      await updatePassword({
+        password: currentPassword,
+        newPassword: newPassword,
+      });
+
+      alert("비밀번호가 성공적으로 변경되었습니다! 다시 로그인해 주세요.");
       await logout();
-    } catch (e) {
-      console.error(e);
+    } catch (error) {
+      console.error("비밀번호 변경 에러:", error);
+
+      if (error.response?.status === 400) {
+        alert("현재 비밀번호가 일치하지 않습니다.");
+      } else {
+        alert("서버 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      }
     }
   };
 

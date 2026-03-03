@@ -18,7 +18,6 @@ const SignInPage = () => {
     try {
       await login(loginId, password);
 
-      alert("로그인에 성공했습니다!");
       window.location.href = "/map";
     } catch (error) {
       console.error("Login Page Error:", error);

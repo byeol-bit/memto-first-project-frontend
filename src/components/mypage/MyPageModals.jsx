@@ -23,7 +23,7 @@ export const NicknameModal = ({
             value={nicknameInput}
             onChange={(e) => {
               setNicknameInput(e.target.value);
-              setIsNicknameChecked(false); // 글자 수정 시 중복확인 다시 하도록
+              setIsNicknameChecked(false);
             }}
             placeholder="새 닉네임"
             className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-[#ee5a6f]"
@@ -73,22 +73,41 @@ export const PasswordModal = ({
   confirmPassword,
   setConfirmPassword,
   handleUpdatePassword,
+  passwordError,
+  setPasswordError,
 }) => {
   if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
       <div className="bg-white w-full max-w-[400px] rounded-2xl p-8 shadow-2xl animate-fade-in-up">
         <h2 className="text-xl font-black text-gray-800 mb-6 text-center">
           비밀번호 변경
         </h2>
+
         <div className="space-y-4">
-          <input
-            type="password"
-            value={currentPassword}
-            onChange={(e) => setCurrentPassword(e.target.value)}
-            placeholder="현재 비밀번호"
-            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-[#ee5a6f]"
-          />
+          <div className="space-y-1">
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => {
+                setCurrentPassword(e.target.value);
+                if (passwordError) setPasswordError("");
+              }}
+              placeholder="현재 비밀번호"
+              className={`w-full px-4 py-3 bg-gray-50 border rounded-lg outline-none transition-all ${
+                passwordError
+                  ? "border-red-500 focus:border-red-500"
+                  : "border-gray-200 focus:border-[#ee5a6f]"
+              }`}
+            />
+            {passwordError && (
+              <p className="text-[11px] text-red-500 font-bold ml-1">
+                ⚠️ {passwordError}
+              </p>
+            )}
+          </div>
+
           <input
             type="password"
             value={newPassword}
@@ -104,6 +123,7 @@ export const PasswordModal = ({
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-[#ee5a6f]"
           />
         </div>
+
         <div className="flex gap-3 mt-8">
           <button
             onClick={() => {
@@ -111,6 +131,7 @@ export const PasswordModal = ({
               setCurrentPassword("");
               setNewPassword("");
               setConfirmPassword("");
+              setPasswordError("");
             }}
             className="flex-1 py-3 bg-gray-200 text-gray-700 rounded-xl font-bold hover:bg-gray-300"
           >
