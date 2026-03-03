@@ -1,8 +1,11 @@
-import React, { useState, useMemo, useEffect } from "react";
-import Button from "../common/button";
+import React from "react";
 import Like from "../common/like";
+import FollowUserCard from "../follow/followUserCard";
 
-import { useReviewLikeStatus } from "../../hooks/queries/use-reviews-data";
+import {
+  useReviewLikeStatus,
+  useReviewImages,
+} from "../../hooks/queries/use-reviews-data";
 import {
   useLikeReviewMutation,
   useUnlikeReviewMutation,
@@ -10,32 +13,58 @@ import {
 
 import { useLoginState } from "../loginstate";
 import { getUserImageUrl } from "../../api/auth";
+import { useUserDetail } from "../../hooks/queries/use-users-data";
 
-const Review = ({ reviewData }) => {
-  const { user, isLoggedIn, isMe } = useLoginState();
-  const userId = user?.id ?? null;
-
-  // 리뷰 ID (visitId)
+const Review = ({ reviewData, userData }) => {
+  const { user: loginUser, isLoggedIn, isMe } = useLoginState();
   const visitId = reviewData?.id;
 
+  // 리뷰 작성자
+  const author = React.useMemo(() => {
+    if (!reviewData) return null;
+    const u = reviewData.user;
+    const id = u?.id ?? reviewData.user_id ?? reviewData.userId ?? null;
+    if (id == null) return null;
+    return {
+      id: Number(id),
+      nickname:
+        u?.nickname ??
+        reviewData.user_nickname ??
+        reviewData.nickname ??
+        "알 수 없음",
+      category:
+        u?.category ?? reviewData.user_category ?? reviewData.category ?? "",
+      visitCount:
+        u?.visit_count ??
+        u?.visitCount ??
+        reviewData.visit_count ??
+        reviewData.visitCount ??
+        0,
+    };
+  }, [reviewData]);
+
+  // 작성자에 대한 팔로우 여부
+  const isFollowingAuthor =
+    reviewData?.user?.is_following ??
+    reviewData?.user?.isFollowing ??
+    reviewData?.user?.follow ??
+    false;
+
   // 좋아요 상태 조회
-  const { data: isLikedFromApi = false } = useReviewLikeStatus({
-    userId: userId ?? 0,
+  const { data: isLiked = false } = useReviewLikeStatus({
+    userId: loginUser?.id ?? 0,
     visitId: visitId ?? 0,
   });
+
+  const { data: reviewImagesFromApi = [] } = useReviewImages(visitId ?? 0);
 
   // 좋아요 mutation 훅들
   const { mutate: likeReview } = useLikeReviewMutation();
   const { mutate: unlikeReview } = useUnlikeReviewMutation();
 
-  // 리뷰 좋아요 & 좋아요 수
-  const [isLike, setIsLike] = useState(isLikedFromApi);
-  const [likeCount, setLikeCount] = useState(reviewData.likeCount ?? 0); // 옵셔널 체이닝 + 널 병합
+  const likeCount = reviewData.likeCount ?? 0;
 
-  useEffect(() => {
-    setIsLike(isLikedFromApi);
-  }, [isLikedFromApi]);
-
+  // 🚨 추후에 둘 중 하나만 남기기
   const displayDate = reviewData?.visit_date
     ? new Date(reviewData.visit_date).toLocaleDateString("ko-KR", {
         year: "numeric",
@@ -49,6 +78,7 @@ const Review = ({ reviewData }) => {
           day: "numeric",
         })
       : "";
+
   const onLike = async () => {
     const me = await isMe();
     if (!me || !visitId) {
@@ -56,35 +86,18 @@ const Review = ({ reviewData }) => {
       return;
     }
 
-    const currentUserId = me.id;
-
-    // Optimistic 업데이트
-    const newIsLike = !isLike;
-    setIsLike(newIsLike);
-    setLikeCount((prev) => (newIsLike ? prev + 1 : prev - 1));
-
-    if (newIsLike) {
-      likeReview(
-        { userId: currentUserId, visitId },
+    if (isLiked) {
+      unlikeReview(
+        { userId: me.id, visitId },
         {
-          onError: (error) => {
-            setIsLike(!newIsLike);
-            setLikeCount((prev) => (newIsLike ? prev - 1 : prev + 1));
-            console.error("리뷰 좋아요 등록 실패:", error);
-            alert("좋아요 등록에 실패했습니다.");
-          },
+          onError: () => alert("좋아요 취소에 실패했습니다."),
         },
       );
     } else {
-      unlikeReview(
-        { userId: currentUserId, visitId },
+      likeReview(
+        { userId: me.id, visitId },
         {
-          onError: (error) => {
-            setIsLike(!newIsLike);
-            setLikeCount((prev) => (newIsLike ? prev - 1 : prev + 1));
-            console.error("리뷰 좋아요 취소 실패:", error);
-            alert("좋아요 취소에 실패했습니다.");
-          },
+          onError: () => alert("좋아요 등록에 실패했습니다."),
         },
       );
     }
@@ -99,61 +112,65 @@ const Review = ({ reviewData }) => {
   if (!reviewData) return null;
 
   const restaurant = reviewData.restaurant ?? {};
-  const author = reviewData.user ?? {};
-  console.log(author);
   const region = getRegionName(restaurant?.address);
   const restaurantName = restaurant?.name ?? "맛집";
   const reviewText =
     reviewData.review ?? reviewData.rev ?? reviewData.content ?? "";
   const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
-  const profileSrc = author.profile_image
-    ? author.profile_image.startsWith("http")
-      ? author.profile_image
-      : `${baseUrl.replace(/\/$/, "")}/${author.profile_image.replace(/^\//, "")}`
-    : getUserImageUrl(reviewData.user_id);
+  const rawImages =
+    reviewImagesFromApi ??
+    reviewData.images ??
+    reviewData.visit_images ??
+    reviewData.visitImages ??
+    [];
+  const reviewImages = Array.isArray(rawImages)
+    ? rawImages
+        .map((p) =>
+          p && typeof p === "string"
+            ? p.startsWith("http")
+              ? p
+              : `${baseUrl.replace(/\/$/, "")}/${String(p).replace(/^\//, "")}`
+            : (p?.url ?? p?.image_url ?? ""),
+        )
+        .filter(Boolean)
+    : [];
 
   return (
     <div className="max-w-sm rounded overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300">
       <div className="py-8 mx-6">
         {/* 작성자 정보 */}
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex items-center">
-            <img
-              className="w-10 h-10 rounded-full mr-3 object-cover bg-gray-100"
-              src={profileSrc}
-              alt={author.nickname ?? ""}
+        <div className="-mx-6 mb-4">
+          {author ? (
+            <FollowUserCard
+              key={author.id}
+              user={author}
+              isFollowing={!!isFollowingAuthor}
             />
-            <div className="flex flex-col">
-              <div className="flex flex-col">
-                <div className="flex items-center gap-2">
-                  <span className="text-gray-900 font-bold text-sm">
-                    {author.nickname ?? "알 수 없음"}
-                  </span>
-                  {author.category && (
-                    <span className="bg-gray-100 rounded-full px-2 py-0.5 text-[10px] text-gray-500 font-medium">
-                      {author.category}
-                    </span>
-                  )}
+          ) : (
+            <div className="flex items-center gap-4 px-6 py-4 border-y border-gray-100 text-gray-500 text-sm">
+              작성자 정보를 불러올 수 없습니다.
+            </div>
+          )}
+        </div>
+
+        {reviewImages.length > 0 && (
+          <div className="w-full mb-4 rounded-xl overflow-hidden border border-gray-50">
+            <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-1 -mx-1">
+              {reviewImages.map((src, i) => (
+                <div
+                  key={i}
+                  className="flex-shrink-0 w-[85%] max-w-sm aspect-video snap-center rounded-lg overflow-hidden"
+                >
+                  <img
+                    src={src}
+                    alt={`리뷰 사진 ${i + 1}`}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-                <span className="text-xs text-gray-500 mt-1">
-                  리뷰 39 팔로워 5
-                </span>
-              </div>
+              ))}
             </div>
           </div>
-
-          <div className="flex items-center gap-3">
-            <Button className="py-1.5 px-3 text-xs">팔로우</Button>
-          </div>
-        </div>
-
-        <div className="w-full aspect-video rounded-xl overflow-hidden mb-4 border border-gray-50">
-          <img
-            src="https://v1.tailwindcss.com/img/card-left.jpg"
-            alt="리뷰 사진"
-            className="w-full h-full object-cover"
-          />
-        </div>
+        )}
 
         <div className="flex items-center justify-between w-full">
           {/* 지역 + 맛집 이름 */}
@@ -166,7 +183,7 @@ const Review = ({ reviewData }) => {
 
           {/* 좋아요 + 개수 */}
           <div className="flex items-center gap-1.5 cursor-pointer transition-colors group">
-            <Like isLike={isLike} onLike={onLike} />
+            <Like isLike={isLiked} onLike={onLike} />
             <span className="text-xm text-gray-500 font-medium group-active:scale-95 transition-transform">
               {likeCount}
             </span>

@@ -82,19 +82,20 @@ const RestaurantListCard = ({ restaurant }) => {
 
   const Res_card = (
     <div className="flex max-w-sm bg-white rounded-lg shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden">
-      {/* 🖼 썸네일 */}
-      <div className="w-28 flex-shrink-0">
-        <img
-          src={
-            thumbnail ||
-            "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=400&q=80"
-          }
-          alt={name}
-          className="w-full h-full object-cover"
-        />
+      {/* 썸네일  */}
+      <div className="w-28 flex-shrink-0 min-h-[4rem]">
+        {thumbnail ? (
+          <img
+            src={thumbnail}
+            alt={name}
+            className="w-full h-full object-cover"
+          />
+        ) : (
+          <div className="w-full h-full min-h-[4rem] bg-gray-100" aria-hidden />
+        )}
       </div>
 
-      {/* 📄 내용 */}
+      {/* 내용 */}
       <div className="px-5 py-4 flex flex-col justify-center">
         {/* 카테고리 */}
         <div className="text-xs text-red-400 font-bold mb-1">{category}</div>

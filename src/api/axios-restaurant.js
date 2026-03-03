@@ -107,3 +107,26 @@ export const fetchLikeStatus = async ({ userId, restaurantId }) => {
     params: { userId, restaurantId },
   });
 };
+
+/*
+  내가 좋아요한 맛집 목록
+  GET /restaurants/liked?userId=
+*/
+export const fetchLikedRestaurants = async (userId) => {
+  const res = await api.get("/restaurants/liked", {
+    params: { userId },
+  });
+  return res;
+};
+
+/*
+  맛집 이미지 목록 (파일 경로 전체 반환)
+  GET /restaurants/{id}/image
+*/
+export const fetchRestaurantImages = async (restaurantId) => {
+  const raw = await api.get(`/restaurants/${restaurantId}/image`);
+  const list = Array.isArray(raw) ? raw : (raw?.images ?? raw?.data ?? []);
+  return Array.isArray(list)
+    ? list.filter((url) => url != null && String(url).trim())
+    : [];
+};

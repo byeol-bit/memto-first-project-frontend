@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+
 import {
   useQuery,
   useInfiniteQuery,
@@ -8,6 +10,7 @@ import {
   fetchUserReviews,
   fetchRestaurantReviews,
   fetchReviewLikeStatus,
+  fetchReviewImages,
 } from "../../api/axios-review";
 
 const normalizeList = (res) =>
@@ -74,6 +77,37 @@ export const useReviewLikeStatus = ({ userId, visitId }) => {
   });
 };
 
+// 리뷰 이미지 목록 — GET /visits/{id}/image
+export const useReviewImages = (visitId) =>
+  useQuery({
+    queryKey: ["reviews", visitId, "images"],
+    queryFn: () => fetchReviewImages(visitId),
+    select: (images) => (Array.isArray(images) ? images : []),
+    enabled: !!visitId,
+  });
+
+// 맛집 상세 갤러리용: 해당 맛집 리뷰(visits)들의 이미지를 모두 모음
+export const useRestaurantReviewImages = (visitIds) => {
+  const stableKey = useMemo(
+    () =>
+      Array.isArray(visitIds)
+        ? [...visitIds].sort((a, b) => (a ?? 0) - (b ?? 0)).join(",")
+        : "",
+    [visitIds],
+  );
+  return useQuery({
+    queryKey: ["reviews", "restaurant-gallery-images", stableKey],
+    queryFn: async () => {
+      if (!visitIds?.length) return [];
+      const arrays = await Promise.all(
+        visitIds.map((id) => fetchReviewImages(id).catch(() => [])),
+      );
+      return arrays.flat().filter(Boolean);
+    },
+    enabled: !!stableKey,
+  });
+};
+
 // 무한스크롤 응답 정규화
 const normalizeInfiniteResponse = (res) => {
   const payload = res?.data ?? res;
@@ -137,7 +171,10 @@ export const useInfiniteRestaurantReviews = (restaurantId) =>
   useInfiniteQuery({
     queryKey: ["reviews", "restaurant", restaurantId, "infinite"],
     queryFn: async ({ pageParam }) => {
-      const res = await fetchReviews({ cursor: pageParam, restaurantId });
+      const res = await fetchReviews({
+        cursor: pageParam,
+        restaurant_id: restaurantId,
+      });
       return normalizeInfiniteResponse(res);
     },
     initialPageParam: null,

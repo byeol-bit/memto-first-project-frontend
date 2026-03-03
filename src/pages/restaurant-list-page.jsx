@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Link } from "react-router";
 
 import RestaurantCard from "../components/restaurant/restaurantCard";
 import RestaurantListCard from "../components/restaurant/restaurantListCard";
@@ -10,12 +9,24 @@ import RegisterRestaurantModal from "../components/restaurant/registerRestaurant
 
 import { InfiniteScrollTrigger } from "../components/common/infiniteScrollTrigger";
 
-import { useInfiniteRestaurants } from "../hooks/queries/use-restaurants-data";
+import {
+  useInfiniteRestaurants,
+  useLikedRestaurants,
+  useLikedRestaurantsFallback,
+  useRestaurantThumbnails,
+} from "../hooks/queries/use-restaurants-data";
 
 import { useLoginState } from "../components/loginstate";
 
 const RestaurantListPage = () => {
-  // Hook 이용 : TanStack Query로 데이터 가져오기
+  const { isLoggedIn, isMe, user } = useLoginState();
+  const navigate = useNavigate();
+
+  const [keyword, setKeyword] = useState(""); // 입력 중인 글자
+  const [searchQuery, setSearchQuery] = useState(""); // 검색 실행된 단어
+  const [isModalOpen, setIsModalOpen] = useState(false); // 맛집 등록 모달
+  const [activeTab, setActiveTab] = useState("all"); // 탭
+
   const {
     data,
     fetchNextPage,
@@ -25,16 +36,6 @@ const RestaurantListPage = () => {
     isError,
     error,
   } = useInfiniteRestaurants();
-
-  const { isLoggedIn, isMe } = useLoginState();
-  const navigate = useNavigate();
-
-  const [keyword, setKeyword] = useState(""); // 입력 중인 글자
-  const [searchQuery, setSearchQuery] = useState(""); // 검색 실행된 단어
-  const [isModalOpen, setIsModalOpen] = useState(false); // 맛집 등록 모달
-  const [activeTab, setActiveTab] = useState("all"); // 탭
-
-  const displayTab = !isLoggedIn && activeTab === "liked" ? "all" : activeTab;
 
   // 여러 페이지로 나뉜 데이터를 하나의 배열로 합치기
   const allRestaurants = useMemo(() => {
@@ -47,6 +48,48 @@ const RestaurantListPage = () => {
     });
     return list.filter(Boolean);
   }, [data]);
+
+  const userId = isLoggedIn ? user?.id : null;
+  const {
+    data: likedRestaurants = [],
+    isLoading: isLikedLoading,
+    isError: isLikedError,
+  } = useLikedRestaurants(userId);
+
+  const { data: likedFallback = [], isLoading: isLikedFallbackLoading } =
+    useLikedRestaurantsFallback(
+      isLikedError ? userId : null,
+      isLikedError ? allRestaurants : [],
+    );
+
+  const allRestaurantIds = useMemo(() => {
+    const fromAll = (allRestaurants ?? []).map(
+      (r) => r?.id ?? r?.restaurant_id,
+    );
+    const likedRaw = isLikedError ? likedFallback : likedRestaurants;
+    const fromLiked = (likedRaw ?? []).map((r) => r?.id ?? r?.restaurant_id);
+    const set = new Set([
+      ...fromAll.filter((id) => id != null && !Number.isNaN(Number(id))),
+      ...fromLiked.filter((id) => id != null && !Number.isNaN(Number(id))),
+    ]);
+    return [...set];
+  }, [allRestaurants, likedRestaurants, likedFallback, isLikedError]);
+
+  const {
+    data: thumbnailMap = {},
+    isLoading: isThumbnailsLoading,
+    isPending: isThumbnailsPending,
+  } = useRestaurantThumbnails(allRestaurantIds);
+
+  const thumbnailsReady = !isThumbnailsLoading && !isThumbnailsPending;
+
+  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
+  const toFullUrl = (path) =>
+    !path
+      ? ""
+      : typeof path === "string" && path.startsWith("http")
+        ? path
+        : `${baseUrl.replace(/\/$/, "")}/${String(path).replace(/^\//, "")}`;
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -64,23 +107,23 @@ const RestaurantListPage = () => {
   // 검색 버튼 누르거나 엔터 쳤을 때 실행
   const handleSearch = () => setSearchQuery(keyword);
 
-  // 필터링 로직 (allRestaurants를 기준으로 검색/좋아요 필터링)
   const filteredRestaurants = useMemo(() => {
     let list = allRestaurants
       .filter((r) => r != null)
-      .map((r) => ({
-        ...r,
-        thumbnail:
-          r.thumbnail ||
-          "https://images.unsplash.com/photo-1514362545857-3bc16c4c7d1b?w=800&q=80",
-      }));
+      .map((r) => {
+        const rid = r?.id ?? r?.restaurant_id;
+        const fromApi = thumbnailMap[rid];
+        const fromDetailImages =
+          r?.images && r.images.length > 0 ? r.images[0] : null;
+        const thumbnail = thumbnailsReady
+          ? toFullUrl(fromApi) ||
+            toFullUrl(fromDetailImages) ||
+            (r.thumbnail ? toFullUrl(r.thumbnail) : null) ||
+            null
+          : null;
+        return { ...r, thumbnail };
+      });
 
-    // [탭 필터링]
-    if (displayTab === "liked") {
-      list = list.filter((r) => r.isLiked);
-    }
-
-    // [검색어 필터링]
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase();
       list = list.filter((r) => {
@@ -94,7 +137,29 @@ const RestaurantListPage = () => {
     }
 
     return list;
-  });
+  }, [allRestaurants, searchQuery, thumbnailMap, baseUrl, thumbnailsReady]);
+
+  // 관심 목록 (썸네일 우선순위: API → restaurant.images[0] → 기존 thumbnail → 기본 이미지)
+  const likedListRaw = isLikedError ? likedFallback : likedRestaurants;
+  const likedListWithThumbnail = useMemo(
+    () =>
+      (likedListRaw ?? []).map((r) => {
+        const rid = r?.id ?? r?.restaurant_id;
+        const fromApi = thumbnailMap[rid];
+        const fromDetailImages =
+          r?.images && r.images.length > 0 ? r.images[0] : null;
+        const thumbnail = thumbnailsReady
+          ? toFullUrl(fromApi) ||
+            toFullUrl(fromDetailImages) ||
+            (r.thumbnail ? toFullUrl(r.thumbnail) : null) ||
+            null
+          : null;
+        return { ...r, thumbnail };
+      }),
+    [likedListRaw, thumbnailMap, baseUrl, thumbnailsReady],
+  );
+  const isLikedListLoading =
+    isLikedLoading || (isLikedError && isLikedFallbackLoading);
 
   const handleFirstReviewClick = async () => {
     const isUser = await isMe();
@@ -108,12 +173,10 @@ const RestaurantListPage = () => {
     setIsModalOpen(true);
   };
 
-  const tabs = isLoggedIn
-    ? [
-        { id: "all", label: "모든 맛집" },
-        { id: "liked", label: "관심 목록" },
-      ]
-    : [{ id: "all", label: "모든 맛집" }];
+  const tabs = [
+    { id: "all", label: "모든 맛집" },
+    { id: "liked", label: "관심 목록" },
+  ];
 
   if (isLoading) return <div>맛집 정보를 불러오는 중입니다</div>;
   if (isError) return <div>에러가 발생했어요: {error.message}</div>;
@@ -128,7 +191,7 @@ const RestaurantListPage = () => {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               className={`flex-1 py-4 text-sm font-bold transition-colors ${
-                displayTab === tab.id
+                activeTab === tab.id
                   ? "text-black border-b-2 border-black"
                   : "text-gray-400"
               }`}
@@ -140,70 +203,88 @@ const RestaurantListPage = () => {
 
         {/* ✅ 탭 내용 영역 */}
         <div className="w-full px-5 py-6 pb-24">
-          {displayTab === "all" && (
-            <SearchBar
-              value={keyword}
-              onChange={handleKeywordChange}
-              onSearch={handleSearch}
-              placeholder="어떤 맛집을 찾으시나요?"
-            />
-          )}
-          {isLoading ? (
-            <div className="py-20 text-center text-gray-500">
-              맛집 데이터를 불러오는 중... 😋
+          {activeTab === "liked" && !isLoggedIn ? (
+            <div className="py-20 flex flex-col items-center justify-center gap-6 text-center">
+              <p className="text-gray-600 text-lg">
+                관심 목록을 보려면 로그인이 필요해요.
+              </p>
+              <Button onClick={() => navigate("/sign-in")}>
+                로그인 하러 가기
+              </Button>
             </div>
           ) : (
-            <div className="flex flex-col gap-2">
-              {filteredRestaurants.length > 0 ? (
-                <>
-                  {filteredRestaurants.map((restaurant) => (
-                    <div
-                      key={restaurant.id}
-                      className="flex justify-center w-full"
-                    >
-                      {displayTab === "all" ? (
-                        <RestaurantCard restaurant={restaurant} />
-                      ) : (
-                        // <RestaurantListCard restaurant={restaurant} />
-                        <RestaurantCard restaurant={restaurant} />
-                      )}
-                    </div>
-                  ))}
-                  {/* 무한 스크롤: 리스트 끝에 도달하면 다음 페이지 로드 */}
-                  {displayTab === "all" && (
-                    <InfiniteScrollTrigger
-                      onIntersect={fetchNextPage}
-                      hasNextPage={hasNextPage}
-                      isFetchingNextPage={isFetchingNextPage}
-                    />
-                  )}
-                </>
+            <>
+              {activeTab === "all" && (
+                <SearchBar
+                  value={keyword}
+                  onChange={handleKeywordChange}
+                  onSearch={handleSearch}
+                  placeholder="어떤 맛집을 찾으시나요?"
+                />
+              )}
+              {activeTab === "liked" ? (
+                isLikedListLoading ? (
+                  <div className="py-20 text-center text-gray-500">
+                    관심 목록을 불러오는 중... 😋
+                  </div>
+                ) : likedListWithThumbnail.length > 0 ? (
+                  <div className="flex flex-col gap-2">
+                    {likedListWithThumbnail.map((restaurant) => (
+                      <div
+                        key={restaurant.id}
+                        className="flex justify-center w-full"
+                      >
+                        <RestaurantListCard restaurant={restaurant} />
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="py-20 text-center text-gray-400">
+                    <p>
+                      아직 좋아요 한 맛집이 없어요. <br />
+                      마음에 드는 맛집에 하트를 눌러보세요! ❤️
+                    </p>
+                  </div>
+                )
+              ) : isLoading ? (
+                <div className="py-20 text-center text-gray-500">
+                  맛집 데이터를 불러오는 중... 😋
+                </div>
               ) : (
-                <div className="py-20 text-center text-gray-400">
-                  {displayTab === "all" ? (
-                    <div>
+                <div className="flex flex-col gap-2">
+                  {filteredRestaurants.length > 0 ? (
+                    <>
+                      {filteredRestaurants.map((restaurant) => (
+                        <div
+                          key={restaurant.id}
+                          className="flex justify-center w-full"
+                        >
+                          <RestaurantCard restaurant={restaurant} />
+                        </div>
+                      ))}
+                      <InfiniteScrollTrigger
+                        onIntersect={fetchNextPage}
+                        hasNextPage={hasNextPage}
+                        isFetchingNextPage={isFetchingNextPage}
+                      />
+                    </>
+                  ) : (
+                    <div className="py-20 text-center text-gray-400">
                       <p className="text-gray-500 text-lg mb-4">
                         찾으시는 맛집이 아직 없습니다 😭
                       </p>
                       <Button onClick={handleFirstReviewClick}>
                         첫 번째 리뷰 달기
                       </Button>
-
-                      {/* 모달 컴포넌트 배치 */}
                       <RegisterRestaurantModal
                         open={isModalOpen}
                         onClose={() => setIsModalOpen(false)}
                       />
                     </div>
-                  ) : (
-                    <p>
-                      아직 좋아요 한 맛집이 없어요. <br />
-                      마음에 드는 맛집에 하트를 눌러보세요! ❤️
-                    </p>
                   )}
                 </div>
               )}
-            </div>
+            </>
           )}
         </div>
       </div>

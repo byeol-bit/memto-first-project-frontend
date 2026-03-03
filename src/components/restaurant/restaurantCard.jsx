@@ -1,74 +1,13 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate } from "react-router";
-import Like from "../common/like";
+import React from "react";
+import { Link } from "react-router";
 
 import { useContext } from "react";
 import { DetailStateContext } from "../layout/map-layout";
-import { useLoginState } from "../loginstate";
-import { useRestaurantLikeStatus } from "../../hooks/queries/use-restaurants-data";
-import {
-  useLikeRestaurantMutation,
-  useUnlikeRestaurantMutation,
-} from "../../hooks/mutations/use-create-restaurant-mutation";
 
 const RestaurantCard = ({ restaurant }) => {
   const context = useContext(DetailStateContext);
-
-  const navigate = useNavigate();
-  const { user, isLoggedIn, isMe } = useLoginState();
-
-  const { id, name, thumbnail, category, expertCount, address } = restaurant;
-  const restaurantId = Number(id);
-
-  const { data: isLikedFromApi = false } = useRestaurantLikeStatus({
-    userId: isLoggedIn ? user?.id : null,
-    restaurantId: restaurantId || null,
-  });
-
-  const [isLike, setIsLike] = useState(isLikedFromApi);
-
-  useEffect(() => {
-    setIsLike(isLikedFromApi);
-  }, [isLikedFromApi]);
-
-  const { mutate: likeRestaurant } = useLikeRestaurantMutation();
-  const { mutate: unlikeRestaurant } = useUnlikeRestaurantMutation();
-
-  const onLike = async (e) => {
-    e?.stopPropagation?.();
-    const isUser = await isMe();
-    if (!isUser) {
-      alert("로그인이 필요합니다.");
-      navigate("/sign-in");
-      return;
-    }
-    const userId = isUser.id;
-    const newIsLike = !isLike;
-    setIsLike(newIsLike);
-    if (newIsLike) {
-      likeRestaurant(
-        { userId, restaurantId },
-        {
-          onError: () => {
-            setIsLike(false);
-            alert("좋아요 등록에 실패했습니다.");
-          },
-        },
-      );
-    } else {
-      unlikeRestaurant(
-        { userId, restaurantId },
-        {
-          onError: () => {
-            setIsLike(true);
-            alert("좋아요 취소에 실패했습니다.");
-          },
-        },
-      );
-    }
-  };
-
-  const displayIsLike = isLoggedIn ? isLike : false;
+  console.log("레스토랑 : ", restaurant);
+  const { id, name, category, thumbnail, expertCount, address } = restaurant;
 
   const onRestaurantDetailClick = () => {
     context.setSelectedRestaurant(restaurant);
@@ -77,16 +16,17 @@ const RestaurantCard = ({ restaurant }) => {
   const Res_card = (
     <div className="max-w-sm rounded overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300">
       {/* 썸네일 */}
-      <img className="w-full h-40 object-cover" src={thumbnail} alt={name} />
+      {thumbnail ? (
+        <img className="w-full h-40 object-cover" src={thumbnail} alt={name} />
+      ) : (
+        <div className="w-full h-40 bg-gray-100 shrink-0" aria-hidden />
+      )}
 
       {/* 내용 */}
       <div className="px-8 pt-6 pb-5">
         {/* 맛집 카테고리 */}
         <div className="flex items-center justify-between gap-2 mb-1">
           <div className="text-sm text-red-400 font-bold">{category}</div>
-          <div onClick={(e) => e.stopPropagation()} className="flex-shrink-0">
-            <Like isLike={displayIsLike} onLike={onLike} className="w-6 h-6" />
-          </div>
         </div>
         {/* 맛집 이름 */}
         <div className="font-bold text-xl mb-2 text-gray-900">{name}</div>
@@ -104,17 +44,9 @@ const RestaurantCard = ({ restaurant }) => {
 
   return (
     <div className="block w-full mb-6">
-      {!context ? (
-        /* context가 없을 때: 상세 페이지로 이동하는 Link 사용 */
-        <Link to={`/restaurants/${id}`} className="block w-full">
-          {Res_card}
-        </Link>
-      ) : (
-        /* context가 있을 때: 클릭 시 상태만 변경하는 div 사용 */
-        <div onClick={onRestaurantDetailClick} className="cursor-pointer">
-          {Res_card}
-        </div>
-      )}
+      <div onClick={onRestaurantDetailClick} className="cursor-pointer">
+        {Res_card}
+      </div>
     </div>
   );
 };

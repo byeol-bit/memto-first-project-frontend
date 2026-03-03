@@ -16,7 +16,12 @@ export const useCreateReviewMutation = () => {
       queryClient.invalidateQueries({
         queryKey: ["reviews", "restaurant", restaurantId, "infinite"],
       });
-
+      queryClient.invalidateQueries({
+        queryKey: ["reviews", "restaurant-gallery-images"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["restaurants", restaurantId, "images"],
+      });
       queryClient.invalidateQueries({ queryKey: ["restaurants"] });
     },
   });

@@ -63,8 +63,9 @@ const ReviewBottomSheet = ({
     const reviewData = {
       userId: author?.id ?? null,
       restaurantId: Number(targetId),
-      visitDate: new Date().toISOString().slice(0, 10), // YYYY-MM-DD
+      visitDate: new Date().toISOString().slice(0, 10),
       review: content,
+      images,
       restaurant: restaurant?.[0] ?? restaurant,
       user: author
         ? {

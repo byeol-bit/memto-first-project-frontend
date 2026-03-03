@@ -10,14 +10,22 @@ export const createReview = async ({
   visitDate,
   visit_date,
   review,
+  images = [],
 }) => {
   const date = visit_date ?? visitDate ?? new Date().toISOString().slice(0, 10);
-  return await api.post("/visits", {
-    userId,
-    restaurantId,
-    visit_date: date,
-    review,
-  });
+  const form = new FormData();
+  if (userId != null) form.append("userId", String(userId));
+  if (restaurantId != null) form.append("restaurantId", String(restaurantId));
+  form.append("visit_date", date);
+  if (review != null) form.append("review", review);
+
+  if (Array.isArray(images)) {
+    images.forEach((file) => {
+      if (file) form.append("image", file);
+    });
+  }
+
+  return await api.post("/visits", form);
 };
 
 /*
@@ -72,4 +80,19 @@ export const fetchReviewLikeStatus = async ({ userId, visitId }) => {
   return await api.get("/visits/likes/status", {
     params: { userId, visitId },
   });
+};
+
+/*
+  리뷰 이미지 목록
+  GET /visits/{id}/image
+  응답 예시:
+  { success: true, images: ["https://.../a.webp", "..."] }
+*/
+export const fetchReviewImages = async (visitId) => {
+  const res = await api.get(`/visits/${visitId}/image`);
+  const payload = res?.data ?? res;
+  const list = payload?.images ?? [];
+  return Array.isArray(list)
+    ? list.filter((url) => url != null && String(url).trim())
+    : [];
 };
