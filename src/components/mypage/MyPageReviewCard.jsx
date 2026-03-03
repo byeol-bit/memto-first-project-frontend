@@ -6,8 +6,8 @@ const MyPageReviewCard = ({ reviewData }) => {
 
   if (!reviewData) return null;
 
-  const restaurant = reviewData.restaurant || reviewData.store || {};
-  const visitId = reviewData.id || reviewData.visit_id || reviewData.visitId;
+  const restaurant = reviewData.restaurant;
+  const visitId = reviewData.id;
 
   useEffect(() => {
     const loadReviewImage = async () => {
@@ -18,17 +18,9 @@ const MyPageReviewCard = ({ reviewData }) => {
           const res = await getVisitImage(visitId);
 
           const data = res.data;
-          const path = Array.isArray(data)
-            ? data[0]
-            : data?.images?.[0] || data;
+          const path = data?.images?.[0];
 
-          if (path && typeof path === "string") {
-            const finalUrl = path.startsWith("http")
-              ? path
-              : `${baseUrl}/${path.replace(/^\//, "")}`;
-
-            setImageUrl(finalUrl);
-          }
+          path && setImageUrl(new URL(path, baseUrl).href);
         }
       } catch (e) {
         console.error(`리뷰(${visitId}) 이미지 로드 실패:`, e);
