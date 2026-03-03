@@ -44,3 +44,19 @@ export const centerMapOnPositions = (map, positions, { offsetX = 0, offsetY = 0 
     map.panBy(offsetX, offsetY);
   }
 }
+
+// 레스토랑 객체에서 썸네일 후보를 추출
+// 우선순위: thumbnail -> images[0] -> imageUrl (있다면) -> null
+export const getRestaurantThumbnail = (restaurant) => {
+  if (!restaurant) return null;
+
+  if (restaurant.thumbnail) return restaurant.thumbnail;
+
+  if (Array.isArray(restaurant.images) && restaurant.images.length > 0) {
+    return restaurant.images[0];
+  }
+
+  if (restaurant.imageUrl) return restaurant.imageUrl;
+
+  return null;
+}
