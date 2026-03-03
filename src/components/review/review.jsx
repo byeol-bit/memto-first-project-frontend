@@ -118,7 +118,11 @@ const Review = ({ reviewData, userData }) => {
 
   const restaurant = reviewData.restaurant ?? {};
   const region = getRegionName(restaurant?.address);
-  const restaurantName = restaurant?.name ?? "맛집";
+  const rawRestaurantName = restaurant?.name ?? "맛집";
+  const restaurantName =
+    rawRestaurantName.length > 10
+      ? `${rawRestaurantName.slice(0, 10)}...`
+      : rawRestaurantName;
   const reviewText =
     reviewData.review ?? reviewData.rev ?? reviewData.content ?? "";
   const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "";
@@ -226,7 +230,12 @@ const Review = ({ reviewData, userData }) => {
             <div className="w-fit bg-red-400 rounded-full px-2.5 py-0.5 text-xs text-white font-medium">
               {region}
             </div>
-            <span className="text-sm text-gray-800">{restaurantName}</span>
+            <span
+              className="text-sm text-gray-800"
+              title={rawRestaurantName}
+            >
+              {restaurantName}
+            </span>
           </div>
 
           {/* 좋아요 + 개수 */}
