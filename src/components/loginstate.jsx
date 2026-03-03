@@ -19,7 +19,11 @@ export const LoginStateProvider = ({ children }) => {
 
       try {
         const res = await getMyProfile();
-        setUser({ id: res.data.id, nickname: res.data.nickname });
+        setUser({
+          id: res.data.id,
+          nickname: res.data.nickname,
+          category: res.data.category,
+        });
       } catch (error) {
         if (error.response?.status === 401) {
           localStorage.clear();
