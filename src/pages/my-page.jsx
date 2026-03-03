@@ -85,7 +85,8 @@ const MyPage = () => {
           setActiveTab={logic.setActiveTab}
           isTabLoading={logic.isTabLoading}
           tabData={logic.tabData}
-          handleUnfollow={logic.handleUnfollow}
+          handleToggleFollow={logic.handleToggleFollow}
+          userId={logic.userInfo?.id}
         />
 
         {/* 3. 메뉴 버튼들 */}
@@ -145,4 +146,5 @@ const MyPage = () => {
     </div>
   );
 };
+
 export default MyPage;
