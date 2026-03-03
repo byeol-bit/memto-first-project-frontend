@@ -162,7 +162,7 @@ const Review = ({ reviewData, userData }) => {
   };
 
   return (
-    <div className="max-w-sm rounded overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300">
+    <div className="w-full max-w-sm rounded overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300">
       <div className="pb-6 mx-6">
         {/* 작성자 정보 */}
         <div className="-mx-6 mb-4">
