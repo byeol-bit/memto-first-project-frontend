@@ -75,12 +75,14 @@ export const PasswordModal = ({
   handleUpdatePassword,
 }) => {
   if (!isOpen) return null;
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/30 backdrop-blur-sm">
       <div className="bg-white w-full max-w-[400px] rounded-2xl p-8 shadow-2xl animate-fade-in-up">
         <h2 className="text-xl font-black text-gray-800 mb-6 text-center">
           비밀번호 변경
         </h2>
+
         <div className="space-y-4">
           <input
             type="password"
@@ -104,6 +106,7 @@ export const PasswordModal = ({
             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-[#ee5a6f]"
           />
         </div>
+
         <div className="flex gap-3 mt-8">
           <button
             onClick={() => {
