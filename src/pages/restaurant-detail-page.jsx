@@ -341,11 +341,19 @@ const RestaurantDetailPage = () => {
   }
 
   const handleRoute = () => {
-    const { name, latitude, longitude, kakao_place_id, address } =
-      restaurantDetailData;
+    const { name, latitude, longitude } = restaurantDetailData;
 
-    const routeUrl = `https://dapi.kakao.com/v2/local/search/${address}.process.env.VITE_KAKAO_API_KEY`;
+    if (!latitude || !longitude) {
+      alert("이 맛집의 좌표 정보를 찾을 수 없습니다.");
+      return;
+    }
 
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+    const placeName = encodeURIComponent(name ?? "맛집");
+
+    // 카카오맵 길찾기 링크: https://map.kakao.com/link/to/이름,위도,경도
+    const routeUrl = `https://map.kakao.com/link/to/${placeName},${lat},${lng}`;
     window.open(routeUrl, "_blank");
   };
 
