@@ -21,23 +21,18 @@ const ProfileSection = ({
             className="w-24 h-24 rounded-full overflow-hidden border-4 border-gray-50 shadow-sm bg-white"
             style={{ backgroundColor: selectedColor }}
           >
-            {previewImage ? (
-              <img
-                src={previewImage}
-                alt="프로필"
-                className="w-full h-full object-cover"
-                onError={(e) => {
-                  e.target.src =
-                    "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
-                }}
-              />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center text-4xl bg-gray-100">
-                👤
-              </div>
-            )}
+            <img
+              src={previewImage}
+              alt="프로필"
+              className="w-full h-full object-cover"
+              onError={(e) => {
+                e.target.src =
+                  "https://cdn.pixabay.com/photo/2015/10/05/22/37/blank-profile-picture-973460_1280.png";
+              }}
+            />
           </div>
         </div>
+
         <div className="flex-1">
           <div className="flex items-center gap-2 mb-2">
             <h2 className="text-2xl font-bold text-gray-800">
