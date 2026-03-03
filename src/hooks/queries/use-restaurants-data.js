@@ -18,10 +18,21 @@ const normalizeList = (res) =>
   Array.isArray(res) ? res : ((res && res?.data) ?? []);
 
 // 단일 객체 응답 정규화 (배열이면 [0], 객체면 res.data ?? res)
+// API가 expert_count / likes_count 로 올 수 있으므로 camelCase로 통일
 const normalizeOne = (res) => {
   if (!res || typeof res !== "object") return res;
   if (Array.isArray(res) && res.length > 0) return res[0];
-  return res?.data ?? res;
+  const one = res?.data ?? res;
+  if (one && typeof one === "object") {
+    return {
+      ...one,
+      expertCount:
+        one.expertCount ?? one.expert_count ?? 0,
+      likesCount:
+        one.likesCount ?? one.likes_count ?? 0,
+    };
+  }
+  return one;
 };
 
 // TanStack Query는 queryFn이 undefined를 반환하면 에러 → 항상 값 반환

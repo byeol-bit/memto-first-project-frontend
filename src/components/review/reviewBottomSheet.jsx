@@ -35,6 +35,16 @@ const ReviewBottomSheet = ({
       return;
     }
 
+    if (!images || images.length === 0) {
+      alert("리뷰에는 최소 1장 이상의 사진을 등록해 주세요. 📸");
+      return;
+    }
+
+    if (images.length > 5) {
+      alert("사진은 최대 5장까지 등록할 수 있어요.");
+      return;
+    }
+
     if (!user?.id) {
       alert("로그인 정보를 불러올 수 없습니다. 다시 로그인해 주세요.");
       return;

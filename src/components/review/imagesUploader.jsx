@@ -12,9 +12,26 @@ function ImagesUploader({ onImagesChange }) {
 
   const handleFiles = (newFiles) => {
     const fileArray = Array.from(newFiles);
-    const newPreviews = fileArray.map((f) => URL.createObjectURL(f));
-    setPreviews((prev) => [...prev, ...newPreviews]);
-    setFiles((prev) => [...prev, ...fileArray]);
+
+    setFiles((prev) => {
+      const remaining = 5 - prev.length;
+      if (remaining <= 0) {
+        alert("사진은 최대 5장까지 업로드할 수 있어요.");
+        return prev;
+      }
+
+      const toAdd = fileArray.slice(0, remaining);
+      if (fileArray.length > remaining) {
+        alert("사진은 최대 5장까지 업로드할 수 있어요.");
+      }
+
+      setPreviews((prevPreviews) => [
+        ...prevPreviews,
+        ...toAdd.map((f) => URL.createObjectURL(f)),
+      ]);
+
+      return [...prev, ...toAdd];
+    });
   };
 
   const removeImage = (index) => {

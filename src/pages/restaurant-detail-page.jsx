@@ -117,11 +117,31 @@ const RestaurantDetailPage = () => {
       };
     });
 
-    if (targetId == null) return mapped;
-    return mapped.filter((r) => {
+    const filteredByRestaurant =
+      targetId == null
+        ? mapped
+        : mapped.filter((r) => {
       const rid = r.restaurant_id ?? r.restaurant?.id;
       return rid != null && Number(rid) === targetId;
-    });
+        });
+
+    // 최신 리뷰가 위로 오도록 정렬 (visit_date → created_at → id)
+    const getTime = (r) => {
+      const dateStr =
+        r?.visit_date ??
+        r?.visitDate ??
+        r?.created_at ??
+        r?.createdAt ??
+        r?.updated_at ??
+        r?.updatedAt ??
+        null;
+      const t = dateStr ? Date.parse(dateStr) : NaN;
+      if (!Number.isNaN(t)) return t;
+      const id = r?.id ?? r?.visit_id ?? r?.visitId;
+      return id != null ? Number(id) : 0;
+    };
+
+    return [...filteredByRestaurant].sort((a, b) => getTime(b) - getTime(a));
   }, [rawReviews, restaurantDetailData, restaurantIdForReviews]);
 
   const { data: isLikedFromApi = false } = useRestaurantLikeStatus({
@@ -160,16 +180,26 @@ const RestaurantDetailPage = () => {
   const { mutate: likeRestaurant } = useLikeRestaurantMutation();
   const { mutate: unlikeRestaurant } = useUnlikeRestaurantMutation();
 
-  // 맛집 디테일 좋아요 & 좋아요 수
+  // 맛집 디테일 좋아요 상태 (좋아요 수·고수 수는 DB 값 사용)
   const [isLike, setIsLike] = useState(isLikedFromApi);
-  const [likeCount, setLikeCount] = useState(0);
 
   useEffect(() => {
     setIsLike(isLikedFromApi);
   }, [isLikedFromApi]);
 
-  // 비로그인 시에는 하트를 항상 빈 상태로 표시
   const displayIsLike = isLoggedIn ? isLike : false;
+  const likesCountFromDb = restaurantDetailData?.likesCount ?? 0;
+  console.log("likesCountFromDb : ", likesCountFromDb);
+
+  // 명의 고수: 리뷰 작성자 수 (동일 유저 중복 제거)
+  const expertsCount = useMemo(() => {
+    const seen = new Set();
+    for (const r of reviews) {
+      const uid = r.user_id ?? r.userId ?? r.user?.id;
+      if (uid != null) seen.add(String(uid));
+    }
+    return seen.size;
+  }, [reviews]);
 
   // 바텀시트 오픈 플러스 버튼
   const [openBottomSheet, setOpenBottomSheet] = useState(false);
@@ -276,21 +306,15 @@ const RestaurantDetailPage = () => {
     }
 
     const currentUserId = isUser.id;
-
-    // Optimistic 업데이트
     const newIsLike = !isLike;
     setIsLike(newIsLike);
-    setLikeCount((prev) => (newIsLike ? prev + 1 : prev - 1));
 
-    // API 호출
     if (newIsLike) {
       likeRestaurant(
         { userId: currentUserId, restaurantId },
         {
           onError: (error) => {
-            // 실패 시 롤백
-            setIsLike(!newIsLike);
-            setLikeCount((prev) => (newIsLike ? prev - 1 : prev + 1));
+            setIsLike(false);
             console.error("좋아요 등록 실패:", error);
             alert("좋아요 등록에 실패했습니다.");
           },
@@ -301,9 +325,7 @@ const RestaurantDetailPage = () => {
         { userId: currentUserId, restaurantId },
         {
           onError: (error) => {
-            // 실패 시 롤백
-            setIsLike(!newIsLike);
-            setLikeCount((prev) => (newIsLike ? prev - 1 : prev + 1));
+            setIsLike(true);
             console.error("좋아요 취소 실패:", error);
             alert("좋아요 취소에 실패했습니다.");
           },
@@ -323,23 +345,6 @@ const RestaurantDetailPage = () => {
     setOpenBottomSheet(true);
   };
 
-  const expertsCount = useMemo(() => {
-    const getReviewUserId = (r) => {
-      const id = r.user_id ?? r.userId ?? r.user?.id;
-      return id != null ? String(id) : null;
-    };
-    const seen = new Set();
-    let count = 0;
-    for (const r of reviews) {
-      const uid = getReviewUserId(r);
-      if (uid != null && !seen.has(uid)) {
-        seen.add(uid);
-        count += 1;
-      }
-    }
-    return count;
-  }, [reviews]);
-
   if (isDetailLoading) {
     return (
       <div className="py-20 text-center">
@@ -356,11 +361,19 @@ const RestaurantDetailPage = () => {
   }
 
   const handleRoute = () => {
-    const { name, latitude, longitude, kakao_place_id, address } =
-      restaurantDetailData;
+    const { name, latitude, longitude } = restaurantDetailData;
 
-    const routeUrl = `https://dapi.kakao.com/v2/local/search/${address}.process.env.VITE_KAKAO_API_KEY`;
+    if (!latitude || !longitude) {
+      alert("이 맛집의 좌표 정보를 찾을 수 없습니다.");
+      return;
+    }
 
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+    const placeName = encodeURIComponent(name ?? "맛집");
+
+    // 카카오맵 길찾기 링크: https://map.kakao.com/link/to/이름,위도,경도
+    const routeUrl = `https://map.kakao.com/link/to/${placeName},${lat},${lng}`;
     window.open(routeUrl, "_blank");
   };
 
@@ -402,7 +415,7 @@ const RestaurantDetailPage = () => {
               </div>
               <div className="mt-2 flex items-baseline">
                 <span className="text-xl mr-1">😋</span>
-                <span className="text-2xl font-bold">{expertsCount ?? 0}</span>
+                <span className="text-2xl font-bold">{expertsCount}</span>
                 <span className="ml-1 text-xm text-gray-500">
                   명의 고수 인정한 맛집이에요
                 </span>
@@ -413,7 +426,7 @@ const RestaurantDetailPage = () => {
               <Like
                 isLike={displayIsLike}
                 onLike={onLike}
-                likeCount={likeCount}
+                likeCount={restaurantDetailData.likes_count}
                 className="w-8 h-8"
                 direction="col"
               />

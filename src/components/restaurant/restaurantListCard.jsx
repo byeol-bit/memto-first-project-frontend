@@ -17,7 +17,8 @@ const RestaurantListCard = ({ restaurant }) => {
   const navigate = useNavigate();
   const { user, isLoggedIn, isMe } = useLoginState();
 
-  const { id, name, category, expertCount, address, thumbnail } = restaurant;
+  const { id, name, category, expertCount, likesCount, address, thumbnail } =
+    restaurant;
   const restaurantId = Number(id);
 
   const { data: isLikedFromApi = false } = useRestaurantLikeStatus({
@@ -109,6 +110,9 @@ const RestaurantListCard = ({ restaurant }) => {
           <br />
           <span className="inline-block mt-1 text-xs text-gray-500">
             🏆 고수 <b>{expertCount}명</b>이 인정했어요!
+          </span>
+          <span className="inline-block mt-1 text-xs text-gray-500">
+            ♥️ <b>{likesCount}명</b>이 좋아해요!
           </span>
         </p>
       </div>

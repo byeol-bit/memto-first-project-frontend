@@ -27,32 +27,121 @@ export const useCreateReviewMutation = () => {
   });
 };
 
-// 리뷰 좋아요
+// 피드 캐시에서 해당 visitId 리뷰의 visitLikeCount를 delta만큼 변경 (feed-page에서 숫자 즉시 반영)
+function updateReviewLikeCountInFeedCache(queryClient, visitId, delta) {
+  const key = ["reviews", "feed"];
+  queryClient.setQueryData(key, (old) => {
+    if (!old?.pages) return old;
+    return {
+      ...old,
+      pages: old.pages.map((page) => {
+        const list = page?.list ?? page;
+        if (!Array.isArray(list)) return page;
+        return {
+          ...page,
+          list: list.map((r) => {
+            const id = r?.id ?? r?.visit_id ?? r?.visitId;
+            if (id == null || Number(id) !== Number(visitId)) return r;
+            const cur =
+              r?.visitLikeCount ?? r?.visit_like_count ?? r?.likeCount ?? 0;
+            const next = Math.max(0, Number(cur) + delta);
+            return {
+              ...r,
+              visitLikeCount: next,
+              visit_like_count: next,
+            };
+          }),
+        };
+      }),
+    };
+  });
+}
+
+function setReviewLikeStatusInCache(queryClient, visitId, userId, isLiked) {
+  const key = ["reviews", visitId, "like-status", userId];
+  queryClient.setQueryData(key, isLiked);
+}
+
+// 리뷰 좋아요 — 낙관적 업데이트: 피드에서 하트 누르면 count·하트 즉시 반영
 export const useLikeReviewMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: likeReview,
+    onMutate: (variables) => {
+      updateReviewLikeCountInFeedCache(
+        queryClient,
+        variables.visitId,
+        +1,
+      );
+      setReviewLikeStatusInCache(
+        queryClient,
+        variables.visitId,
+        variables.userId,
+        true,
+      );
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["reviews", variables.visitId, "like-status"],
         exact: false,
       });
+      queryClient.invalidateQueries({ queryKey: ["reviews", "restaurant"] });
+    },
+    onError: (_, variables) => {
+      updateReviewLikeCountInFeedCache(
+        queryClient,
+        variables.visitId,
+        -1,
+      );
+      setReviewLikeStatusInCache(
+        queryClient,
+        variables.visitId,
+        variables.userId,
+        false,
+      );
     },
   });
 };
 
-// 리뷰 좋아요 취소
+// 리뷰 좋아요 취소 — 낙관적 업데이트
 export const useUnlikeReviewMutation = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: unlikeReview,
+    onMutate: (variables) => {
+      updateReviewLikeCountInFeedCache(
+        queryClient,
+        variables.visitId,
+        -1,
+      );
+      setReviewLikeStatusInCache(
+        queryClient,
+        variables.visitId,
+        variables.userId,
+        false,
+      );
+    },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({
         queryKey: ["reviews", variables.visitId, "like-status"],
         exact: false,
       });
+      queryClient.invalidateQueries({ queryKey: ["reviews", "restaurant"] });
+    },
+    onError: (_, variables) => {
+      updateReviewLikeCountInFeedCache(
+        queryClient,
+        variables.visitId,
+        +1,
+      );
+      setReviewLikeStatusInCache(
+        queryClient,
+        variables.visitId,
+        variables.userId,
+        true,
+      );
     },
   });
 };
