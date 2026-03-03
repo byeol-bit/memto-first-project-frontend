@@ -1,12 +1,17 @@
 import UserCard from './userCard'
 import Loading from '../loading'
-const UserList = ({users, isLoading}) => {
+const UserList = ({users, isLoading, type="all"}) => {
     if (isLoading) {
         return <Loading />
     }
 
+    // if (type==="followings" && !users?)
     if (!users?.length) {
-        return <div className="flex justify-center items-center py-10">검색 결과가 없습니다.</div>
+        if(type==="following"){
+            return <div className="flex justify-center items-center py-10">관심 고수 목록이 없습니다.</div>
+        } else{
+            return <div className="flex justify-center items-center py-10">검색 결과가 없습니다.</div>
+        }
     }
     return(
         <div>

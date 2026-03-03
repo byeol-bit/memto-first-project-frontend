@@ -36,7 +36,7 @@ const UserTag = ({tag, setTag, tags}) => {
 								: 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
 						}`}
 					>
-						{t.name}
+						{t.displayName}
 					</div>
 				)
 			})}
