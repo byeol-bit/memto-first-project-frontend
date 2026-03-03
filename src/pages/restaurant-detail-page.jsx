@@ -117,11 +117,31 @@ const RestaurantDetailPage = () => {
       };
     });
 
-    if (targetId == null) return mapped;
-    return mapped.filter((r) => {
+    const filteredByRestaurant =
+      targetId == null
+        ? mapped
+        : mapped.filter((r) => {
       const rid = r.restaurant_id ?? r.restaurant?.id;
       return rid != null && Number(rid) === targetId;
-    });
+        });
+
+    // 최신 리뷰가 위로 오도록 정렬 (visit_date → created_at → id)
+    const getTime = (r) => {
+      const dateStr =
+        r?.visit_date ??
+        r?.visitDate ??
+        r?.created_at ??
+        r?.createdAt ??
+        r?.updated_at ??
+        r?.updatedAt ??
+        null;
+      const t = dateStr ? Date.parse(dateStr) : NaN;
+      if (!Number.isNaN(t)) return t;
+      const id = r?.id ?? r?.visit_id ?? r?.visitId;
+      return id != null ? Number(id) : 0;
+    };
+
+    return [...filteredByRestaurant].sort((a, b) => getTime(b) - getTime(a));
   }, [rawReviews, restaurantDetailData, restaurantIdForReviews]);
 
   const { data: isLikedFromApi = false } = useRestaurantLikeStatus({
