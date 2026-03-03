@@ -36,14 +36,18 @@ export const searchUsers = async ({nickname, category, page=1, limit=10})=> {
 }
 
 // 팔로워 리스트
-export const getFollowers = async (userId) => {
-  const res = await api.get(`/follows/followers/${userId}`);
+export const getFollowers = async ({userId, page=1, limit=10}) => {
+  const res = await api.get(`/follows/followers/${userId}`, {
+    params: {page, limit}
+  });
   return res;
 };
 
 // 팔로잉 리스트
-export const getFollowings = async (userId) => {
-  const res = await api.get(`/follows/followings/${userId}`);
+export const getFollowings = async ({userId, page=1, limit=10}) => {
+ const res = await api.get(`/follows/followings/${userId}`, {
+    params: { page, limit}
+  });
   return res;
 };
 

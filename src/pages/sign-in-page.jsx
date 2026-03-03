@@ -1,13 +1,21 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router";
 import { useLoginState } from "../components/loginstate";
 
 const SignInPage = () => {
   const navigate = useNavigate();
-  const { login } = useLoginState();
+  const { login, isLoggedIn } = useLoginState();
+
+  const isLoginProcess = useRef(false);
 
   const [loginId, setLoginId] = useState("");
   const [password, setPassword] = useState("");
+
+  useEffect(() => {
+    if (isLoggedIn && !isLoginProcess.current) {
+      navigate("/map", { replace: true });
+    }
+  }, [isLoggedIn, navigate]);
 
   const handleLogin = async (e) => {
     if (e) e.preventDefault();
@@ -16,12 +24,15 @@ const SignInPage = () => {
     if (!password) return alert("비밀번호를 입력해 주세요.");
 
     try {
+      isLoginProcess.current = true;
       await login(loginId, password);
 
       alert("로그인에 성공했습니다!");
-      window.location.href = "/map";
+      navigate("/map", { replace: true });
     } catch (error) {
       console.error("Login Page Error:", error);
+      isLoginProcess.current = false;
+
       const msg =
         error.response?.data?.message || "아이디 또는 비밀번호가 틀렸습니다.";
       alert(msg);

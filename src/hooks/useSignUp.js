@@ -32,10 +32,10 @@ export const useSignUp = () => {
   const [isIdChecked, setIsIdChecked] = useState(false);
   const [isNicknameChecked, setIsNicknameChecked] = useState(false);
 
-  const [previewImage, setPreviewImage] = useState(null);
+  const [previewImage, setPreviewImage] = useState(defaultOptions[0].img);
   const [selectedFile, setSelectedFile] = useState(null);
-  const [selectedColor, setSelectedColor] = useState("#f0f0f0");
-  const [selectedIdx, setSelectedIdx] = useState(null);
+  const [selectedColor, setSelectedColor] = useState(defaultOptions[0].color);
+  const [selectedIdx, setSelectedIdx] = useState(0);
 
   const handleCheckId = async () => {
     if (!id) return alert("아이디를 입력해주세요.");
@@ -151,7 +151,6 @@ export const useSignUp = () => {
     }
   };
 
-  // 🎯 UI 컴포넌트에서 필요한 모든 데이터와 함수를 반환합니다.
   return {
     navigate,
     fileInputRef,
