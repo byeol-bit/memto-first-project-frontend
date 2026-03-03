@@ -32,7 +32,7 @@ export const NicknameModal = ({
             onClick={handleCheckNickname}
             className={`px-4 rounded-lg text-sm font-bold transition-colors whitespace-nowrap ${
               isNicknameChecked
-                ? "bg-green-500 text-white"
+                ? "bg-[#ee5a6f] text-white"
                 : "bg-gray-700 text-white hover:bg-gray-800"
             }`}
           >

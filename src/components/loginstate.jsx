@@ -9,11 +9,6 @@ export const LoginStateProvider = ({ children }) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const currentPath = window.location.pathname;
-      if (currentPath === "/sign-in" || currentPath === "/sign-up") {
-        setIsLoading(false);
-        return;
-      }
       const savedId = localStorage.getItem("userId");
       const savedNickname = localStorage.getItem("userNickname");
 
@@ -24,7 +19,11 @@ export const LoginStateProvider = ({ children }) => {
 
       try {
         const res = await getMyProfile();
-        setUser({ id: res.data.id, nickname: res.data.nickname });
+        setUser({
+          id: res.data.id,
+          nickname: res.data.nickname,
+          category: res.data.category,
+        });
       } catch (error) {
         if (error.response?.status === 401) {
           localStorage.clear();

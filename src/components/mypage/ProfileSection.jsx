@@ -38,11 +38,17 @@ const ProfileSection = ({
             )}
           </div>
         </div>
-
         <div className="flex-1">
-          <h2 className="text-2xl font-bold text-gray-800 mb-2">
-            {userInfo?.nickname}
-          </h2>
+          <div className="flex items-center gap-2 mb-2">
+            <h2 className="text-2xl font-bold text-gray-800">
+              {userInfo?.nickname}
+            </h2>
+            {userInfo?.category && (
+              <span className="px-3 py-1 border-2 border-red-400 rounded-full text-sm text-red-400 w-fit font-bold flex-shrink-0 leading-none">
+                {userInfo?.category}
+              </span>
+            )}
+          </div>
           <div className="flex gap-4 text-sm mb-4">
             <div className="flex flex-col">
               <span className="font-bold text-gray-800 text-lg">

@@ -182,10 +182,19 @@ export const useMyPage = () => {
   };
 
   const handleCheckNickname = async () => {
+    if (!nicknameInput) return alert("닉네임을 입력해주세요.");
     try {
-      await checkNicknameDuplicate(nicknameInput);
-      setIsNicknameChecked(true);
-    } catch (e) {
+      console.log("서버로 보내는 닉네임:", nicknameInput);
+      const response = await checkNicknameDuplicate(nicknameInput);
+      if (response.data.isAvailable) {
+        alert("사용 가능한 닉네임입니다.");
+        setIsNicknameChecked(true);
+      } else {
+        alert("이미 사용 중인 닉네임입니다.");
+        setIsNicknameChecked(false);
+      }
+    } catch (error) {
+      alert("서버와 통신 중 문제가 발생했습니다.");
       setIsNicknameChecked(false);
     }
   };
@@ -202,9 +211,13 @@ export const useMyPage = () => {
   };
 
   const handleUpdatePassword = async () => {
-    if (newPassword !== confirmPassword) return;
+    if (newPassword !== confirmPassword) {
+      alert("새 비밀번호가 일치하지 않습니다.");
+      return;
+    }
     try {
       await updatePassword(currentPassword, newPassword);
+      alert("비밀번호가 변경되었으니 다시 로그인해주시기 바랍니다.");
       await logout();
     } catch (e) {
       console.error(e);
