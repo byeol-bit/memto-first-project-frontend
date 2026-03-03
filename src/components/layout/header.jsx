@@ -17,6 +17,7 @@ const Header = () => {
 
   const [imgCacheKey] = useState(new Date().getTime());
 
+
   const profileSrc =
     isLoggedIn && user?.id
       ? `${getUserImageUrl(user.id)}?t=${imgCacheKey}`
@@ -39,16 +40,19 @@ const Header = () => {
 
   return (
     <div>
-      <header className={style.header}>
-        <div className={`${style.container} ${style.navbarContent}`}>
-          <Link to={"/"} className={style.navbarBrand}>
+      <header className="sticky top-0 z-[100] border-b border-[var(--border-color)] bg-[var(--background-color)] py-4 shadow-[var(--shadow-sm)]">
+        <div className="flex w-full items-center justify-between px-4">
+          <Link
+            to="/"
+            className="text-xl font-bold text-[var(--primary-color)] no-underline"
+          >
             Find hiddenMaster
           </Link>
 
           <ul className={`${style.navbarMenu} ml-auto`}>
             {headerData.map((item) => (
               <li className={style.navbarItem} key={item.id}>
-                <Link to={item.path} className={style.navbarLink}>
+                <Link to={item.path} className={style.navbarLink}>https://github.com/byeol-bit/memto-first-project-frontend/pull/63/conflict?name=src%252Fcomponents%252Floginstate.jsx&ancestor_oid=111fcba58cd4be308f16f7f7b8f780d5bf62dae3&base_oid=5f05704439dad3c86322b5d42af0bd81c048e3c6&head_oid=d69a5009e52d106d4005d024d666110125b85d00
                   {item.title}
                 </Link>
               </li>
