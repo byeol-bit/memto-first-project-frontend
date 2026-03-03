@@ -1,11 +1,12 @@
 import { useContext, useEffect, useState, useMemo } from "react"
 import MapInstanceContext from "./map-context"
 import { DetailStateContext } from "../layout/map-layout";
-import { centerMapOnPosition } from "./map-utils";
-import { MapMarker } from "react-kakao-maps-sdk";
+import { centerMapOnPosition, getRestaurantThumbnail } from "./map-utils";
+import { CustomOverlayMap } from "react-kakao-maps-sdk";
 
 const RestaurantMarkerLayer = () => {
   const {
+    selectedUser,
     selectedRestaurant,
     setActiveTab,
     setSelectedRestaurant
@@ -69,17 +70,27 @@ const RestaurantMarkerLayer = () => {
     centerMapOnPosition(map, position, { offsetX, offsetY });
   }, [map, position]);
 
-  const handleRestaurantMarkerClick = () => {
-    if (!selectedRestaurant) return;
-  }
-
+  // 유저가 선택되지 않았거나, 맛집이 선택된 상태라면 아예 아무 것도 렌더하지 않음
+  if (!selectedRestaurant || selectedUser) return null;
   if (!position) return null;
 
+  const thumbnail = getRestaurantThumbnail(selectedRestaurant);
+
   return (
-    <MapMarker
-      position={position}
-      onClick={handleRestaurantMarkerClick}
-    />
+    <CustomOverlayMap position={position} yAnchor={1}>
+      <button
+        type="button"
+        className="relative flex items-center justify-center w-12 h-12 rounded-full shadow-md border border-white overflow-hidden bg-gray-100"
+      >
+        {thumbnail && (
+          <img
+            src={thumbnail}
+            alt={selectedRestaurant?.name ?? "맛집"}
+            className="absolute inset-0 w-full h-full object-cover"
+          />
+        )}
+      </button>
+    </CustomOverlayMap>
   )
 
 }
