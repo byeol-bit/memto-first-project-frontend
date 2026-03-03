@@ -49,10 +49,13 @@ const Header = () => {
             Find hiddenMaster
           </Link>
 
-          <ul className={`${style.navbarMenu} ml-auto`}>
+          <ul className="ml-auto flex gap-6 list-none">
             {headerData.map((item) => (
-              <li className={style.navbarItem} key={item.id}>
-                <Link to={item.path} className={style.navbarLink}>https://github.com/byeol-bit/memto-first-project-frontend/pull/63/conflict?name=src%252Fcomponents%252Floginstate.jsx&ancestor_oid=111fcba58cd4be308f16f7f7b8f780d5bf62dae3&base_oid=5f05704439dad3c86322b5d42af0bd81c048e3c6&head_oid=d69a5009e52d106d4005d024d666110125b85d00
+              <li className="flex items-center" key={item.id}>
+                <Link
+                  to={item.path}
+                  className="px-4 py-2 text-gray-600 no-underline rounded-md transition hover:text-[var(--primary-color)] hover:bg-[var(--background-light)]"
+                >
                   {item.title}
                 </Link>
               </li>
