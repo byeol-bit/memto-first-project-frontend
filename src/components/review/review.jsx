@@ -18,6 +18,7 @@ import { useUserDetail } from "../../hooks/queries/use-users-data";
 const Review = ({ reviewData, userData }) => {
   const { user: loginUser, isLoggedIn, isMe } = useLoginState();
   const visitId = reviewData?.id;
+  console.log("reviewData : ", reviewData);
 
   // 리뷰 작성자
   const author = React.useMemo(() => {
@@ -34,12 +35,12 @@ const Review = ({ reviewData, userData }) => {
         "알 수 없음",
       category:
         u?.category ?? reviewData.user_category ?? reviewData.category ?? "",
-      visitCount:
-        u?.visit_count ??
-        u?.visitCount ??
-        reviewData.visit_count ??
-        reviewData.visitCount ??
-        0,
+      // visitCount:
+      //   u?.visit_count ??
+      //   u?.visitCount ??
+      //   reviewData.visit_count ??
+      //   reviewData.visitCount ??
+      //   0,
     };
   }, [reviewData]);
 
@@ -141,11 +142,7 @@ const Review = ({ reviewData, userData }) => {
         {/* 작성자 정보 */}
         <div className="-mx-6 mb-4">
           {author ? (
-            <FollowUserCard
-              key={author.id}
-              user={author}
-              isFollowing={!!isFollowingAuthor}
-            />
+            <FollowUserCard key={author.id} user={author} />
           ) : (
             <div className="flex items-center gap-4 px-6 py-4 border-y border-gray-100 text-gray-500 text-sm">
               작성자 정보를 불러올 수 없습니다.
@@ -185,7 +182,7 @@ const Review = ({ reviewData, userData }) => {
           <div className="flex items-center gap-1.5 cursor-pointer transition-colors group">
             <Like isLike={isLiked} onLike={onLike} />
             <span className="text-xm text-gray-500 font-medium group-active:scale-95 transition-transform">
-              {likeCount}
+              {reviewData.visitLikeCount}
             </span>
           </div>
         </div>

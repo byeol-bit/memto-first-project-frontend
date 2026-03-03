@@ -69,6 +69,13 @@ export const useLikeRestaurantMutation = () => {
       queryClient.invalidateQueries({
         queryKey: ["restaurants", "liked-fallback"],
       });
+      // ✅ 맛집 리스트/상세의 likesCount도 최신값을 가져오도록 무한스크롤/단일 리스트 쿼리 무효화
+      queryClient.invalidateQueries({
+        queryKey: ["restaurants", "list"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["restaurants"],
+      });
     },
   });
 };
@@ -88,6 +95,13 @@ export const useUnlikeRestaurantMutation = () => {
       });
       queryClient.invalidateQueries({
         queryKey: ["restaurants", "liked-fallback"],
+      });
+      // ✅ 취소 시에도 리스트/상세 쿼리를 무효화해서 likesCount를 바로 반영
+      queryClient.invalidateQueries({
+        queryKey: ["restaurants", "list"],
+      });
+      queryClient.invalidateQueries({
+        queryKey: ["restaurants"],
       });
     },
   });

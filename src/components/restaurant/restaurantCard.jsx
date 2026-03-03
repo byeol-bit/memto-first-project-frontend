@@ -7,7 +7,8 @@ import { DetailStateContext } from "../layout/map-layout";
 const RestaurantCard = ({ restaurant }) => {
   const context = useContext(DetailStateContext);
   console.log("레스토랑 : ", restaurant);
-  const { id, name, category, thumbnail, expertCount, address } = restaurant;
+  const { id, name, category, thumbnail, expertCount, likesCount, address } =
+    restaurant;
 
   const onRestaurantDetailClick = () => {
     context.setSelectedRestaurant(restaurant);
@@ -36,6 +37,9 @@ const RestaurantCard = ({ restaurant }) => {
           📍 {address} <br />
           <span className="mt-1 inline-block text-sm text-gray-500">
             🏆 고수 <b>{expertCount}명</b>이 인정했어요!
+          </span>
+          <span className="mt-1 inline-block text-sm text-gray-500">
+            ♥️ <b>{likesCount}명</b>이 좋아해요!
           </span>
         </p>
       </div>
