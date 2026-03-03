@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import Like from "../common/like";
 import FollowUserCard from "../follow/followUserCard";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 
 import {
   useReviewLikeStatus,
@@ -62,6 +63,9 @@ const Review = ({ reviewData, userData }) => {
   // 좋아요 mutation 훅들
   const { mutate: likeReview } = useLikeReviewMutation();
   const { mutate: unlikeReview } = useUnlikeReviewMutation();
+
+  const [isTextExpanded, setIsTextExpanded] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const likeCount = reviewData.likeCount ?? 0;
 
@@ -136,9 +140,30 @@ const Review = ({ reviewData, userData }) => {
         .filter(Boolean)
     : [];
 
+  const isLongText = (reviewText ?? "").length > 80;
+  const hasImages = reviewImages.length > 0;
+  const safeIndex = hasImages
+    ? Math.min(Math.max(currentImageIndex, 0), reviewImages.length - 1)
+    : 0;
+  const currentImageSrc = hasImages ? reviewImages[safeIndex] : null;
+
+  const goPrevImage = () => {
+    if (!hasImages) return;
+    setCurrentImageIndex((prev) =>
+      prev <= 0 ? reviewImages.length - 1 : prev - 1,
+    );
+  };
+
+  const goNextImage = () => {
+    if (!hasImages) return;
+    setCurrentImageIndex((prev) =>
+      prev >= reviewImages.length - 1 ? 0 : prev + 1,
+    );
+  };
+
   return (
     <div className="max-w-sm rounded overflow-hidden shadow-lg bg-white hover:shadow-2xl transition-all duration-300">
-      <div className="py-8 mx-6">
+      <div className="pb-6 mx-6">
         {/* 작성자 정보 */}
         <div className="-mx-6 mb-4">
           {author ? (
@@ -150,22 +175,48 @@ const Review = ({ reviewData, userData }) => {
           )}
         </div>
 
-        {reviewImages.length > 0 && (
-          <div className="w-full mb-4 rounded-xl overflow-hidden border border-gray-50">
-            <div className="flex gap-2 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-1 -mx-1">
-              {reviewImages.map((src, i) => (
-                <div
-                  key={i}
-                  className="flex-shrink-0 w-[85%] max-w-sm aspect-video snap-center rounded-lg overflow-hidden"
+        {reviewImages.length > 0 && currentImageSrc && (
+          <div className="w-full mb-4 rounded-xl overflow-hidden border border-gray-50 relative">
+            <img
+              src={currentImageSrc}
+              alt="리뷰 사진"
+              className="w-full h-56 object-cover"
+            />
+
+            {reviewImages.length > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={goPrevImage}
+                  className="absolute left-2 top-1/2 -translate-y-1/2 bg-black/45 hover:bg-black/65 text-white rounded-full p-1.5 flex items-center justify-center"
+                  aria-label="이전 사진"
                 >
-                  <img
-                    src={src}
-                    alt={`리뷰 사진 ${i + 1}`}
-                    className="w-full h-full object-cover"
-                  />
+                  <ChevronLeft className="w-5 h-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={goNextImage}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 bg-black/45 hover:bg-black/65 text-white rounded-full p-1.5 flex items-center justify-center"
+                  aria-label="다음 사진"
+                >
+                  <ChevronRight className="w-5 h-5" />
+                </button>
+
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 flex gap-1">
+                  {reviewImages.map((_, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => setCurrentImageIndex(idx)}
+                      className={`w-1.5 h-1.5 rounded-full ${
+                        idx === safeIndex ? "bg-white" : "bg-white/40"
+                      }`}
+                      aria-label={`${idx + 1}번째 사진 보기`}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
         )}
 
@@ -189,10 +240,25 @@ const Review = ({ reviewData, userData }) => {
 
         {/* 본문 */}
         <div className="mt-3">
-          <p className="text-gray-800 text-xm leading-relaxed mb-3">
+          <p
+            className={`text-gray-800 text-xm leading-relaxed mb-2 ${
+              !isTextExpanded ? "line-clamp-3" : ""
+            }`}
+          >
             {reviewText}
           </p>
-          <span className="text-[11px] text-gray-400 flex">{displayDate}</span>
+          {isLongText && (
+            <button
+              type="button"
+              onClick={() => setIsTextExpanded((prev) => !prev)}
+              className="text-[11px] text-gray-500 underline underline-offset-2 mb-1"
+            >
+              {isTextExpanded ? "접기" : "더 보기"}
+            </button>
+          )}
+          <span className="text-[11px] text-gray-400 flex mt-2">
+            {displayDate}
+          </span>
         </div>
       </div>
     </div>
