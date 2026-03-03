@@ -40,8 +40,9 @@ export const fetchReviews = async (params) => {
   유저 기반 리뷰 조회
   GET /visits/:userId
 */
-export const fetchUserReviews = async (userId) => {
-  return await api.get("/visits", { params: { userId } });
+export const fetchUserReviews = async ({userId}) => {
+  // console.log("API", userId, cursor)
+  return await api.get("/visits", { params: { userId} });
 };
 
 /*
