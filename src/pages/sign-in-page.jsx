@@ -27,7 +27,6 @@ const SignInPage = () => {
       isLoginProcess.current = true;
       await login(loginId, password);
 
-      alert("로그인에 성공했습니다!");
       navigate("/map", { replace: true });
     } catch (error) {
       console.error("Login Page Error:", error);

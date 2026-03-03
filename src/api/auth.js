@@ -69,10 +69,10 @@ export const updateProfile = async (formData) => {
 /**
  * 7. 비밀번호 변경 (현재 비번 + 새 비번)
  */
-export const updatePassword = async (currentPassword, newPassword) => {
+export const updatePassword = async ({ password, newPassword }) => {
   return await api.patch("/users/password", {
-    password: currentPassword, // 현재 비밀번호
-    newPassword: newPassword, // 바꿀 새 비밀번호
+    password: password,
+    newPassword: newPassword,
   });
 };
 
