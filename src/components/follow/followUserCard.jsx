@@ -5,19 +5,23 @@ import { DetailStateContext } from "../layout/map-layout";
 import { useLoginState } from "../loginstate";
 import { useNavigate } from "react-router";
 import { userImg } from "../../api/user.api";
-import { useCountFollower, useIsFollowing } from "../../hooks/queries/use-users-data";
+import { useCountFollower, useIsFollowing, useUserDetail } from "../../hooks/queries/use-users-data";
 import { useUserReviews } from "../../hooks/queries/use-reviews-data";
 
 const FollowUserCard = ({ user }) => {
-
+  const { data: selectedUser } = useUserDetail(user.id);
+  console.log("유저 디테일", selectedUser)
   const context = useContext(DetailStateContext);
   const navigate = useNavigate();
-
+  
   const { isLoggedIn, user: isMe } = useLoginState();
   const { mutate: toggleFollow } = useToggleFollow();
   const { data: followerCount } = useCountFollower(user.id);
   const { data: isFollow } = useIsFollowing(user.id, isLoggedIn);
-  const { data: userReview = [] } = useUserReviews(user.id)
+
+  const myId = isMe?.id
+  const isMyCard = myId != null && user?.id == myId
+
   const handleFollowToggle = (e) => {
     if (!isLoggedIn) {
       alert("로그인이 필요합니다.");
@@ -60,7 +64,7 @@ const FollowUserCard = ({ user }) => {
 
         <div className="mt-1 flex items-center gap-4 text-sm text-gray-400 whitespace-nowrap">
           <span>
-            리뷰 <span className="font-medium">{userReview?.length ?? 0}</span>
+            리뷰 <span className="font-medium">{selectedUser?.visitCount ?? 0}</span>
           </span>
           <span>
             팔로워 <span className="font-medium">{followerCount ?? 0}</span>
@@ -70,9 +74,9 @@ const FollowUserCard = ({ user }) => {
 
       <div className="shrink-0 whitespace-nowrap w-15">
 
-        {user?.id !== isMe?.id && (
+        {!isMyCard  && (
           <FollowButton
-            isFollowing={isFollow}
+            isFollowing={isLoggedIn ? !!isFollow : false}
             onToggle={handleFollowToggle}
           />
         )}

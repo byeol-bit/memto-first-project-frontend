@@ -30,6 +30,11 @@ const UserDetailPage = () => {
 
   const { mutate: toggleFollow } = useToggleFollow()
 
+  const loginId = loginUser?.id != null ? String(loginUser.id) : null
+  const profileId = user?.id != null ? String(user.id) : null
+
+  const isMyProfile = loginId != null && profileId != null && loginId === profileId
+
 
   const handleFollowToggle = (e) => {
     if (!isLoggedIn) {
@@ -84,8 +89,8 @@ const UserDetailPage = () => {
         
       </div>
       <div className="relative flex justify-center mt-4 h-10 items-center">
-        {loginUser?.id !== user?.id && (
-          <FollowButton isFollowing={!!isFollowing} onToggle={handleFollowToggle} size="md"/>
+        {!isMyProfile && (
+          <FollowButton isFollowing={isLoggedIn ? !!isFollowing : false} onToggle={handleFollowToggle} size="md"/>
         )}
       </div>
       <div className="flex border-b border-b-gray-200 mt-4">

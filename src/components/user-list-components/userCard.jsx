@@ -43,6 +43,9 @@ const UserCard = ({user}) => {
                         <span className='text-xs text-gray-400'>
                             방문맛집 <b className='text-red-400'>{user.restaurantCount}</b>
                         </span>
+                        <span className='text-xs text-gray-400'>
+                            팔로워 <b className='text-red-400'>{user.followerCount}</b>
+                        </span>
                     </div>
                 </div>
             </div>
