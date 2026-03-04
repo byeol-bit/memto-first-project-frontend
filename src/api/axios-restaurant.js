@@ -1,8 +1,8 @@
 import api from "./axios-basic";
 
-/* 
+/*
   식당 등록
-  POST /restaurants 
+  POST /restaurants (formData: name, address, ..., image 최대 5장)
 */
 export const createRestaurant = async ({
   name,
@@ -12,24 +12,30 @@ export const createRestaurant = async ({
   latitude,
   longitude,
   kakao_place_id,
+  images = [],
 }) => {
-  const payload = {
-    name,
-    address,
-    phone_number,
-    category,
-    kakao_place_id,
-  };
-
+  const form = new FormData();
+  if (name != null) form.append("name", String(name));
+  if (address != null) form.append("address", String(address));
+  if (phone_number != null) form.append("phone_number", String(phone_number));
+  if (category != null) form.append("category", String(category));
+  if (kakao_place_id != null)
+    form.append("kakao_place_id", String(kakao_place_id));
   if (latitude !== "" && latitude != null) {
-    payload.latitude = Number(latitude);
+    form.append("latitude", Number(latitude));
   }
-
   if (longitude !== "" && longitude != null) {
-    payload.longitude = Number(longitude);
+    form.append("longitude", Number(longitude));
   }
 
-  const res = await api.post("/restaurants", payload);
+  const fileList = Array.isArray(images) ? images.slice(0, 5) : [];
+  fileList.forEach((file) => {
+    if (file && typeof file === "object" && file instanceof File) {
+      form.append("image", file);
+    }
+  });
+
+  const res = await api.post("/restaurants", form);
   return res;
 };
 
@@ -129,13 +135,12 @@ export const fetchRestaurantImages = async (restaurantId) => {
     const payload = res?.data ?? res;
     const list = Array.isArray(payload)
       ? payload
-      : payload?.images ?? payload?.data ?? [];
+      : (payload?.images ?? payload?.data ?? []);
 
     return Array.isArray(list)
       ? list.filter((url) => url != null && String(url).trim())
       : [];
   } catch (error) {
-    // 이미지가 없어서 404가 나는 경우를 정상 케이스로 처리
     if (error?.response?.status !== 404) {
       console.error("맛집 이미지 조회 실패:", error);
     }

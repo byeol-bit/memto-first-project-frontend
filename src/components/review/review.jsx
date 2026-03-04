@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Like from "../common/like";
+import { DetailStateContext } from "../layout/map-layout";
 import FollowUserCard from "../follow/followUserCard";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
@@ -17,6 +18,8 @@ import { getUserImageUrl } from "../../api/auth";
 import { useUserDetail } from "../../hooks/queries/use-users-data";
 
 const Review = ({ reviewData, userData }) => {
+  const context = useContext(DetailStateContext);
+
   const { user: loginUser, isLoggedIn, isMe } = useLoginState();
   const visitId = reviewData?.id;
   console.log("reviewData : ", reviewData);
@@ -36,14 +39,9 @@ const Review = ({ reviewData, userData }) => {
         "알 수 없음",
       category:
         u?.category ?? reviewData.user_category ?? reviewData.category ?? "",
-      // visitCount:
-      //   u?.visit_count ??
-      //   u?.visitCount ??
-      //   reviewData.visit_count ??
-      //   reviewData.visitCount ??
-      //   0,
     };
   }, [reviewData]);
+  console.log(author);
 
   // 작성자에 대한 팔로우 여부
   const isFollowingAuthor =
@@ -106,6 +104,47 @@ const Review = ({ reviewData, userData }) => {
         },
       );
     }
+  };
+
+  // 피드에서 맛집 이름 클릭 시, 왼쪽 패널 옆에 해당 맛집 디테일 패널 열기
+  const handleNameClick = () => {
+    if (!context?.setSelectedRestaurant) return;
+
+    const restaurantFromReview = reviewData.restaurant ?? {};
+    const id =
+      restaurantFromReview.id ??
+      reviewData.restaurant_id ??
+      reviewData.restaurantId ??
+      reviewData.kakao_place_id ??
+      null;
+
+    if (!id) {
+      console.warn("리뷰에서 식당 ID를 찾을 수 없습니다.", reviewData);
+      return;
+    }
+
+    const payload = {
+      ...restaurantFromReview,
+      id: Number(id),
+      name: restaurantFromReview.name ?? reviewData.restaurant_name,
+      address:
+        restaurantFromReview.address ??
+        reviewData.restaurant_address ??
+        reviewData.address ??
+        "",
+      category:
+        restaurantFromReview.category ??
+        reviewData.restaurant_category ??
+        reviewData.category ??
+        "",
+      phone_number:
+        restaurantFromReview.phone_number ??
+        reviewData.restaurant_phone_number ??
+        reviewData.phone_number ??
+        "",
+    };
+
+    context.setSelectedRestaurant(payload);
   };
 
   const getRegionName = (address) => {
@@ -230,9 +269,11 @@ const Review = ({ reviewData, userData }) => {
             <div className="w-fit bg-red-400 rounded-full px-2.5 py-0.5 text-xs text-white font-medium">
               {region}
             </div>
+
             <span
               className="text-sm text-gray-800"
               title={rawRestaurantName}
+              onClick={() => handleNameClick(rawRestaurantName)}
             >
               {restaurantName}
             </span>

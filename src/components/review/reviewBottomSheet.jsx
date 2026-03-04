@@ -1,4 +1,4 @@
-import React, { useState, useContext, useEffect } from "react";
+import React, { useState, useContext, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate } from "react-router";
 import ImagesUploader from "./imagesUploader";
@@ -27,9 +27,16 @@ const ReviewBottomSheet = ({
   // 훅 가져오기
   const { mutate: registerReview, isLoading } = useCreateReviewMutation();
 
+  // 더블 클릭으로 인한 중복 전송 방지용 ref
+  const isSubmittingRef = useRef(false);
+
   if (!open) return null;
 
   const handleSubmit = () => {
+    if (isSubmittingRef.current || isLoading) {
+      return;
+    }
+
     if (!content.trim()) {
       alert("뉴비들을 위해 고수님의 팁을 한 마디만 적어주세요! ✍️");
       return;
@@ -87,8 +94,11 @@ const ReviewBottomSheet = ({
         : null,
     };
 
+    isSubmittingRef.current = true;
+
     registerReview(reviewData, {
       onSuccess: () => {
+        isSubmittingRef.current = false;
         setContent("");
         setImages([]);
         onSuccess?.();
@@ -96,6 +106,7 @@ const ReviewBottomSheet = ({
       },
 
       onError: (error) => {
+        isSubmittingRef.current = false;
         const message =
           error?.response?.data?.message ||
           error?.message ||

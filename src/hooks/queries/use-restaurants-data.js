@@ -17,8 +17,6 @@ import {
 const normalizeList = (res) =>
   Array.isArray(res) ? res : ((res && res?.data) ?? []);
 
-// 단일 객체 응답 정규화 (배열이면 [0], 객체면 res.data ?? res)
-// API가 expert_count / likes_count 로 올 수 있으므로 camelCase로 통일
 const normalizeOne = (res) => {
   if (!res || typeof res !== "object") return res;
   if (Array.isArray(res) && res.length > 0) return res[0];
@@ -26,10 +24,8 @@ const normalizeOne = (res) => {
   if (one && typeof one === "object") {
     return {
       ...one,
-      expertCount:
-        one.expertCount ?? one.expert_count ?? 0,
-      likesCount:
-        one.likesCount ?? one.likes_count ?? 0,
+      expertCount: one.expertCount ?? one.expert_count ?? 0,
+      likesCount: one.likesCount ?? one.likes_count ?? 0,
     };
   }
   return one;
@@ -176,13 +172,11 @@ export const useRestaurantThumbnails = (restaurantIds) => {
               Array.isArray(list) && list.length > 0 ? list[0] : null;
             if (first) return { id: numId, url: first };
 
-            // 맛집 이미지가 없으면 해당 맛집 리뷰(visit)의 첫 이미지를 썸네일로 사용
             try {
               const reviewsRaw = await fetchRestaurantReviews(numId);
               const rawList = Array.isArray(reviewsRaw)
                 ? reviewsRaw
-                : reviewsRaw?.list ?? reviewsRaw?.data ?? [];
-              // 이 맛집(id)에 해당하는 리뷰만 사용 (API가 전체 리뷰를 줄 수 있음)
+                : (reviewsRaw?.list ?? reviewsRaw?.data ?? []);
               const reviewsList = rawList.filter((r) => {
                 if (!r || typeof r !== "object") return false;
                 const rid =
@@ -193,7 +187,7 @@ export const useRestaurantThumbnails = (restaurantIds) => {
                 return rid != null && Number(rid) === numId;
               });
               const firstReview =
-                reviewsList.length > 0 ? reviewsList[0] : rawList[0];
+                reviewsList.length > 0 ? reviewsList[0] : null;
               const visitId =
                 firstReview?.id ??
                 firstReview?.visit_id ??

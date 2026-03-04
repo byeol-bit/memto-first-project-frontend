@@ -73,7 +73,7 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
       return;
     }
 
-    // 1단계: 맛집 등록
+    // 1단계: 맛집 등록 (식당 이미지도 함께 전송 — API 최대 5장)
     const restaurantData = {
       name: selectedPlace.place_name,
       address: selectedPlace.address_name,
@@ -82,6 +82,7 @@ const RegisterRestaurantModal = ({ open, onClose }) => {
       longitude: selectedPlace.x ? Number(selectedPlace.x) : undefined,
       category: selectedPlace.category_group_name || "",
       phone_number: selectedPlace.phone || "",
+      images,
     };
 
     createRestaurant(restaurantData, {
