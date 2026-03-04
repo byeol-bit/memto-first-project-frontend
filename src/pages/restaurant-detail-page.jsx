@@ -121,22 +121,25 @@ const RestaurantDetailPage = () => {
       targetId == null
         ? mapped
         : mapped.filter((r) => {
-      const rid = r.restaurant_id ?? r.restaurant?.id;
-      return rid != null && Number(rid) === targetId;
-        });
+            const rid = r.restaurant_id ?? r.restaurant?.id;
+            return rid != null && Number(rid) === targetId;
+          });
 
-    // 최신 리뷰가 위로 오도록 정렬 (visit_date → created_at → id)
+    // 최신 리뷰가 위로 오도록 정렬
+    // 1순위: created_at/updated_at (방금 쓴 리뷰가 맨 위로 오도록)
+    // 2순위: visit_date (방문 날짜)
+    // 3순위: id
     const getTime = (r) => {
-      const dateStr =
-        r?.visit_date ??
-        r?.visitDate ??
-        r?.created_at ??
-        r?.createdAt ??
-        r?.updated_at ??
-        r?.updatedAt ??
-        null;
-      const t = dateStr ? Date.parse(dateStr) : NaN;
-      if (!Number.isNaN(t)) return t;
+      const createdStr =
+        r?.created_at ?? r?.createdAt ?? r?.updated_at ?? r?.updatedAt ?? null;
+      const visitStr = r?.visit_date ?? r?.visitDate ?? null;
+
+      const createdTime = createdStr ? Date.parse(createdStr) : NaN;
+      if (!Number.isNaN(createdTime)) return createdTime;
+
+      const visitTime = visitStr ? Date.parse(visitStr) : NaN;
+      if (!Number.isNaN(visitTime)) return visitTime;
+
       const id = r?.id ?? r?.visit_id ?? r?.visitId;
       return id != null ? Number(id) : 0;
     };
@@ -191,7 +194,6 @@ const RestaurantDetailPage = () => {
   const likesCountFromDb = restaurantDetailData?.likesCount ?? 0;
   console.log("likesCountFromDb : ", likesCountFromDb);
 
-  // 명의 고수: 리뷰 작성자 수 (동일 유저 중복 제거)
   const expertsCount = useMemo(() => {
     const seen = new Set();
     for (const r of reviews) {
