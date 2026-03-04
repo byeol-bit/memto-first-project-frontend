@@ -39,6 +39,14 @@ export const useSignUp = () => {
 
   const handleCheckId = async () => {
     if (!id) return alert("아이디를 입력해주세요.");
+
+    const idRegex = /^[a-z0-9]+$/;
+    if (!idRegex.test(id)) {
+      return alert(
+        "아이디는 영문 소문자와 숫자만 사용 가능합니다. (한글, 대문자, 특수문자 불가)",
+      );
+    }
+
     try {
       const response = await checkIdDuplicate(id);
       if (response.data.isAvailable) {
@@ -121,9 +129,14 @@ export const useSignUp = () => {
 
   const handleSignUp = async (e) => {
     e.preventDefault();
+
     if (!id || !isIdChecked) return alert("아이디 중복확인을 완료해주세요.");
-    if (!password || password !== confirmPassword)
-      return alert("비밀번호를 확인해주세요.");
+
+    if (!password) return alert("비밀번호를 입력해주세요.");
+    if (!confirmPassword) return alert("비밀번호 확인을 입력해주세요.");
+    if (password !== confirmPassword)
+      return alert("비밀번호가 일치하지 않습니다.");
+
     if (!nickname || !isNicknameChecked)
       return alert("닉네임 중복확인을 완료해주세요.");
 
