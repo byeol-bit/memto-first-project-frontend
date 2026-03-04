@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router";
 import api from "../api/axios";
 import {
@@ -9,6 +9,7 @@ import {
   updateUserImage,
   getUserImageUrl,
 } from "../api/auth";
+import { useInfiniteUserReviews } from "../hooks/queries/use-reviews-data";
 import { useLoginState } from "../components/loginstate";
 
 export const useMyPage = () => {
@@ -39,28 +40,22 @@ export const useMyPage = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  const rawSvgString = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>`;
-  const silhouetteIcon = encodeURIComponent(rawSvgString);
-  const defaultOptions = [
-    {
-      color: "#FFB6B9",
-      img: `data:image/svg+xml;charset=utf-8,${silhouetteIcon}`,
-    },
-    {
-      color: "#8AC6D1",
-      img: `data:image/svg+xml;charset=utf-8,${silhouetteIcon}`,
-    },
-    {
-      color: "#BBDED6",
-      img: `data:image/svg+xml;charset=utf-8,${silhouetteIcon}`,
-    },
-    {
-      color: "#FAE3D9",
-      img: `data:image/svg+xml;charset=utf-8,${silhouetteIcon}`,
-    },
-  ];
-
   const [imgCacheKey] = useState(new Date().getTime());
+
+  const {
+    data: myReviewsData,
+    fetchNextPage: fetchNextReviews,
+    hasNextPage: hasNextReviews,
+    isFetchingNextPage: isFetchingNextReviews,
+    isLoading: isReviewsLoading,
+  } = useInfiniteUserReviews(user?.id);
+
+  const myReviews = useMemo(() => {
+    if (!myReviewsData?.pages) return [];
+    return myReviewsData.pages
+      .flatMap((page) => page?.list ?? [])
+      .filter(Boolean);
+  }, [myReviewsData]);
 
   useEffect(() => {
     if (!isAuthLoading && !user) {
@@ -184,7 +179,6 @@ export const useMyPage = () => {
   const handleCheckNickname = async () => {
     if (!nicknameInput) return alert("닉네임을 입력해주세요.");
     try {
-      console.log("서버로 보내는 닉네임:", nicknameInput);
       const response = await checkNicknameDuplicate(nicknameInput);
       if (response.data.isAvailable) {
         alert("사용 가능한 닉네임입니다.");
@@ -215,23 +209,18 @@ export const useMyPage = () => {
       alert("모든 내용을 입력해 주세요!");
       return;
     }
-
     if (newPassword !== confirmPassword) {
       alert("새 비밀번호가 서로 일치하지 않습니다. 다시 확인해 주세요.");
       return;
     }
-
     try {
       await updatePassword({
         password: currentPassword,
         newPassword: newPassword,
       });
-
       alert("비밀번호가 변경되었습니다! 다시 로그인해 주세요.");
       await logout();
     } catch (error) {
-      console.error("비밀번호 변경 에러:", error);
-
       if (error.response?.status === 400) {
         alert("현재 비밀번호가 일치하지 않습니다.");
       } else {
@@ -279,6 +268,10 @@ export const useMyPage = () => {
     }
   };
 
+  const silhouetteIcon = encodeURIComponent(
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#ffffff"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>',
+  );
+
   return {
     navigate,
     fileInputRef,
@@ -316,8 +309,30 @@ export const useMyPage = () => {
     handleToggleFollow,
     handleLogout: logout,
     handleDeleteAccount,
-    defaultOptions,
     selectedIdx,
     selectedColor,
+    myReviews,
+    fetchNextReviews,
+    hasNextReviews,
+    isFetchingNextReviews,
+    isReviewsLoading,
+    defaultOptions: [
+      {
+        color: "#FFB6B9",
+        img: `data:image/svg+xml;charset=utf-8,${silhouetteIcon}`,
+      },
+      {
+        color: "#8AC6D1",
+        img: `data:image/svg+xml;charset=utf-8,${silhouetteIcon}`,
+      },
+      {
+        color: "#BBDED6",
+        img: `data:image/svg+xml;charset=utf-8,${silhouetteIcon}`,
+      },
+      {
+        color: "#FAE3D9",
+        img: `data:image/svg+xml;charset=utf-8,${silhouetteIcon}`,
+      },
+    ],
   };
 };

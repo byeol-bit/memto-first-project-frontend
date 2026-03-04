@@ -79,10 +79,17 @@ const MyPage = () => {
           handleCancelEdit={logic.handleCancelEdit}
         />
 
-        {/* 2. 탭 기능 */}
+        {/* 2. 탭 기능 (리뷰 데이터 전달 추가) */}
         <TabSection
           activeTab={logic.activeTab}
           setActiveTab={logic.setActiveTab}
+          // ✅ 리뷰 전용 데이터 추가
+          myReviews={logic.myReviews}
+          fetchNextReviews={logic.fetchNextReviews}
+          hasNextReviews={logic.hasNextReviews}
+          isFetchingNextReviews={logic.isFetchingNextReviews}
+          isReviewsLoading={logic.isReviewsLoading}
+          // ✅ 팔로우 데이터
           isTabLoading={logic.isTabLoading}
           tabData={logic.tabData}
           handleToggleFollow={logic.handleToggleFollow}
