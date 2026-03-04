@@ -125,7 +125,12 @@ const RestaurantListCard = ({ restaurant }) => {
         className="absolute top-2 right-2 z-10"
         onClick={(e) => e.stopPropagation()}
       >
-        <Like isLike={displayIsLike} onLike={onLike} className="w-6 h-6" />
+        <Like
+          isLike={displayIsLike}
+          onLike={onLike}
+          className="w-6 h-6"
+          variant="star"
+        />
       </div>
       {!context ? (
         /* context가 없을 때: 상세 페이지로 이동하는 Link 사용 */
