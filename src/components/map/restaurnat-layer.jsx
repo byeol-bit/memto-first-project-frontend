@@ -2,6 +2,7 @@ import { useContext, useEffect, useState, useMemo } from "react"
 import MapInstanceContext from "./map-context"
 import { DetailStateContext } from "../layout/map-layout";
 import { centerMapOnPosition, getRestaurantThumbnail } from "./map-utils";
+import { useRestaurantImages } from "../../hooks/queries/use-restaurants-data";
 import { CustomOverlayMap } from "react-kakao-maps-sdk";
 
 const RestaurantMarkerLayer = () => {
@@ -12,6 +13,12 @@ const RestaurantMarkerLayer = () => {
     setSelectedRestaurant
   } = useContext(DetailStateContext);
   const { map } = useContext(MapInstanceContext);
+
+  const {
+    data: thumbnailMap,
+    isLoading: isThumbLoading,
+  } = useRestaurantImages(selectedRestaurant?.id);
+  console.log('thumbnailMap', thumbnailMap)
 
   const [geocodedPosition, setGeocodedPosition] = useState(null);
   // selectedRestaurant 기준 좌표 계산 (location 우선, 없으면 geocodedPosition)
@@ -74,7 +81,7 @@ const RestaurantMarkerLayer = () => {
   if (!selectedRestaurant || selectedUser) return null;
   if (!position) return null;
 
-  const thumbnail = getRestaurantThumbnail(selectedRestaurant);
+  const thumbnail = thumbnailMap;
 
   return (
     <CustomOverlayMap position={position} yAnchor={1}>

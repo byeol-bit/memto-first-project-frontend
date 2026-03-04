@@ -2,6 +2,7 @@ import { useContext, useEffect, useMemo, useState } from "react";
 import { Polyline, CustomOverlayMap } from "react-kakao-maps-sdk";
 import { DetailStateContext } from "../layout/map-layout";
 import { useUserReviews } from "../../hooks/queries/use-reviews-data";
+import { useRestaurantThumbnails } from "../../hooks/queries/use-restaurants-data";
 import { getCarDirection } from "../../api/kakao-directions";
 import { centerMapOnPositions, getRestaurantThumbnail } from "./map-utils";
 import MapInstanceContext from "./map-context";
@@ -22,6 +23,15 @@ const UserMarkerLayer = () => {
   // Kakao Mobility API에서 받아온 도로 경로 세그먼트 (1→2, 2→3 ...)
   const [routeSegments, setRouteSegments] = useState([]);
 
+  // 1) reviews에서 restaurantId 배열 뽑기
+  const restaurantIds = (reviews ?? []).map((r) => r?.restaurant_id)
+
+  // 2) 한 번에 썸네일 맵 가져오기
+  const {
+    data: thumbnailMap = {},
+    isLoading: isThumbLoading,
+  } = useRestaurantThumbnails(restaurantIds);
+
   useEffect(() => {
     if (!reviews) return;
 
@@ -35,6 +45,8 @@ const UserMarkerLayer = () => {
       const r = review.restaurant;
       if (!r) return Promise.resolve(null);
 
+      const thumbFromMap = thumbnailMap[review.restaurant_id] ?? null;
+
       // 1-1) 이미 lat/lng가 있으면 바로 사용
       if (r.latitude != null && r.longitude != null) {
         return Promise.resolve({
@@ -43,7 +55,7 @@ const UserMarkerLayer = () => {
             lng: parseFloat(r.longitude),
           },
           restaurant: r,
-          thumbnail: getRestaurantThumbnail(r),
+          thumbnail: thumbFromMap,
         })
       }
 
@@ -58,7 +70,7 @@ const UserMarkerLayer = () => {
             resolve({
               position: { lat: parseFloat(y), lng: parseFloat(x) },
               restaurant: r,
-              thumbnail: getRestaurantThumbnail(r),
+              thumbnail: thumbFromMap,
             });
           } else {
             resolve(null);
@@ -212,7 +224,7 @@ const UserMarkerLayer = () => {
               />
             )}
             {/* 상단 번호 배지 (이미지 위에 작게) */}
-            <span className="relative z-10 self-start mt-1 px-1.5 text-[10px] text-gray-800 font-bold">
+            <span className="relative z-10 self-start px-1.5 text-red-400 font-bold">
               {idx + 1}
             </span>
           </button>
