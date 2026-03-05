@@ -36,8 +36,34 @@ export const useUpdateReviewMutation = () => {
     onSuccess: (_, variables) => {
       const visitId = variables.visitId;
       const restaurantId = variables.restaurantId;
+
+      // ✅ 피드 캐시에서 해당 리뷰의 내용만 업데이트 (isLiked 유지)
+      queryClient.setQueryData(["reviews", "feed"], (old) => {
+        if (!old?.pages) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => {
+            const list = page?.list ?? page;
+            if (!Array.isArray(list)) return page;
+            return {
+              ...page,
+              list: list.map((r) => {
+                const id = r?.id ?? r?.visit_id ?? r?.visitId;
+                if (id == null || Number(id) !== Number(visitId)) return r;
+                return {
+                  ...r,
+                  review: variables.review,
+                  content: variables.review,
+                  rev: variables.review,
+                };
+              }),
+            };
+          }),
+        };
+      });
+
+      // 상세/리스트/갤러리 등은 기존대로 invalidation
       queryClient.invalidateQueries({ queryKey: ["reviews", visitId, "images"] });
-      queryClient.invalidateQueries({ queryKey: ["reviews", "feed"] });
       if (restaurantId != null) {
         queryClient.invalidateQueries({
           queryKey: ["reviews", "restaurant", restaurantId],
@@ -46,7 +72,9 @@ export const useUpdateReviewMutation = () => {
           queryKey: ["reviews", "restaurant", restaurantId, "infinite"],
         });
       }
-      queryClient.invalidateQueries({ queryKey: ["reviews", "restaurant-gallery-images"] });
+      queryClient.invalidateQueries({
+        queryKey: ["reviews", "restaurant-gallery-images"],
+      });
       queryClient.invalidateQueries({ queryKey: ["restaurants"] });
     },
   });
@@ -60,8 +88,27 @@ export const useDeleteReviewMutation = () => {
     mutationFn: ({ visitId }) => deleteReview(visitId),
     onSuccess: (_, variables) => {
       const { visitId, restaurantId } = variables;
+
+      // ✅ 피드 캐시에서 해당 리뷰 제거 (좋아요 탭도 함께 반영)
+      queryClient.setQueryData(["reviews", "feed"], (old) => {
+        if (!old?.pages) return old;
+        return {
+          ...old,
+          pages: old.pages.map((page) => {
+            const list = page?.list ?? page;
+            if (!Array.isArray(list)) return page;
+            return {
+              ...page,
+              list: list.filter((r) => {
+                const id = r?.id ?? r?.visit_id ?? r?.visitId;
+                return !(id != null && Number(id) === Number(visitId));
+              }),
+            };
+          }),
+        };
+      });
+
       queryClient.invalidateQueries({ queryKey: ["reviews", visitId, "images"] });
-      queryClient.invalidateQueries({ queryKey: ["reviews", "feed"] });
       if (restaurantId != null) {
         queryClient.invalidateQueries({
           queryKey: ["reviews", "restaurant", restaurantId],
@@ -70,7 +117,9 @@ export const useDeleteReviewMutation = () => {
           queryKey: ["reviews", "restaurant", restaurantId, "infinite"],
         });
       }
-      queryClient.invalidateQueries({ queryKey: ["reviews", "restaurant-gallery-images"] });
+      queryClient.invalidateQueries({
+        queryKey: ["reviews", "restaurant-gallery-images"],
+      });
       queryClient.invalidateQueries({ queryKey: ["restaurants"] });
     },
   });

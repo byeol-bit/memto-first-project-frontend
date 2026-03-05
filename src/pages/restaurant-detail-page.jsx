@@ -233,13 +233,23 @@ const RestaurantDetailPage = () => {
       (isRestaurantImagesLoading || isRestaurantImagesPending)) ||
     (visitIds.length > 0 && (isReviewImagesLoading || isReviewImagesPending));
 
+  // 리뷰 이미지(visitId 포함)를 URL과 visitId 배열로 정리
+  const reviewPhotoItems = useMemo(() => {
+    if (!Array.isArray(reviewImagesFromVisits)) return [];
+    return reviewImagesFromVisits.map((item) => {
+      const visitId = item?.visitId ?? null;
+      const rawUrl = item?.url ?? "";
+      const fullUrl =
+        typeof rawUrl === "string" && rawUrl.startsWith("http")
+          ? rawUrl
+          : toFullUrl(rawUrl);
+      return { visitId, url: fullUrl };
+    });
+  }, [reviewImagesFromVisits]);
+
   const displayImages = useMemo(() => {
-    if (reviewImagesFromVisits?.length > 0) {
-      return reviewImagesFromVisits.map((url) =>
-        typeof url === "string" && url.startsWith("http")
-          ? url
-          : toFullUrl(url),
-      );
+    if (reviewPhotoItems.length > 0) {
+      return reviewPhotoItems.map((p) => p.url);
     }
 
     if (restaurantImages?.length > 0) {
@@ -256,24 +266,51 @@ const RestaurantDetailPage = () => {
 
     return [];
   }, [
-    reviewImagesFromVisits,
+    reviewPhotoItems,
     restaurantImages,
     restaurantDetailData,
     baseUrl,
     imagesAreLoading,
   ]);
 
-  const orderedImages = useMemo(() => {
-    if (!displayImages?.length) return [];
-    if (!selectedPhotoUrl) return displayImages;
+  const displayVisitIds = useMemo(() => {
+    if (reviewPhotoItems.length > 0) {
+      return reviewPhotoItems.map((p) => p.visitId ?? null);
+    }
+    if (restaurantImages?.length > 0) {
+      return restaurantImages.map(() => null);
+    }
+    if (
+      restaurantDetailData?.images &&
+      restaurantDetailData.images.length > 0
+    ) {
+      return restaurantDetailData.images.slice(0, 6).map(() => null);
+    }
+    return [];
+  }, [reviewPhotoItems, restaurantImages, restaurantDetailData]);
+
+  const ordered = useMemo(() => {
+    if (!displayImages?.length) return { images: [], visitIds: [] };
+    if (!selectedPhotoUrl)
+      return { images: displayImages, visitIds: displayVisitIds };
     const idx = displayImages.indexOf(selectedPhotoUrl);
-    if (idx < 0) return displayImages;
-    return [
-      selectedPhotoUrl,
-      ...displayImages.slice(0, idx),
-      ...displayImages.slice(idx + 1),
-    ];
-  }, [displayImages, selectedPhotoUrl]);
+    if (idx < 0) return { images: displayImages, visitIds: displayVisitIds };
+    return {
+      images: [
+        selectedPhotoUrl,
+        ...displayImages.slice(0, idx),
+        ...displayImages.slice(idx + 1),
+      ],
+      visitIds: [
+        displayVisitIds[idx],
+        ...displayVisitIds.slice(0, idx),
+        ...displayVisitIds.slice(idx + 1),
+      ],
+    };
+  }, [displayImages, displayVisitIds, selectedPhotoUrl]);
+
+  const orderedImages = ordered.images;
+  const orderedVisitIds = ordered.visitIds;
 
   const scrollToPhotoSection = () => {
     setTimeout(() => {
@@ -295,14 +332,22 @@ const RestaurantDetailPage = () => {
     setPhotoViewerOpen(true);
   };
 
-  const goToReviewTab = () => {
+  const goToReviewForImage = (imageIndex) => {
     setActiveTab("review");
     setTimeout(() => {
+      const visitIdForImage = orderedVisitIds?.[imageIndex] ?? null;
+      if (visitIdForImage != null) {
+        const el = document.getElementById(`review-item-${visitIdForImage}`);
+        if (el) {
+          el.scrollIntoView({ behavior: "smooth", block: "start" });
+          return;
+        }
+      }
       reviewTopRef.current?.scrollIntoView({
         behavior: "smooth",
         block: "start",
       });
-    }, 100);
+    }, 150);
   };
 
   const onLike = async () => {
@@ -532,6 +577,7 @@ const RestaurantDetailPage = () => {
                       key={
                         v.id != null ? `review-${v.id}` : `review-opt-${index}`
                       }
+                      id={`review-item-${v.id ?? v.visit_id ?? v.visitId ?? index}`}
                       className="flex justify-center w-full"
                     >
                       <Review reviewData={v} />
@@ -578,7 +624,7 @@ const RestaurantDetailPage = () => {
           images={orderedImages}
           currentIndex={photoViewerIndex}
           onIndexChange={setPhotoViewerIndex}
-          onGoToReviews={goToReviewTab}
+          onGoToReviews={(index) => goToReviewForImage(index)}
         />
       </div>
     </div>

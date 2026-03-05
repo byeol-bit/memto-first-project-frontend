@@ -87,6 +87,7 @@ export const useReviewImages = (visitId) =>
   });
 
 // 맛집 상세 갤러리용: 해당 맛집 리뷰(visits)들의 이미지를 모두 모음
+// 각 이미지가 어떤 visitId(리뷰)에 속하는지 함께 반환
 export const useRestaurantReviewImages = (visitIds) => {
   const stableKey = useMemo(
     () =>
@@ -100,9 +101,13 @@ export const useRestaurantReviewImages = (visitIds) => {
     queryFn: async () => {
       if (!visitIds?.length) return [];
       const arrays = await Promise.all(
-        visitIds.map((id) => fetchReviewImages(id).catch(() => [])),
+        visitIds.map(async (id) => {
+          const imgs = await fetchReviewImages(id).catch(() => []);
+          if (!Array.isArray(imgs) || imgs.length === 0) return [];
+          return imgs.map((url) => ({ visitId: id, url }));
+        }),
       );
-      return arrays.flat().filter(Boolean);
+      return arrays.flat().filter((item) => item && item.url);
     },
     enabled: !!stableKey,
   });
