@@ -4,7 +4,7 @@ import { DetailStateContext } from "../layout/map-layout";
 import { useUserReviews } from "../../hooks/queries/use-reviews-data";
 import { useRestaurantThumbnails } from "../../hooks/queries/use-restaurants-data";
 import { getCarDirection } from "../../api/kakao-directions";
-import { centerMapOnPositions, getRestaurantThumbnail } from "./map-utils";
+import { centerMapOnPositions } from "./map-utils";
 import MapInstanceContext from "./map-context";
 
 const UserMarkerLayer = () => {
@@ -18,36 +18,69 @@ const UserMarkerLayer = () => {
 
   const { data: reviews } = useUserReviews(selectedUser?.id);
 
+  // 동일한 맛집(restaurant_id)에 대해 리뷰 id가 가장 낮은 것 하나만 유지
+  const reviewsByRestaurant = useMemo(() => {
+    if (!reviews?.length) return [];
+    const byRestaurant = new Map();
+    for (const r of reviews) {
+      const rid = r?.restaurant_id ?? r?.restaurantId ?? r?.restaurant?.id;
+      if (rid == null) continue;
+      const key = Number(rid);
+      if (Number.isNaN(key)) continue;
+      const reviewIdNum = Number(r?.id ?? r?.visit_id ?? r?.visitId ?? Infinity);
+      const existing = byRestaurant.get(key);
+      const existingIdNum =
+        existing == null
+          ? Infinity
+          : Number(existing?.id ?? existing?.visit_id ?? existing?.visitId ?? Infinity);
+      if (existing == null || existingIdNum > reviewIdNum) {
+        byRestaurant.set(key, r);
+      }
+    }
+    return [...byRestaurant.values()].sort(
+      (a, b) => new Date(a.updated_at) - new Date(b.updated_at)
+    );
+  }, [reviews]);
+
   // 리뷰별 마커 위경도 결과
   const [reviewMarkers, setReviewMarkers] = useState([]);
   // Kakao Mobility API에서 받아온 도로 경로 세그먼트 (1→2, 2→3 ...)
   const [routeSegments, setRouteSegments] = useState([]);
+  // 마커/경로가 어떤 유저 것인지 (selectedUser 변경 시 이전 경로가 안 보이도록)
+  const [markersUserId, setMarkersUserId] = useState(null);
 
-  // 1) reviews에서 restaurantId 배열 뽑기
-  const restaurantIds = (reviews ?? []).map((r) => r?.restaurant_id)
+  // 1) reviewsByRestaurant에서 restaurantId 배열 뽑기
+  const restaurantIds = useMemo(
+    () =>
+      (reviewsByRestaurant ?? [])
+        .map((r) => r?.restaurant_id ?? r?.restaurantId ?? r?.restaurant?.id)
+        .filter((id) => id != null && !Number.isNaN(Number(id))),
+    [reviewsByRestaurant]
+  );
 
-  // 2) 한 번에 썸네일 맵 가져오기
+
+  // 2) 한 번에 썸네일 맵 가져오기 (키: 맛집 id 숫자, 값: URL 문자열)
   const {
     data: thumbnailMap = {},
-    isLoading: isThumbLoading,
   } = useRestaurantThumbnails(restaurantIds);
 
+  // 지오코딩은 reviewsByRestaurant만 보고 실행 (thumbnailMap 제외 → 썸네일 로드 시 재실행 방지로 경로 지연 해소)
   useEffect(() => {
-    if (!reviews) return;
+    if (!selectedUser?.id || !reviewsByRestaurant?.length) return;
 
+    const currentUserId = selectedUser.id;
     const { kakao } = window;
     if (!kakao?.maps?.services) return;
 
     const geocoder = new kakao.maps.services.Geocoder();
-    const sortedReviews = [...reviews].sort((a, b) => new Date(a.updated_at) - new Date(b.updated_at))
 
-    const geocodePromises = sortedReviews.map((review) => {
+    const geocodePromises = reviewsByRestaurant.map((review) => {
       const r = review.restaurant;
       if (!r) return Promise.resolve(null);
 
-      const thumbFromMap = thumbnailMap[review.restaurant_id] ?? null;
+      console.log('thumbnail', thumbnailMap[review.restaurant_id])
+      const thumbnail = thumbnailMap[review.restaurant_id] ?? null
 
-      // 1-1) 이미 lat/lng가 있으면 바로 사용
       if (r.latitude != null && r.longitude != null) {
         return Promise.resolve({
           position: {
@@ -55,14 +88,12 @@ const UserMarkerLayer = () => {
             lng: parseFloat(r.longitude),
           },
           restaurant: r,
-          thumbnail: thumbFromMap,
+          thumbnail
         })
       }
 
-      // 1-2) 주소도 없으면 스킵
       if (!r.address) return Promise.resolve(null);
 
-      // 1-3) 주소 -> 좌표 변환
       return new Promise((resolve) => {
         geocoder.addressSearch(r.address, (result, status) => {
           if (status === kakao.maps.services.Status.OK && result[0]) {
@@ -70,7 +101,7 @@ const UserMarkerLayer = () => {
             resolve({
               position: { lat: parseFloat(y), lng: parseFloat(x) },
               restaurant: r,
-              thumbnail: thumbFromMap,
+              thumbnail
             });
           } else {
             resolve(null);
@@ -83,44 +114,24 @@ const UserMarkerLayer = () => {
 
     Promise.all(geocodePromises).then((markers) => {
       if (cancelled) return;
+      if (currentUserId !== selectedUser?.id) return;
       setReviewMarkers(markers.filter(Boolean));
+      setMarkersUserId(currentUserId);
     });
 
     return () => {
       cancelled = true;
     };
-  }, [reviews])
+  }, [selectedUser?.id, thumbnailMap])
 
-  // 동일한 가게(restaurant)로의 여러 리뷰는 하나의 마커로만 사용
-  const uniqueMarkers = useMemo(() => {
-    if (!reviewMarkers?.length) return [];
-
-    const result = [];
-    for (const marker of reviewMarkers) {
-      const last = result[result.length - 1];
-      const lastRestaurantId = last?.restaurant?.id ?? last?.restaurant?.restaurant_id;
-      const currentRestaurantId =
-        marker.restaurant?.id ?? marker.restaurant?.restaurant_id;
-
-      // 바로 이전 스텝과 같은 가게이면 스킵 (좌표가 같다고 가정)
-      if (last && lastRestaurantId && currentRestaurantId && lastRestaurantId === currentRestaurantId) {
-        continue;
-      }
-
-      result.push(marker);
-    }
-
-    return result;
-  }, [reviewMarkers]);
-
-  // uniqueMarkers → Kakao Mobility 경로 호출 → 경로 세그먼트 계산
+  // reviewsByRestaurant가 맛집당 1개이므로 reviewMarkers도 맛집당 1개 → 별도 unique/limited 제거
   useEffect(() => {
-    if (!uniqueMarkers?.length || uniqueMarkers.length < 2) {
+    if (!reviewMarkers?.length || reviewMarkers.length < 2) {
       return;
     }
 
     let cancelled = false;
-    const positions = uniqueMarkers.map((m) => m.position);
+    const positions = reviewMarkers.map((m) => m.position);
 
     const fetchRoute = async () => {
       const segments = [];
@@ -150,13 +161,11 @@ const UserMarkerLayer = () => {
     return () => {
       cancelled = true;
     };
-  }, [uniqueMarkers]);
-
-  const limitedMarkers = useMemo(() => uniqueMarkers, [uniqueMarkers]);
+  }, [reviewMarkers]);
 
   const pathPositions = useMemo(
-    () => (limitedMarkers.length ? limitedMarkers.map((m) => m.position) : []),
-    [limitedMarkers]
+    () => (reviewMarkers.length ? reviewMarkers.map((m) => m.position) : []),
+    [reviewMarkers]
   );
 
   // 4) 마커/경로 기준으로 지도 중심 맞추기
@@ -167,7 +176,7 @@ const UserMarkerLayer = () => {
     const offsetY = 10;
 
     centerMapOnPositions(map, pathPositions, { offsetX, offsetY });
-  }, [map, pathPositions, uniqueMarkers]);
+  }, [map, pathPositions, reviewMarkers]);
 
   // 5) 마커 클릭 시: 해당 식당 상세로 전환
   const handleUserPathMarkerClick = (restaurant) => {
@@ -177,9 +186,8 @@ const UserMarkerLayer = () => {
 
   // 유저가 선택되지 않았거나, 맛집이 선택된 상태라면 아예 아무 것도 렌더하지 않음
   if (!selectedUser || selectedRestaurant) return null;
-
-  // 유저가 선택되지 않았거나, 맛집이 선택된 상태라면 아예 아무 것도 렌더하지 않음
-  if (!selectedUser || selectedRestaurant) return null;
+  // 현재 마커/경로가 선택된 유저 것일 때만 표시 (selectedUser 변경 시 이전 경로 즉시 제거)
+  if (markersUserId !== selectedUser?.id) return null;
 
   const SEGMENT_COLORS = [
     // 무지개 계열 파스텔 톤
@@ -209,7 +217,7 @@ const UserMarkerLayer = () => {
   return (
     <>
       {/* 유저가 방문한 맛집 위치: 썸네일 원형 뱃지 + 상단 번호 */}
-      {limitedMarkers.map(({ position, restaurant, thumbnail }, idx) => (
+      {reviewMarkers.map(({ position, restaurant, thumbnail }, idx) => (
         <CustomOverlayMap key={`review-marker-${idx}`} position={position} yAnchor={1}>
           <button
             type="button"
@@ -223,7 +231,6 @@ const UserMarkerLayer = () => {
                 className="absolute inset-0 w-full h-full object-cover"
               />
             )}
-            {/* 상단 번호 배지 (이미지 위에 작게) */}
             <span className="relative z-10 self-start px-1.5 text-red-400 font-bold">
               {idx + 1}
             </span>
@@ -231,48 +238,50 @@ const UserMarkerLayer = () => {
         </CustomOverlayMap>
       ))}
 
-      {/* 경로 세그먼트: 1→2, 2→3 ... 회색 테두리 + 색 선 */}
-      {routeSegments.map((segment, idx) => (
-        <Polyline
-          key={`route-segment-bg-${idx}`}
-          path={segment.path}
-          strokeWeight={6} // 색 선보다 살짝 두껍게
-          strokeColor="#9ca3af" // gray-400
-          strokeOpacity={0.7}
-          strokeStyle="solid"
-        />
-      ))}
+      {/* 마커 2개 이상일 때만 경로 표시 */}
+      {reviewMarkers.length >= 2 &&
+        routeSegments.map((segment, idx) => (
+          <Polyline
+            key={`route-segment-bg-${idx}`}
+            path={segment.path}
+            strokeWeight={6} // 색 선보다 살짝 두껍게
+            strokeColor="#9ca3af" // gray-400
+            strokeOpacity={0.7}
+            strokeStyle="solid"
+          />
+        ))}
 
-      {routeSegments.map((segment, idx) => (
-        <Polyline
-          key={`route-segment-${idx}`}
-          path={segment.path}
-          strokeWeight={4}
-          strokeColor={
-            SEGMENT_COLORS[idx] ?? SEGMENT_COLORS[SEGMENT_COLORS.length - 1]
-          }
-          strokeOpacity={0.9}
-          strokeStyle="solid"
-        />
-      ))}
+      {reviewMarkers.length >= 2 &&
+        routeSegments.map((segment, idx) => (
+          <Polyline
+            key={`route-segment-${idx}`}
+            path={segment.path}
+            strokeWeight={4}
+            strokeColor={
+              SEGMENT_COLORS[idx] ?? SEGMENT_COLORS[SEGMENT_COLORS.length - 1]
+            }
+            strokeOpacity={0.9}
+            strokeStyle="solid"
+          />
+        ))}
 
-      {/* 경로 중간 라벨: 1번→2번 경로에는 1, 2번→3번 경로에는 2 ... */}
-      {routeSegments.map((segment, idx) => {
-        // 경로의 라벨 번호: 항상 1부터 다시 시작
-        const labelNumber = idx + 1;
+      {reviewMarkers.length >= 2 &&
+        routeSegments.map((segment, idx) => {
+          // 경로의 라벨 번호: 항상 1부터 다시 시작
+          const labelNumber = idx + 1;
 
-        return (
-          <CustomOverlayMap
-            key={`route-label-${idx}`}
-            position={segment.labelPosition}
-            yAnchor={0.5}
-          >
-            <div className="flex items-center justify-center w-5 h-5 rounded-full bg-white text-[#ee5a6f] text-[10px] font-bold shadow">
-              {labelNumber}
-            </div>
-          </CustomOverlayMap>
-        );
-      })}
+          return (
+            <CustomOverlayMap
+              key={`route-label-${idx}`}
+              position={segment.labelPosition}
+              yAnchor={0.5}
+            >
+              <div className="flex items-center justify-center w-5 h-5 rounded-full bg-white text-[#ee5a6f] text-[10px] font-bold shadow">
+                {labelNumber}
+              </div>
+            </CustomOverlayMap>
+          );
+        })}
     </>
   );
 }
