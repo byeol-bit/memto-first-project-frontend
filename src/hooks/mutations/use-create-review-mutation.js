@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createReview, updateReview, likeReview, unlikeReview } from "../../api/axios-review";
+import { createReview, updateReview, deleteReview, likeReview, unlikeReview } from "../../api/axios-review";
 
 // 리뷰 등록
 export const useCreateReviewMutation = () => {
@@ -36,6 +36,30 @@ export const useUpdateReviewMutation = () => {
     onSuccess: (_, variables) => {
       const visitId = variables.visitId;
       const restaurantId = variables.restaurantId;
+      queryClient.invalidateQueries({ queryKey: ["reviews", visitId, "images"] });
+      queryClient.invalidateQueries({ queryKey: ["reviews", "feed"] });
+      if (restaurantId != null) {
+        queryClient.invalidateQueries({
+          queryKey: ["reviews", "restaurant", restaurantId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["reviews", "restaurant", restaurantId, "infinite"],
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["reviews", "restaurant-gallery-images"] });
+      queryClient.invalidateQueries({ queryKey: ["restaurants"] });
+    },
+  });
+};
+
+// 리뷰 삭제 DELETE /visits/{id}
+export const useDeleteReviewMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ visitId }) => deleteReview(visitId),
+    onSuccess: (_, variables) => {
+      const { visitId, restaurantId } = variables;
       queryClient.invalidateQueries({ queryKey: ["reviews", visitId, "images"] });
       queryClient.invalidateQueries({ queryKey: ["reviews", "feed"] });
       if (restaurantId != null) {
