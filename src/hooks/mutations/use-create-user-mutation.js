@@ -95,7 +95,7 @@ export const useToggleFollow = () => {
     },
 
     onSettled: (_data, _err, { userId }) => {
-      queryClient.invalidateQueries({ queryKey: ["follows", userId] });
+      queryClient.invalidateQueries({ queryKey: ["follows"]});
       queryClient.invalidateQueries({ queryKey: ["users"], exact: false });
     },
   });
