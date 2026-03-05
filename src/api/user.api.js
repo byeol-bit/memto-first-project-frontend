@@ -21,7 +21,7 @@ export const searchUsers = async ({nickname, category, page=1, limit=10})=> {
     params.nickname = nickname.trim()
   }
   if(category?.length) {
-    params.category = category.map((c) => c.replaceAll(" ", "_"))
+    params.category = category
   }
   const res = await api.get(`/users/search`, {
     params,
