@@ -429,6 +429,7 @@ const RestaurantDetailPage = () => {
                 isLike={displayIsLike}
                 onLike={onLike}
                 likeCount={restaurantDetailData.likes_count}
+                variant="star"
                 className="w-8 h-8"
                 direction="col"
               />

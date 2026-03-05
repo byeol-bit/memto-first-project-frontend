@@ -84,6 +84,16 @@ export const fetchReviewLikeStatus = async ({ userId, visitId }) => {
 };
 
 /*
+  리뷰 수정 (내용만)
+  PATCH /visits/{id}
+  수정 가능: visit_date, review, image_urls — 여기서는 review(텍스트)만 전송
+*/
+export const updateReview = async (visitId, { review }) => {
+  const res = await api.patch(`/visits/${visitId}`, { review });
+  return res;
+};
+
+/*
   리뷰 이미지 목록
   GET /visits/{id}/image
   응답 예시:
