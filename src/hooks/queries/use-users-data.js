@@ -1,7 +1,7 @@
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { fetchUsers } from "../../api/fetch-users"
 import { QUERY_KEYS } from "../../lib/constants";
-import { getUsers, getFollowersCount, getFollowingCount, getUserDetail, isFollowing, searchUsers, getFollowers, getFollowings, checkMe } from "../../api/user.api";
+import { getUsers, getFollowersCount, getFollowingCount, getUserDetail, isFollowing, searchUsers, getFollowers, getFollowings, checkMe, userCategories } from "../../api/user.api";
 
 export function useUsersData() {
   return useQuery({
@@ -17,15 +17,39 @@ export const useUserDetail = (userId) => {
   })
 }
 
+export const useUserCategories = () => {
+  return useQuery({
+    queryKey: ["users", "categories"],
+    queryFn: () => userCategories()
+  })
+}
+
 // 검색한 유저 호출
-export const useSearchUsers = ({ nickname, category }, options = {}) =>
-  useQuery({
-    queryKey: ["users", "search", nickname, ...category],
-    queryFn: () => searchUsers({ nickname, category }),
-    keepPreviousData: true,
-    enabled: !!nickname || category.length > 0,
-    ...options
-});
+export const useInfiniteSearchUsers = (
+  { nickname, category = [], limit = 10 },
+  options = {}
+) => {
+  const enabled = !!nickname || category.length > 0;
+
+  return useInfiniteQuery({
+    queryKey: ["users", "search", "infinite", nickname ?? "", ...category, limit],
+    queryFn: ({ pageParam = 1 }) =>
+      searchUsers({ page: pageParam, limit, nickname, category }),
+    initialPageParam: 1,
+    getNextPageParam: (lastPage, pages) =>
+      lastPage.length === limit ? pages.length + 1 : undefined,
+    enabled,
+    ...options,
+  });
+};
+// export const useSearchUsers = ({ nickname, category }, options = {}) =>
+//   useQuery({
+//     queryKey: ["users", "search", nickname, ...category],
+//     queryFn: () => searchUsers({ nickname, category }),
+//     keepPreviousData: true,
+//     enabled: !!nickname || category.length > 0,
+//     ...options
+// });
 
 // 유저 리스트용 무한 스크롤
 export const useInfiniteUsers = ({nickname, category, limit = 10}) => {
@@ -70,7 +94,7 @@ export const useIsFollowing = (userId, isLoggedIn) => {
         throw error
       }
     },
-    enabled: !!userId && !!isLoggedIn,
+    enabled: !!userId && isLoggedIn,
     initialData: false,
     retry: false,
   })

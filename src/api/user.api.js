@@ -16,23 +16,18 @@ export const getUserDetail = async (id) => {
 
 // 유저 검색
 export const searchUsers = async ({nickname, category, page=1, limit=10})=> {
-    const params = {page, limit}
-    // console.log('검색 로직', nickname, category)
-    if (nickname?.trim()) {
-        params.nickname = nickname.trim()
-    }
-    if(category && category.length > 0) {
-        params.category = category;
-    }
-    // console.log(params)
-    const res = await api.get('/users/search', { 
-        params,
-        paramsSerializer: {
-            indexes: null,
-        } 
-    })
-    // console.log('검색결과는', res, res.users)
-    return res
+  const params = {page, limit};
+  if(nickname?.trim()){
+    params.nickname = nickname.trim()
+  }
+  if(category?.length) {
+    params.category = category
+  }
+  const res = await api.get(`/users/search`, {
+    params,
+    paramsSerializer: {indexes: null}
+  })
+  return res
 }
 
 // 팔로워 리스트
@@ -90,4 +85,9 @@ export const checkMe = async () => {
 // 유저 이미지
 export const userImg = (userId) => {
   return `https://hidden-master-server.fly.dev/users/${userId}/image`
+}
+
+export const userCategories = async () => {
+  const res = await api.get("users/categories");
+  return res
 }

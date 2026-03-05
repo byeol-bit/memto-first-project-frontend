@@ -1,6 +1,7 @@
 import UserCard from './userCard'
 import Loading from '../loading'
 const UserList = ({users, isLoading, type="all"}) => {
+    console.log(users)
     if (isLoading) {
         return <Loading />
     }
@@ -17,7 +18,7 @@ const UserList = ({users, isLoading, type="all"}) => {
         <div>
             <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(300px,1fr))]">
                 {users.map((user) => (
-                    <UserCard key={user.id} user={user} />
+                    <UserCard key={user.id} user={user} type={type} />
                 ))}
             </div>
         </div> 
