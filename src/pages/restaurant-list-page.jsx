@@ -253,21 +253,33 @@ const RestaurantListPage = () => {
               ) : (
                 <div className="flex flex-col gap-2">
                   {filteredRestaurants.length > 0 ? (
-                    <>
-                      {filteredRestaurants.map((restaurant) => (
-                        <div
-                          key={restaurant.id}
-                          className="flex justify-center w-full"
-                        >
-                          <RestaurantCard restaurant={restaurant} />
-                        </div>
-                      ))}
-                      <InfiniteScrollTrigger
-                        onIntersect={fetchNextPage}
-                        hasNextPage={hasNextPage}
-                        isFetchingNextPage={isFetchingNextPage}
-                      />
-                    </>
+                  <>
+                    {filteredRestaurants.map((restaurant) => (
+                      <div
+                        key={restaurant.id}
+                        className="flex justify-center w-full"
+                      >
+                        <RestaurantCard restaurant={restaurant} />
+                      </div>
+                    ))}
+                    <InfiniteScrollTrigger
+                      onIntersect={fetchNextPage}
+                      hasNextPage={hasNextPage}
+                      isFetchingNextPage={isFetchingNextPage}
+                    />
+
+                    {/* 검색 결과가 있어도, 원하는 맛집이 없을 수 있으니 하단 CTA 노출 */}
+                    {searchQuery.trim() && (
+                      <div className="mt-8 py-6 border-t border-gray-100 text-center text-gray-500">
+                        <p className="text-sm mb-3">
+                          찾는 맛집이 목록에 없으신가요?
+                        </p>
+                        <Button size="sm" onClick={handleFirstReviewClick}>
+                          맛집 추가하러 가기
+                        </Button>
+                      </div>
+                    )}
+                  </>
                   ) : (
                     <div className="py-20 text-center text-gray-400">
                       <p className="text-gray-500 text-lg mb-4">
@@ -276,10 +288,6 @@ const RestaurantListPage = () => {
                       <Button onClick={handleFirstReviewClick}>
                         첫 번째 리뷰 달기
                       </Button>
-                      <RegisterRestaurantModal
-                        open={isModalOpen}
-                        onClose={() => setIsModalOpen(false)}
-                      />
                     </div>
                   )}
                 </div>
@@ -288,6 +296,10 @@ const RestaurantListPage = () => {
           )}
         </div>
       </div>
+      <RegisterRestaurantModal
+        open={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };

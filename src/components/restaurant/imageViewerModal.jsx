@@ -100,7 +100,7 @@ const ImageViewerModal = ({
             type="button"
             onClick={() => {
               onClose?.();
-              onGoToReviews?.();
+              onGoToReviews?.(safeIndex);
             }}
             className="text-white/90 text-sm font-medium hover:text-white underline underline-offset-2"
           >
