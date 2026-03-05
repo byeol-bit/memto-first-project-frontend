@@ -1,9 +1,9 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useRef, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Like from "../common/like";
 import { DetailStateContext } from "../layout/map-layout";
 import FollowUserCard from "../follow/followUserCard";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ChevronLeft, ChevronRight, EllipsisVertical } from "lucide-react";
 
 import {
   useReviewLikeStatus,
@@ -13,6 +13,7 @@ import {
   useLikeReviewMutation,
   useUnlikeReviewMutation,
   useUpdateReviewMutation,
+  useDeleteReviewMutation,
 } from "../../hooks/mutations/use-create-review-mutation";
 
 import { useLoginState } from "../loginstate";
@@ -64,11 +65,14 @@ const Review = ({ reviewData, userData }) => {
   const { mutate: likeReview } = useLikeReviewMutation();
   const { mutate: unlikeReview } = useUnlikeReviewMutation();
   const { mutate: updateReviewMutation, isPending: isUpdating } = useUpdateReviewMutation();
+  const { mutate: deleteReviewMutation, isPending: isDeleting } = useDeleteReviewMutation();
 
   const [isTextExpanded, setIsTextExpanded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
   const [editReview, setEditReview] = useState("");
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
   const likeCount = reviewData.likeCount ?? 0;
 
@@ -166,22 +170,48 @@ const Review = ({ reviewData, userData }) => {
     Number(loginUser.id) === Number(author.id);
 
   const openEdit = () => {
+    setMenuOpen(false);
     setEditReview(
       reviewData?.review ?? reviewData?.rev ?? reviewData?.content ?? "",
     );
     setEditOpen(true);
   };
 
+  const restaurantId =
+    reviewData?.restaurant_id ??
+    reviewData?.restaurant?.id ??
+    reviewData?.restaurantId ??
+    null;
+
+  const handleDelete = () => {
+    setMenuOpen(false);
+    if (!window.confirm("이 리뷰를 삭제할까요?")) return;
+    deleteReviewMutation(
+      { visitId, restaurantId },
+      {
+        onError: (err) => {
+          const msg =
+            err?.response?.data?.message ?? err?.message ?? "리뷰 삭제에 실패했습니다.";
+          alert(msg);
+        },
+      },
+    );
+  };
+
+  useEffect(() => {
+    if (!menuOpen) return;
+    const close = (e) => {
+      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+    };
+    document.addEventListener("click", close);
+    return () => document.removeEventListener("click", close);
+  }, [menuOpen]);
+
   const handleEditSubmit = () => {
     if (!editReview.trim()) {
       alert("리뷰 내용을 입력해 주세요.");
       return;
     }
-    const restaurantId =
-      reviewData?.restaurant_id ??
-      reviewData?.restaurant?.id ??
-      reviewData?.restaurantId ??
-      null;
     updateReviewMutation(
       {
         visitId,
@@ -355,13 +385,38 @@ const Review = ({ reviewData, userData }) => {
           <div className="flex items-center justify-between mt-2">
             <span className="text-[11px] text-gray-400">{displayDate}</span>
             {isMyReview && (
-              <button
-                type="button"
-                onClick={openEdit}
-                className="text-[11px] text-gray-500 hover:text-red-400 underline underline-offset-2"
-              >
-                수정
-              </button>
+              <div className="relative" ref={menuRef}>
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setMenuOpen((prev) => !prev);
+                  }}
+                  className="p-1 rounded hover:bg-gray-100 text-gray-500"
+                  aria-label="수정/삭제 메뉴"
+                >
+                  <EllipsisVertical className="w-4 h-4" />
+                </button>
+                {menuOpen && (
+                  <div className="absolute right-0 bottom-full mb-1 py-1 min-w-[88px] bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                    <button
+                      type="button"
+                      onClick={openEdit}
+                      className="w-full px-3 py-2 text-left text-sm text-gray-700 hover:bg-gray-50"
+                    >
+                      수정
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleDelete}
+                      disabled={isDeleting}
+                      className="w-full px-3 py-2 text-left text-sm text-red-500 hover:bg-red-50 disabled:opacity-50"
+                    >
+                      {isDeleting ? "삭제 중..." : "삭제"}
+                    </button>
+                  </div>
+                )}
+              </div>
             )}
           </div>
         </div>
