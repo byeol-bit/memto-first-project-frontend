@@ -209,6 +209,11 @@ export const useMyPage = () => {
       alert("모든 내용을 입력해 주세요!");
       return;
     }
+    if (currentPassword === newPassword) {
+      return alert(
+        "현재 사용 중인 비밀번호로는 변경할 수 없습니다. 다른 비밀번호를 입력해 주세요.",
+      );
+    }
     if (newPassword !== confirmPassword) {
       alert("새 비밀번호가 서로 일치하지 않습니다. 다시 확인해 주세요.");
       return;
