@@ -137,6 +137,7 @@ const MyPage = () => {
         isNicknameChecked={logic.isNicknameChecked}
         saveNickname={logic.saveNickname}
         currentNickname={logic.userInfo?.nickname}
+        setIsNicknameChecked={logic.setIsNicknameChecked}
       />
       <PasswordModal
         isOpen={logic.isPasswordModalOpen}
