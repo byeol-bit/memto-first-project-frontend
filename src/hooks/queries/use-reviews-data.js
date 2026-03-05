@@ -149,7 +149,25 @@ const normalizeInfiniteResponse = (res) => {
     payload?.next_page_cursor ??
     null;
 
-  return { list, hasNext, nextCursor };
+  // 특정 식당 리뷰 API에서 내려주는 전체 리뷰 수
+  // 예: item.restaurant.total_review_restaurant_count
+  let totalRestaurantReviewCount = null;
+  if (Array.isArray(list) && list.length > 0) {
+    const found = list.find(
+      (item) =>
+        item?.restaurant?.total_review_restaurant_count != null ||
+        item?.total_review_restaurant_count != null,
+    );
+    const rawCount =
+      found?.restaurant?.total_review_restaurant_count ??
+      found?.total_review_restaurant_count ??
+      null;
+    if (rawCount != null && !Number.isNaN(Number(rawCount))) {
+      totalRestaurantReviewCount = Number(rawCount);
+    }
+  }
+
+  return { list, hasNext, nextCursor, totalRestaurantReviewCount };
 };
 
 // 전체 피드용 무한스크롤
