@@ -16,6 +16,8 @@ import {
   useDeleteReviewMutation,
 } from "../../hooks/mutations/use-create-review-mutation";
 
+import ConfirmDialog from "../common/confirmDialog";
+
 import { useLoginState } from "../loginstate";
 import { getUserImageUrl } from "../../api/auth";
 import { useUserDetail } from "../../hooks/queries/use-users-data";
@@ -64,14 +66,17 @@ const Review = ({ reviewData, userData }) => {
   // 좋아요 mutation 훅들
   const { mutate: likeReview } = useLikeReviewMutation();
   const { mutate: unlikeReview } = useUnlikeReviewMutation();
-  const { mutate: updateReviewMutation, isPending: isUpdating } = useUpdateReviewMutation();
-  const { mutate: deleteReviewMutation, isPending: isDeleting } = useDeleteReviewMutation();
+  const { mutate: updateReviewMutation, isPending: isUpdating } =
+    useUpdateReviewMutation();
+  const { mutate: deleteReviewMutation, isPending: isDeleting } =
+    useDeleteReviewMutation();
 
   const [isTextExpanded, setIsTextExpanded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [editOpen, setEditOpen] = useState(false);
   const [editReview, setEditReview] = useState("");
   const [menuOpen, setMenuOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const menuRef = useRef(null);
 
   const likeCount = reviewData.likeCount ?? 0;
@@ -185,13 +190,15 @@ const Review = ({ reviewData, userData }) => {
 
   const handleDelete = () => {
     setMenuOpen(false);
-    if (!window.confirm("이 리뷰를 삭제할까요?")) return;
+    setDeleteOpen(false);
     deleteReviewMutation(
       { visitId, restaurantId },
       {
         onError: (err) => {
           const msg =
-            err?.response?.data?.message ?? err?.message ?? "리뷰 삭제에 실패했습니다.";
+            err?.response?.data?.message ??
+            err?.message ??
+            "리뷰 삭제에 실패했습니다.";
           alert(msg);
         },
       },
@@ -201,7 +208,8 @@ const Review = ({ reviewData, userData }) => {
   useEffect(() => {
     if (!menuOpen) return;
     const close = (e) => {
-      if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false);
+      if (menuRef.current && !menuRef.current.contains(e.target))
+        setMenuOpen(false);
     };
     document.addEventListener("click", close);
     return () => document.removeEventListener("click", close);
@@ -222,7 +230,9 @@ const Review = ({ reviewData, userData }) => {
         onSuccess: () => setEditOpen(false),
         onError: (err) => {
           const msg =
-            err?.response?.data?.message ?? err?.message ?? "리뷰 수정에 실패했습니다.";
+            err?.response?.data?.message ??
+            err?.message ??
+            "리뷰 수정에 실패했습니다.";
           alert(msg);
         },
       },
@@ -408,7 +418,10 @@ const Review = ({ reviewData, userData }) => {
                     </button>
                     <button
                       type="button"
-                      onClick={handleDelete}
+                      onClick={() => {
+                        setMenuOpen(false);
+                        setDeleteOpen(true);
+                      }}
                       disabled={isDeleting}
                       className="w-full px-3 py-2 text-left text-sm text-red-500 hover:bg-red-50 disabled:opacity-50"
                     >
@@ -436,7 +449,9 @@ const Review = ({ reviewData, userData }) => {
                 className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6"
                 onClick={(e) => e.stopPropagation()}
               >
-                <h3 className="text-lg font-bold text-gray-900 mb-4">리뷰 수정</h3>
+                <h3 className="text-lg font-bold text-gray-900 mb-4">
+                  리뷰 수정
+                </h3>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   리뷰 내용
                 </label>
@@ -469,6 +484,18 @@ const Review = ({ reviewData, userData }) => {
           </>,
           document.body,
         )}
+
+      {/* 리뷰 삭제 확인 모달 */}
+      <ConfirmDialog
+        open={deleteOpen}
+        title="리뷰 삭제"
+        message="이 리뷰를 정말 삭제할까요? 삭제 후에는 되돌릴 수 없어요."
+        confirmLabel={isDeleting ? "삭제 중..." : "삭제"}
+        cancelLabel="취소"
+        danger
+        onCancel={() => setDeleteOpen(false)}
+        onConfirm={() => handleDelete()}
+      />
     </div>
   );
 };
