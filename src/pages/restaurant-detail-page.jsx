@@ -194,6 +194,12 @@ const RestaurantDetailPage = () => {
   const likesCountFromDb = restaurantDetailData?.likesCount ?? 0;
   console.log("likesCountFromDb : ", likesCountFromDb);
 
+  // 백엔드에서 내려주는 방문자 리뷰 수 (visits_count)
+  const visitsCount =
+    restaurantDetailData?.visitsCount ??
+    restaurantDetailData?.visits_count ??
+    0;
+
   const expertsCount = useMemo(() => {
     const seen = new Set();
     for (const r of reviews) {
@@ -411,9 +417,7 @@ const RestaurantDetailPage = () => {
               </div>
               <div className="flex items-center gap-2 mt-1">
                 <span className="text-sm">방문자 리뷰</span>
-                <span className="text-sm font-semibold">
-                  {reviews.length ?? 0}
-                </span>
+                <span className="text-sm font-semibold">{visitsCount}</span>
               </div>
               <div className="mt-2 flex items-baseline">
                 <span className="text-xl mr-1">😋</span>

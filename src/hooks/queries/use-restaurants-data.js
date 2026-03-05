@@ -26,6 +26,12 @@ const normalizeOne = (res) => {
       ...one,
       expertCount: one.expertCount ?? one.expert_count ?? 0,
       likesCount: one.likesCount ?? one.likes_count ?? 0,
+      // 방문자 리뷰 수 (visits_count) 정규화
+      visitsCount:
+        one.visitsCount ??
+        one.visits_count ??
+        one.total_review_restaurant_count ??
+        0,
     };
   }
   return one;
