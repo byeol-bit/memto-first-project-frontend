@@ -1,7 +1,7 @@
   
 const UserTag = ({tag, setTag, tags}) => {
      const toggleTag = (tagId) => {
-        setTag((prev) => {
+        setTag((prev = []) => {
             return prev.includes(tagId)
             ? prev.filter((t) => t !== tagId)
             : [...prev, tagId]
@@ -22,13 +22,13 @@ const UserTag = ({tag, setTag, tags}) => {
           	{tag.length > 0 ? '선택 해제' : '전체'}   
       		</div>
 
-      		{tags?.map(t => {
-				const isSelected = tag.includes(t.name)
+      		{tags?.map((t, index) => {
+				const isSelected = tag.includes(t)
 
 				return(
 					<div
-						key={t.id}
-						onClick={() => toggleTag(t.name)}
+						key={index}
+						onClick={() => toggleTag(t)}
 						className={`px-3 py-2 rounded-full text-xs font-medium cursor-pointer border transition-all duration-200
 							${
 								isSelected
@@ -36,7 +36,7 @@ const UserTag = ({tag, setTag, tags}) => {
 								: 'bg-white text-gray-700 border-gray-300 hover:bg-gray-100'
 						}`}
 					>
-						{t.displayName}
+						{t}
 					</div>
 				)
 			})}
