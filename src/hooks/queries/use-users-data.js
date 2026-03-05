@@ -94,7 +94,7 @@ export const useIsFollowing = (userId, isLoggedIn) => {
         throw error
       }
     },
-    enabled: !!userId && !!isLoggedIn,
+    enabled: !!userId && isLoggedIn,
     initialData: false,
     retry: false,
   })

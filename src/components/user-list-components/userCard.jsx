@@ -4,7 +4,7 @@ import { useContext } from 'react'
 import { DetailStateContext } from '../layout/map-layout'
 import { userImg } from '../../api/user.api'
 
-const UserCard = ({user}) => {
+const UserCard = ({user, type="all"}) => {
     console.log(user)
     const navigate = useNavigate()
     const context = useContext(DetailStateContext)
@@ -29,24 +29,30 @@ const UserCard = ({user}) => {
                     alt={user.nickname}
                     src={userImg(user.id)}
                 />
-
                 <div className='flex flex-col gap-1 min-w-0'>
                     <div className='flex items-cetner gap-2'>
                         <span className='font-semibold text-gray-900 truncate'>{user.nickname}</span>
                         <span className='px-2 py-0.5 border border-red-400 rounded-full text-xs text-red-400 w-fit'>{user.category}</span>
                     </div>
+                
                     <div className='flex items-center gap-2'>
                         <span className='text-xs text-gray-400'>
                             리뷰 <b className='text-red-400'>{user.visitCount}</b>
                         </span>
-                        <span className='text-xs text-gray-400'>
-                            방문맛집 <b className='text-red-400'>{user.restaurantCount}</b>
-                        </span>
-                        <span className='text-xs text-gray-400'>
-                            팔로워 <b className='text-red-400'>{user.followerCount}</b>
-                        </span>
+                        {type === "all" &&(
+                            <>
+                                <span className='text-xs text-gray-400'>
+                                    방문맛집 <b className='text-red-400'>{user.restaurantCount}</b>
+                                </span>
+                                <span className='text-xs text-gray-400'>
+                                    팔로워 <b className='text-red-400'>{user.followerCount}</b>
+                                </span>
+                            </>
+                        )}
                     </div>
+
                 </div>
+                
             </div>
             <div className='pt-3 text-sm text-gray-500 leading-relaxed truncate'>
                 {user.introduction}
