@@ -23,7 +23,7 @@ export const NicknameModal = ({
             value={nicknameInput}
             onChange={(e) => {
               setNicknameInput(e.target.value);
-              setIsNicknameChecked(false); // 글자 수정 시 중복확인 다시 하도록
+              setIsNicknameChecked(false);
             }}
             placeholder="새 닉네임"
             className="flex-1 px-4 py-3 bg-gray-50 border border-gray-200 rounded-lg outline-none focus:border-[#ee5a6f]"

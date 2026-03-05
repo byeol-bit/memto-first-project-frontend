@@ -194,13 +194,21 @@ export const useMyPage = () => {
   };
 
   const saveNickname = async () => {
+    if (!isNicknameChecked) {
+      alert("닉네임 중복 확인을 먼저 완료해 주세요! 🔍");
+      return;
+    }
+
     try {
       const formData = new FormData();
       formData.append("nickname", nicknameInput);
+
       await updateProfile(formData);
+
+      alert("닉네임이 성공적으로 변경되었습니다! 🎉");
       window.location.reload();
     } catch (e) {
-      console.error(e);
+      alert(e.response?.data?.message || "닉네임 변경에 실패했습니다.");
     }
   };
 
