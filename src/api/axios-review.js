@@ -94,6 +94,15 @@ export const updateReview = async (visitId, { review }) => {
 };
 
 /*
+  리뷰 삭제
+  DELETE /visits/{id}
+*/
+export const deleteReview = async (visitId) => {
+  const res = await api.delete(`/visits/${visitId}`);
+  return res;
+};
+
+/*
   리뷰 이미지 목록
   GET /visits/{id}/image
   응답 예시:
