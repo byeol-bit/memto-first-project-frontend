@@ -1,4 +1,5 @@
 import React, { useState, useContext } from "react";
+import { createPortal } from "react-dom";
 import Like from "../common/like";
 import { DetailStateContext } from "../layout/map-layout";
 import FollowUserCard from "../follow/followUserCard";
@@ -11,6 +12,7 @@ import {
 import {
   useLikeReviewMutation,
   useUnlikeReviewMutation,
+  useUpdateReviewMutation,
 } from "../../hooks/mutations/use-create-review-mutation";
 
 import { useLoginState } from "../loginstate";
@@ -61,9 +63,12 @@ const Review = ({ reviewData, userData }) => {
   // 좋아요 mutation 훅들
   const { mutate: likeReview } = useLikeReviewMutation();
   const { mutate: unlikeReview } = useUnlikeReviewMutation();
+  const { mutate: updateReviewMutation, isPending: isUpdating } = useUpdateReviewMutation();
 
   const [isTextExpanded, setIsTextExpanded] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [editOpen, setEditOpen] = useState(false);
+  const [editReview, setEditReview] = useState("");
 
   const likeCount = reviewData.likeCount ?? 0;
 
@@ -151,6 +156,47 @@ const Review = ({ reviewData, userData }) => {
     if (!address) return "";
     const splitAddress = address.split(" ");
     return splitAddress[1] ?? "";
+  };
+
+  // 내 리뷰일 때만 수정 버튼 표시 (피드·맛집 상세 공통)
+  const isMyReview =
+    isLoggedIn &&
+    loginUser?.id != null &&
+    author?.id != null &&
+    Number(loginUser.id) === Number(author.id);
+
+  const openEdit = () => {
+    setEditReview(
+      reviewData?.review ?? reviewData?.rev ?? reviewData?.content ?? "",
+    );
+    setEditOpen(true);
+  };
+
+  const handleEditSubmit = () => {
+    if (!editReview.trim()) {
+      alert("리뷰 내용을 입력해 주세요.");
+      return;
+    }
+    const restaurantId =
+      reviewData?.restaurant_id ??
+      reviewData?.restaurant?.id ??
+      reviewData?.restaurantId ??
+      null;
+    updateReviewMutation(
+      {
+        visitId,
+        review: editReview.trim(),
+        restaurantId,
+      },
+      {
+        onSuccess: () => setEditOpen(false),
+        onError: (err) => {
+          const msg =
+            err?.response?.data?.message ?? err?.message ?? "리뷰 수정에 실패했습니다.";
+          alert(msg);
+        },
+      },
+    );
   };
 
   if (!reviewData) return null;
@@ -306,11 +352,68 @@ const Review = ({ reviewData, userData }) => {
               {isTextExpanded ? "접기" : "더 보기"}
             </button>
           )}
-          <span className="text-[11px] text-gray-400 flex mt-2">
-            {displayDate}
-          </span>
+          <div className="flex items-center justify-between mt-2">
+            <span className="text-[11px] text-gray-400">{displayDate}</span>
+            {isMyReview && (
+              <button
+                type="button"
+                onClick={openEdit}
+                className="text-[11px] text-gray-500 hover:text-red-400 underline underline-offset-2"
+              >
+                수정
+              </button>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* 리뷰 내용만 수정 모달 */}
+      {editOpen &&
+        createPortal(
+          <>
+            <div
+              className="fixed inset-0 bg-black/40 z-40"
+              onClick={() => setEditOpen(false)}
+              aria-hidden
+            />
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+              <div
+                className="bg-white rounded-2xl shadow-xl w-full max-w-md p-6"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <h3 className="text-lg font-bold text-gray-900 mb-4">리뷰 수정</h3>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  리뷰 내용
+                </label>
+                <textarea
+                  value={editReview}
+                  onChange={(e) => setEditReview(e.target.value)}
+                  placeholder="고수 TIP을 적어 주세요"
+                  rows={4}
+                  className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm resize-none mb-4"
+                />
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setEditOpen(false)}
+                    className="flex-1 py-2.5 rounded-xl border border-gray-200 text-gray-600 font-medium text-sm"
+                  >
+                    취소
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handleEditSubmit}
+                    disabled={isUpdating}
+                    className="flex-1 py-2.5 rounded-xl bg-red-400 text-white font-medium text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                  >
+                    {isUpdating ? "저장 중..." : "저장"}
+                  </button>
+                </div>
+              </div>
+            </div>
+          </>,
+          document.body,
+        )}
     </div>
   );
 };

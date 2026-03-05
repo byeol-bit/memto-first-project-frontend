@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { createReview, likeReview, unlikeReview } from "../../api/axios-review";
+import { createReview, updateReview, likeReview, unlikeReview } from "../../api/axios-review";
 
 // 리뷰 등록
 export const useCreateReviewMutation = () => {
@@ -22,6 +22,31 @@ export const useCreateReviewMutation = () => {
       queryClient.invalidateQueries({
         queryKey: ["restaurants", restaurantId, "images"],
       });
+      queryClient.invalidateQueries({ queryKey: ["restaurants"] });
+    },
+  });
+};
+
+// 리뷰 수정 (내용만) PATCH /visits/{id}
+export const useUpdateReviewMutation = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ visitId, review }) => updateReview(visitId, { review }),
+    onSuccess: (_, variables) => {
+      const visitId = variables.visitId;
+      const restaurantId = variables.restaurantId;
+      queryClient.invalidateQueries({ queryKey: ["reviews", visitId, "images"] });
+      queryClient.invalidateQueries({ queryKey: ["reviews", "feed"] });
+      if (restaurantId != null) {
+        queryClient.invalidateQueries({
+          queryKey: ["reviews", "restaurant", restaurantId],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["reviews", "restaurant", restaurantId, "infinite"],
+        });
+      }
+      queryClient.invalidateQueries({ queryKey: ["reviews", "restaurant-gallery-images"] });
       queryClient.invalidateQueries({ queryKey: ["restaurants"] });
     },
   });
