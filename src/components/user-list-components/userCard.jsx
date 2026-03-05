@@ -17,7 +17,6 @@ const UserCard = ({user}) => {
             navigate(`/users/${user.id}`)
         }
     }
-    console.log('이미지체크', user.id, userImg, userImg(user.id))
 
     return (
        <div 

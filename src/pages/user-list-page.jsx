@@ -3,7 +3,7 @@ import UserTag from "../components/user-list-components/userTag";
 import TabButton from "../components/tabButton";
 import SearchBar from "../components/restaurant/searchBar";
 import {tags} from '../data/users.mock'
-import { useFollowingUsers, useInfiniteFollowingUsers, useInfiniteUsers } from "../hooks/queries/use-users-data";
+import { useInfiniteFollowingUsers, useInfiniteUsers, useUserCategories } from "../hooks/queries/use-users-data";
 
 import { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router";
@@ -19,12 +19,17 @@ const TABS = {
 const UserListPage = () => {
 	const [keyword, setKeyword] = useState("")
 	const [searchKeyword, setSearchKeyword] = useState("")
+	
 	const [tag, setTag] = useState([]);
+	// const [tag, setTag] = useState([]);
 	const [selectedTab, setSelectedTab] = useState(TABS.ALL_USERS)
     const navigate = useNavigate()
 	const {isLoggedIn, user} = useLoginState()
 	const myId = isLoggedIn ? user?.id : null;
 	
+
+	const {data:categories = []} = useUserCategories();
+
 	  // 디바운싱
 	useEffect(() => {
 		const timer = setTimeout(() => {
@@ -96,7 +101,7 @@ const UserListPage = () => {
 								placeholder='유저 이름을 검색해주세요' />
 						</form>
 
-						<UserTag tag={tag} setTag={setTag} tags={tags}/>
+						<UserTag tag={tag} setTag={setTag} tags={categories}/>
 						<UserList users={allUsers} isLoading={isLoading} type="all"/>
 						<InfiniteScrollTrigger onIntersect={fetchNextPage} hasNextPage={hasNextPage} isFetchingNextPage={isFetchingNextPage} />
 					</div>
