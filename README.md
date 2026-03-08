@@ -1,3 +1,4 @@
+<div>
   <img src="https://capsule-render.vercel.app/render?type=waving&color=auto&height=200&section=header&text=MEMTO&fontSize=90" />
   
   <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=black">
