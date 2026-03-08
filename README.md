@@ -1,4 +1,4 @@
-<div align="center">
+<img width="763" height="870" alt="image" src="https://github.com/user-attachments/assets/27467b94-76f2-4803-9dbd-e9921d15e813" /><div align="center">
   <img src="https://capsule-render.vercel.app/render?type=waving&color=auto&height=200&section=header&text=MEMTO&fontSize=90" />
   
   <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=black">
@@ -18,14 +18,17 @@
 ## 📖 개요
 
 ### 🚀 프로젝트 시작 계기
-> "우리의 기억을 더 가치 있게 기록할 수는 없을까?"  
-`Memto`는 단순한 기록을 넘어, 사용자간의 소중한 순간을 공유하고 보관하기 위해 시작되었습니다. 첫 프로젝트인 만큼 프론트엔드의 기초부터 탄탄히 다지는 것을 목표로 했습니다.
+> "유투브나 블로그 등 영상이나 글을 통해 맛집 정보를 접하는데서 끝나지않고 해당 맛집을 기록해두고싶다."
+> "내가 좋아하는 먹방유투버, 인플루언서가 광고가 아닌 실제로 어딜 자주가고 애용하는지 알고싶다."  
+`find hiddenMaster`는 맛집고수가 최근에 어딜가고, 평소에 어디를 많이 가는지 알고싶다는 궁금증에서 시작하게 되었습니다.
+> 첫 프로젝트인 만큼 신기술, 완벽한 설계보다 다양한 기술사용, 프로젝트 완료를 목표로 했습니다.
 
 ### 📅 초기 플랜
-- **Phase 1:** 요구사항 정의 및 와이어프레임 설계
-- **Phase 2:** 핵심 UI 컴포넌트 개발 및 상태 관리 라이브러리 도입
-- **Phase 3:** API 연동 및 사용자 경험(UX) 최적화
-
+- **1차 스프린트(26.01.13~26.01.19:** 선정된 기획서 보강 및 미팅일정, 역할 분배
+- **2차 스프린트(26.01.20~26.01.26):** 기초 개발환경 구축, 핵심 UI 목업 제작
+- **3~6차 스프린트(26.01.27~26.02.23):** 프론트,백 개발 및 API 연동
+- **7차 스프린트(26.02.24~26.03.05):** 에러 수정 및 테스트 반복 수행
+  
 ---
 
 ## 👥 팀원 및 역할
@@ -35,6 +38,7 @@
 | **팀원1** | FE Lead | 프로젝트 아키텍처 설계, 메인 페이지, 인증 로직 |
 | **팀원2** | FE Dev | 마이페이지, 프로필 수정, UI 공통 컴포넌트 |
 | **팀원3** | FE Dev | 게시글 CRUD, 댓글 시스템, 검색 기능 |
+<img width="717" height="594" alt="image" src="https://github.com/user-attachments/assets/ffb6e379-b156-4371-91eb-9e46560ee95f" />
 
 ---
 
