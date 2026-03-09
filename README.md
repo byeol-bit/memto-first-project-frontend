@@ -4,7 +4,8 @@
 ---
 
 <div align="center">
-  <img width="1408" height="768" alt="hidden-master-main-image" src="https://github.com/user-attachments/assets/b245864f-7492-4f40-9718-ebf3fc4675fa" />
+  <img width="1408" height="768" alt="hidden-mater-main-image" src="https://github.com/user-attachments/assets/92bf1850-cd48-487e-8887-b70b48966c73" />
+
 
   
   <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=black">
