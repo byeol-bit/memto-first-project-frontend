@@ -5,7 +5,7 @@
 
 <div align="center">
   <img width="1408" height="768" alt="hidden-mater-main-image" src="https://github.com/user-attachments/assets/92bf1850-cd48-487e-8887-b70b48966c73" />
-
+  (해당 이미지는 AI를 활용해 제작하였습니다.)
 
   
   <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=black">
