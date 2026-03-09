@@ -47,7 +47,10 @@
 | **한재민** | BE Dev | 고수 API, 인증 API, 팔로우,팔로잉 API |
 | **장건영** | BE Dev | 맛집 API, 피드 API, 좋아요 API, 방문기록 API |
 | **박상선** | FE Dev | 지도 페이지, 경로 표시, 맛집탑5, 랜덤고수, 일정관리 및 프로젝트 취합 |
+---
 
+## 프로젝트 시연 영상
+[output.webm](https://github.com/user-attachments/assets/8d767804-9cb7-4e8d-9e59-dd51bdbc75ae)
 
 ---
 
