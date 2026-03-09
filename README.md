@@ -5,8 +5,6 @@
 
 <div align="center">
   <img width="1408" height="768" alt="hidden-mater-main-image" src="https://github.com/user-attachments/assets/92bf1850-cd48-487e-8887-b70b48966c73" />
-  (해당 이미지는 AI를 활용해 제작하였습니다.)
-
   
   <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=black">
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=white">
@@ -16,6 +14,7 @@
   <img src="https://img.shields.io/github/issues/byeol-bit/memto-first-project-frontend?style=flat-square">
   <img src="https://img.shields.io/github/last-commit/byeol-bit/memto-first-project-frontend?style=flat-square">
 </div>
+(해당 이미지는 AI를 활용해 제작하였습니다.)
 
 ## 📌 목차
 • [개요](#-개요) • [팀원 및 역할](#-팀원-및-역할) • [성장 및 회고](#-성장-및-회고) • [마무리](#-마무리)
