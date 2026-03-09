@@ -40,10 +40,10 @@ const UserMarkerLayer = () => {
 
     const geocoder = new kakao.maps.services.Geocoder();
     const sortedReviews = [...reviews].sort((a, b) => new Date(a.updated_at) - new Date(b.updated_at))
-
     const geocodePromises = sortedReviews.map((review) => {
       const r = review.restaurant;
       if (!r) return Promise.resolve(null);
+
 
       const thumbFromMap = thumbnailMap[review.restaurant_id] ?? null;
 
