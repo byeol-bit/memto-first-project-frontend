@@ -1,5 +1,11 @@
+
+## 지도로 보는 고수의 맛집 로그 
+
+---
+
 <div align="center">
-  <img width="1408" height="768" alt="hidden-master-main-image" src="https://github.com/user-attachments/assets/0fc97b0a-6f57-406d-b2d2-5871648edd96" />
+  <img width="1408" height="768" alt="hidden-master-main-image" src="https://github.com/user-attachments/assets/b245864f-7492-4f40-9718-ebf3fc4675fa" />
+
   
   <img src="https://img.shields.io/badge/React-61DAFB?style=for-the-badge&logo=React&logoColor=black">
   <img src="https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=TypeScript&logoColor=white">
@@ -9,10 +15,6 @@
   <img src="https://img.shields.io/github/issues/byeol-bit/memto-first-project-frontend?style=flat-square">
   <img src="https://img.shields.io/github/last-commit/byeol-bit/memto-first-project-frontend?style=flat-square">
 </div>
-
-## 지도로 보는 고수의 맛집 로그 
-
----
 
 ## 📌 목차
 • [개요](#-개요) • [팀원 및 역할](#-팀원-및-역할) • [성장 및 회고](#-성장-및-회고) • [마무리](#-마무리)
